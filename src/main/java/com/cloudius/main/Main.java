@@ -4,6 +4,7 @@
 package com.cloudius.main;
 
 import com.cloudius.api.APIClient;
+import org.apache.cassandra.net.MessagingService;
 import org.apache.cassandra.service.StorageService;
 
 public class Main {
@@ -12,6 +13,7 @@ public class Main {
         System.out.println("Connecting to " + APIClient.getBaseUrl());
         System.out.println("Starting the JMX server");
         StorageService.getInstance();
+        MessagingService.getInstance();
         Thread.sleep(Long.MAX_VALUE);
     }
 
