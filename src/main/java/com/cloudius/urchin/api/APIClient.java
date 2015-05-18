@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 Cloudius Systems
  */
-package com.cloudius.api;
+package com.cloudius.urchin.api;
 
 import java.io.StringReader;
 import java.net.InetAddress;

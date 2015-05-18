@@ -62,7 +62,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>${project.build.directory}/lib/</classpathPrefix>
-                            <mainClass>com.cloudius.main.Main</mainClass>
+                            <mainClass>com.cloudius.urchin.main.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

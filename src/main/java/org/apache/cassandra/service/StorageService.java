@@ -35,7 +35,7 @@ import javax.management.openmbean.TabularData;
 
 import org.apache.cassandra.repair.RepairParallelism;
 
-import com.cloudius.api.APIClient;
+import com.cloudius.urchin.api.APIClient;
 
 /**
  * This abstraction contains the token/identifier of this node on the identifier

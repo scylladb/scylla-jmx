@@ -1,9 +1,9 @@
 /*
  * Copyright 2015 Cloudius Systems
  */
-package com.cloudius.main;
+package com.cloudius.urchin.main;
 
-import com.cloudius.api.APIClient;
+import com.cloudius.urchin.api.APIClient;
 import org.apache.cassandra.net.MessagingService;
 import org.apache.cassandra.service.StorageService;
 

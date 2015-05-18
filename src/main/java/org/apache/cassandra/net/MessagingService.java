@@ -29,7 +29,7 @@ import java.util.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import com.cloudius.api.APIClient;
+import com.cloudius.urchin.api.APIClient;
 
 public final class MessagingService implements MessagingServiceMBean {
     public static final String MBEAN_NAME = "org.apache.cassandra.net:type=MessagingService";
