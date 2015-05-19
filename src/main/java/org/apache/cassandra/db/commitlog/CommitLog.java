@@ -43,7 +43,6 @@ public class CommitLog implements CommitLogMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        System.out.println(str);
         logger.info(str);
     }
 
@@ -52,6 +51,7 @@ public class CommitLog implements CommitLogMBean {
     public static CommitLog getInstance() {
         return instance;
     }
+
     private CommitLog() {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
@@ -108,7 +108,13 @@ public class CommitLog implements CommitLogMBean {
      */
     public List<String> getActiveSegmentNames() {
         log(" getActiveSegmentNames()");
-        return c.getListStrValue("");
+        List<String> lst = c.getListStrValue("/commitlog/segments/active");
+        Set<String> set = new HashSet<String>();
+        for (String l : lst) {
+            String name = l.substring(l.lastIndexOf("/") + 1, l.length());
+            set.add(name);
+        }
+        return new ArrayList<String>(set);
     }
 
     /**
@@ -117,7 +123,13 @@ public class CommitLog implements CommitLogMBean {
      */
     public List<String> getArchivingSegmentNames() {
         log(" getArchivingSegmentNames()");
-        return c.getListStrValue("");
+        List<String> lst = c.getListStrValue("/commitlog/segments/archiving");
+        Set<String> set = new HashSet<String>();
+        for (String l : lst) {
+            String name = l.substring(l.lastIndexOf("/") + 1, l.length());
+            set.add(name);
+        }
+        return new ArrayList<String>(set);
     }
 
 }
