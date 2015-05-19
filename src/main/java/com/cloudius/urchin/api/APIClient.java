@@ -5,6 +5,7 @@ package com.cloudius.urchin.api;
 
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -71,8 +72,15 @@ public class APIClient {
     }
 
     public List<String> getListStrValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        JsonReader reader = getReader(string);
+        JsonArray arr = reader.readArray();
+        List<String> res = new ArrayList<String>(arr.size());
+        for (int i = 0; i < arr.size(); i++) {
+            res.add(arr.getString(i));
+        }
+        reader.close();
+        return res;
+
     }
 
     public Map<List<String>, List<String>> getMapListStrValue(String string) {
