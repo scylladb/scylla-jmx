@@ -45,7 +45,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     private EndpointSnitchInfo() {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            mbs.registerMBean(new EndpointSnitchInfo(), new ObjectName(
+            mbs.registerMBean(this, new ObjectName(
                     "org.apache.cassandra.db:type=EndpointSnitchInfo"));
         } catch (Exception e) {
             throw new RuntimeException(e);
