@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -17,6 +18,7 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import javax.json.JsonString;
 import javax.management.openmbean.TabularData;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.Client;
@@ -41,6 +43,22 @@ public class APIClient {
         WebResource service = client.resource(UriBuilder.fromUri(getBaseUrl())
                 .build());
         return service.path(path).accept(MediaType.APPLICATION_JSON);
+    }
+
+    public Builder get(String path, MultivaluedMap<String, String> queryParams) {
+        ClientConfig config = new DefaultClientConfig();
+        Client client = Client.create(config);
+        WebResource service = client.resource(UriBuilder.fromUri(getBaseUrl())
+                .build());
+        return service.queryParams(queryParams).path(path).accept(MediaType.APPLICATION_JSON);
+    }
+
+    public void post(String path, MultivaluedMap<String, String> queryParams) {
+        if (queryParams != null) {
+            get(path, queryParams).post();
+            return;
+        }
+        get(path).post();
     }
 
     public String getStringValue(String string) {
@@ -150,7 +168,7 @@ public class APIClient {
             String key = "";
             long val = -1;
             while (it.hasNext()) {
-                String k = (String) it.next();
+                String k = it.next();
                 System.out.println(k);
                 if (obj.get(k) instanceof JsonString) {
                     key = obj.getString(k);
