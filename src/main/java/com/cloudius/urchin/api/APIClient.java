@@ -86,7 +86,7 @@ public class APIClient {
 
     public String getStringValue(String string,
             MultivaluedMap<String, String> queryParams) {
-        if (string != "") {
+        if (!string.equals("")) {
             return get(string, queryParams).get(String.class);
         }
         return "";
@@ -326,17 +326,13 @@ public class APIClient {
         return null;
     }
 
-    public Map<String, Long> getListMapStringLongValue(String string) {
+    public Map<String, Long> getListMapStringLongValue(String string,
+            MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
-        // Builder builder =
-
-        String vals = get(string).get(String.class);
-        System.out.println(vals);
-        JsonReader reader = getReader(string);
+        JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
-        System.out.println(arr.size());
         Map<String, Long> map = new HashMap<String, Long>();
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
@@ -345,7 +341,6 @@ public class APIClient {
             long val = -1;
             while (it.hasNext()) {
                 String k = it.next();
-                System.out.println(k);
                 if (obj.get(k) instanceof JsonString) {
                     key = obj.getString(k);
                 } else {
@@ -358,9 +353,25 @@ public class APIClient {
 
         }
         reader.close();
-
-        // .get(String.class);
-
         return map;
+    }
+    
+    public Map<String, Long> getListMapStringLongValue(String string) {
+        return getListMapStringLongValue(string, null);
+    }
+
+    public JsonArray getJsonArray(String string,
+            MultivaluedMap<String, String> queryParams) {
+        if (string.equals("")) {
+            return null;
+        }
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray res = reader.readArray();
+        reader.close();
+        return res;
+    }
+    
+    public JsonArray getJsonArray(String string) {
+        return getJsonArray(string, null);
     }
 }
