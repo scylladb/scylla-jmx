@@ -25,10 +25,13 @@ package org.apache.cassandra.gms;
 
 import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.cloudius.urchin.api.APIClient;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * This module is responsible for Gossiping information for the local endpoint.
@@ -54,7 +57,6 @@ public class Gossiper implements GossiperMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        System.out.println(str);
         logger.info(str);
     }
 
@@ -77,22 +79,26 @@ public class Gossiper implements GossiperMBean {
 
     public long getEndpointDowntime(String address) throws UnknownHostException {
         log(" getEndpointDowntime(String address) throws UnknownHostException");
-        return c.getLongValue("");
+        return c.getLongValue("gossiper/downtime/" + address);
     }
 
     public int getCurrentGenerationNumber(String address)
             throws UnknownHostException {
         log(" getCurrentGenerationNumber(String address) throws UnknownHostException");
-        return c.getIntValue("");
+        return c.getIntValue("gossiper/generation_number/" + address);
     }
 
     public void unsafeAssassinateEndpoint(String address)
             throws UnknownHostException {
         log(" unsafeAssassinateEndpoint(String address) throws UnknownHostException");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("unsafe", "True");
+        c.post("gossiper/assassinate/" + address, queryParams);
     }
 
     public void assassinateEndpoint(String address) throws UnknownHostException {
         log(" assassinateEndpoint(String address) throws UnknownHostException");
+        c.post("gossiper/assassinate/" + address, null);
     }
 
 }
