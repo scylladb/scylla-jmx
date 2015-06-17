@@ -11,6 +11,7 @@ import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.FailureDetector;
 import org.apache.cassandra.locator.EndpointSnitchInfo;
 import org.apache.cassandra.net.MessagingService;
+import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.service.StorageService;
 
 public class Main {
@@ -19,6 +20,7 @@ public class Main {
         System.out.println("Connecting to " + APIClient.getBaseUrl());
         System.out.println("Starting the JMX server");
         StorageService.getInstance();
+        StorageProxy.getInstance();
         MessagingService.getInstance();
         CommitLog.getInstance();
         Gossiper.getInstance();
