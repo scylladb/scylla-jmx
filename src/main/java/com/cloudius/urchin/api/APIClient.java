@@ -352,9 +352,20 @@ public class APIClient {
         return null;
     }
 
+    public long[] getLongArrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        long[] res = new long[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+            res[i] = arr.getJsonNumber(i).longValue();
+        }
+        reader.close();
+        return res;
+    }
+
     public long[] getLongArrValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return getLongArrValue(string, null);
     }
 
     public Map<String, Integer> getMapStringIntegerValue(String string) {
@@ -396,7 +407,7 @@ public class APIClient {
         reader.close();
         return map;
     }
-    
+
     public Map<String, Long> getListMapStringLongValue(String string) {
         return getListMapStringLongValue(string, null);
     }
@@ -411,7 +422,7 @@ public class APIClient {
         reader.close();
         return res;
     }
-    
+
     public JsonArray getJsonArray(String string) {
         return getJsonArray(string, null);
     }
