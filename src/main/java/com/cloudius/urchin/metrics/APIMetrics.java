@@ -144,9 +144,9 @@ public class APIMetrics {
      *            whether or not the histogram should be biased
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(Class<?> klass, String name,
-            boolean biased) {
-        return DEFAULT_REGISTRY.newHistogram(klass, name, biased);
+    public static Histogram newHistogram(String url, Class<?> klass,
+            String name, boolean biased) {
+        return DEFAULT_REGISTRY.newHistogram(url, klass, name, biased);
     }
 
     /**
@@ -163,9 +163,9 @@ public class APIMetrics {
      *            whether or not the histogram should be biased
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(Class<?> klass, String name,
-            String scope, boolean biased) {
-        return DEFAULT_REGISTRY.newHistogram(klass, name, scope, biased);
+    public static Histogram newHistogram(String url, Class<?> klass,
+            String name, String scope, boolean biased) {
+        return DEFAULT_REGISTRY.newHistogram(url, klass, name, scope, biased);
     }
 
     /**
@@ -178,8 +178,9 @@ public class APIMetrics {
      *            whether or not the histogram should be biased
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(MetricName metricName, boolean biased) {
-        return DEFAULT_REGISTRY.newHistogram(metricName, biased);
+    public static Histogram newHistogram(String url, MetricName metricName,
+            boolean biased) {
+        return DEFAULT_REGISTRY.newHistogram(url, metricName, biased);
     }
 
     /**
@@ -192,8 +193,8 @@ public class APIMetrics {
      *            the name of the metric
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(Class<?> klass, String name) {
-        return DEFAULT_REGISTRY.newHistogram(klass, name);
+    public static Histogram newHistogram(String url, Class<?> klass, String name) {
+        return DEFAULT_REGISTRY.newHistogram(url, klass, name);
     }
 
     /**
@@ -208,9 +209,9 @@ public class APIMetrics {
      *            the scope of the metric
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(Class<?> klass, String name,
-            String scope) {
-        return DEFAULT_REGISTRY.newHistogram(klass, name, scope);
+    public static Histogram newHistogram(String url, Class<?> klass,
+            String name, String scope) {
+        return DEFAULT_REGISTRY.newHistogram(url, klass, name, scope);
     }
 
     /**
@@ -221,8 +222,8 @@ public class APIMetrics {
      *            the name of the metric
      * @return a new {@link com.yammer.metrics.core.Histogram}
      */
-    public static Histogram newHistogram(MetricName metricName) {
-        return newHistogram(metricName, false);
+    public static Histogram newHistogram(String url, MetricName metricName) {
+        return newHistogram(url, metricName, false);
     }
 
     /**

@@ -21,9 +21,25 @@ public class APIMeter extends Meter {
         url = _url;
     }
 
-    @Override
-    public long count() {
+    public long get_value() {
         return c.getLongValue(url);
+    }
+
+    // Meter doesn't have a set value method.
+    // to mimic it, we clear the old value and set it to a new one.
+    // This is safe because the only this method would be used
+    // to update the values
+    public long set(long new_value) {
+        long res = super.count();
+        mark(-res);
+        mark(new_value);
+        return res;
+    }
+
+    @Override
+    void tick() {
+        set(get_value());
+        super.tick();
     }
 
 }

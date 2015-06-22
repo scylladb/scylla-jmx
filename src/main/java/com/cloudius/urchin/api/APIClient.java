@@ -8,9 +8,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -193,6 +195,29 @@ public class APIClient {
         return false;
     }
 
+    public Map<String, List<String>> getMapStringListStrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        if (string.equals("")) {
+            return null;
+        }
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            if (obj.containsKey("key") && obj.containsKey("value")) {
+                map.put(obj.getString("key"),
+                        listStrFromJArr(obj.getJsonArray("value")));
+            }
+        }
+        reader.close();
+        return map;
+    }
+
+    public Map<String, List<String>> getMapStringListStrValue(String string) {
+        return getMapStringListStrValue(string, null);
+    }
+
     public Map<List<String>, List<String>> getMapListStrValue(String string,
             MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
@@ -214,6 +239,22 @@ public class APIClient {
 
     public Map<List<String>, List<String>> getMapListStrValue(String string) {
         return getMapListStrValue(string, null);
+    }
+
+    public Set<String> getSetStringValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        Set<String> res = new HashSet<String>();
+        for (int i = 0; i < arr.size(); i++) {
+            res.add(arr.getString(i));
+        }
+        reader.close();
+        return res;
+    }
+
+    public Set<String> getSetStringValue(String string) {
+        return getSetStringValue(string, null);
     }
 
     public Map<String, String> getMapStrValue(String string,
@@ -311,9 +352,20 @@ public class APIClient {
         return null;
     }
 
+    public long[] getLongArrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        long[] res = new long[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+            res[i] = arr.getJsonNumber(i).longValue();
+        }
+        reader.close();
+        return res;
+    }
+
     public long[] getLongArrValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return getLongArrValue(string, null);
     }
 
     public Map<String, Integer> getMapStringIntegerValue(String string) {
@@ -355,7 +407,7 @@ public class APIClient {
         reader.close();
         return map;
     }
-    
+
     public Map<String, Long> getListMapStringLongValue(String string) {
         return getListMapStringLongValue(string, null);
     }
@@ -370,7 +422,7 @@ public class APIClient {
         reader.close();
         return res;
     }
-    
+
     public JsonArray getJsonArray(String string) {
         return getJsonArray(string, null);
     }
