@@ -32,6 +32,8 @@ import javax.json.JsonObject;
 import javax.management.*;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.cassandra.metrics.ColumnFamilyMetrics;
+
 import com.cloudius.urchin.api.APIClient;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
@@ -44,6 +46,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private String name;
     private String mbeanName;
     static final int INTERVAL = 1000; // update every 1second
+    public final ColumnFamilyMetrics metric;
 
     private static Map<String, ColumnFamilyStore> cf = new HashMap<String, ColumnFamilyStore>();
     private static Timer timer = new Timer("Column Family");
@@ -69,6 +72,15 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        metric = new ColumnFamilyMetrics(this);
+    }
+
+    /** true if this CFS contains secondary index data */
+    /*
+     * It is hard coded to false until secondary index is supported
+     */
+    public boolean isIndex() {
+        return false;
     }
 
     /**
@@ -662,6 +674,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     public long trueSnapshotsSize() {
         log(" trueSnapshotsSize()");
         return c.getLongValue("column_family/snapshots_size/" + getCFName());
+    }
+
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }
