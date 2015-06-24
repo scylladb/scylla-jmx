@@ -11,6 +11,7 @@ import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.FailureDetector;
 import org.apache.cassandra.locator.EndpointSnitchInfo;
 import org.apache.cassandra.net.MessagingService;
+import org.apache.cassandra.service.CacheService;
 import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.service.StorageService;
 
@@ -27,6 +28,7 @@ public class Main {
         EndpointSnitchInfo.getInstance();
         FailureDetector.getInstance();
         ColumnFamilyStore.register_mbeans();
+        CacheService.getInstance();
         Thread.sleep(Long.MAX_VALUE);
     }
 
