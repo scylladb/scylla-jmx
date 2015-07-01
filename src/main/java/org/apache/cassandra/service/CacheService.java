@@ -26,9 +26,12 @@ package org.apache.cassandra.service;
 
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.ExecutionException;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.apache.cassandra.metrics.CacheMetrics;
 
 import com.cloudius.urchin.api.APIClient;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -44,6 +47,9 @@ public class CacheService implements CacheServiceMBean {
 
     public static final String MBEAN_NAME = "org.apache.cassandra.db:type=Caches";
 
+    public final CacheMetrics keyCache;
+    public final CacheMetrics rowCache;
+    public final CacheMetrics counterCache;
     public final static CacheService instance = new CacheService();
 
     public static CacheService getInstance() {
@@ -59,6 +65,9 @@ public class CacheService implements CacheServiceMBean {
             throw new RuntimeException(e);
         }
 
+        keyCache = new CacheMetrics("KeyCache", "key");
+        rowCache = new CacheMetrics("RowCache", "row");
+        counterCache  = new CacheMetrics("CounterCache", "counter");
     }
 
     public int getRowCacheSavePeriodInSeconds() {
