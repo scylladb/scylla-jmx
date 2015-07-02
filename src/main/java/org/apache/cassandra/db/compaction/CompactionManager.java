@@ -19,10 +19,13 @@ package org.apache.cassandra.db.compaction;
 
 import java.lang.management.ManagementFactory;
 import java.util.*;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.apache.cassandra.metrics.CompactionMetrics;
 
 import com.cloudius.urchin.api.APIClient;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -46,6 +49,7 @@ public class CompactionManager implements CompactionManagerMBean {
             .getLogger(CompactionManager.class.getName());
     public static final CompactionManager instance;
     private APIClient c = new APIClient();
+    CompactionMetrics metrics = new CompactionMetrics();
 
     public void log(String str) {
         logger.info(str);
