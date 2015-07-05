@@ -156,6 +156,17 @@ public class APIClient {
         return res;
     }
 
+    public static Map<String, String> mapStrFromJArr(JsonArray arr) {
+        Map<String, String> res = new HashMap<String, String>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            if (obj.containsKey("key") && obj.containsKey("value")) {
+                res.put(obj.getString("key"), obj.getString("value"));
+            }
+        }
+        return res;
+    }
+
     public static String join(String[] arr, String joiner) {
         String res = "";
         if (arr != null) {
@@ -425,5 +436,24 @@ public class APIClient {
 
     public JsonArray getJsonArray(String string) {
         return getJsonArray(string, null);
+    }
+
+    public List<Map<String, String>> getListMapStrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonArray arr = getJsonArray(string, queryParams);
+        List<Map<String, String>> res = new ArrayList<Map<String, String>>();
+        for (int i = 0; i < arr.size(); i++) {
+            res.add(mapStrFromJArr(arr.getJsonArray(i)));
+        }
+        return res;
+    }
+
+    public List<Map<String, String>> getListMapStrValue(String string) {
+        return getListMapStrValue(string, null);
+    }
+
+    public TabularData getCQLResult(String string) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
