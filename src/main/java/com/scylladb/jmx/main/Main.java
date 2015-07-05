@@ -11,6 +11,7 @@ import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.FailureDetector;
 import org.apache.cassandra.locator.EndpointSnitchInfo;
+import org.apache.cassandra.metrics.StreamingMetrics;
 import org.apache.cassandra.net.MessagingService;
 import org.apache.cassandra.service.CacheService;
 import org.apache.cassandra.service.GCInspector;
@@ -34,6 +35,7 @@ public class Main {
         CacheService.getInstance();
         CompactionManager.getInstance();
         GCInspector.register();
+        StreamingMetrics.register_mbeans();
         Thread.sleep(Long.MAX_VALUE);
     }
 
