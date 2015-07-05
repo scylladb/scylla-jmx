@@ -186,6 +186,24 @@ public class APIClient {
         return join(arr, ",");
     }
 
+    public static String mapToString(Map<String, String> mp, String pairJoin,
+            String joiner) {
+        String res = "";
+        if (mp != null) {
+            for (String name : mp.keySet()) {
+                if (!res.equals("")) {
+                    res = res + joiner;
+                }
+                res = res + name + pairJoin + mp.get(name);
+            }
+        }
+        return res;
+    }
+
+    public static String mapToString(Map<String, String> mp) {
+        return mapToString(mp, "=", ",");
+    }
+
     public static boolean set_query_param(
             MultivaluedMap<String, String> queryParams, String key, String value) {
         if (queryParams != null && key != null && value != null
@@ -384,9 +402,20 @@ public class APIClient {
         return null;
     }
 
+    public int[] getIntArrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        int[] res = new int[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+            res[i] = arr.getInt(i);
+        }
+        reader.close();
+        return res;
+    }
+
     public int[] getIntArrValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return getIntArrValue(string, null);
     }
 
     public Map<String, Long> getListMapStringLongValue(String string,

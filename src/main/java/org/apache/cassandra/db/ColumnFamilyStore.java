@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-
 /*
  * Copyright 2015 Cloudius Systems
  *
@@ -31,8 +30,12 @@ import java.util.concurrent.*;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.*;
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.apache.cassandra.metrics.ColumnFamilyMetrics;
 
 import com.cloudius.urchin.api.APIClient;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -42,7 +45,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private String keyspace;
     private String name;
     private String mbeanName;
-    static final int INTERVAL = 1000; //update every 1second
+    static final int INTERVAL = 1000; // update every 1second
+    public final ColumnFamilyMetrics metric;
 
     private static Map<String, ColumnFamilyStore> cf = new HashMap<String, ColumnFamilyStore>();
     private static Timer timer = new Timer("Column Family");
@@ -56,10 +60,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         timer.scheduleAtFixedRate(taskToExecute, 100, INTERVAL);
     }
 
-    public ColumnFamilyStore(String _type, String _keyspace, String _name) {
-        type = _type;
-        keyspace = _keyspace;
-        name = _name;
+    public ColumnFamilyStore(String type, String keyspace, String name) {
+        this.type = type;
+        this.keyspace = keyspace;
+        this.name = name;
         mbeanName = getName(type, keyspace, name);
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -68,6 +72,24 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        metric = new ColumnFamilyMetrics(this);
+    }
+
+    /** true if this CFS contains secondary index data */
+    /*
+     * It is hard coded to false until secondary index is supported
+     */
+    public boolean isIndex() {
+        return false;
+    }
+
+    /**
+     * Get the column family name in the API format
+     *
+     * @return
+     */
+    public String getCFName() {
+        return keyspace + ":" + name;
     }
 
     private static String getName(String type, String keyspace, String name) {
@@ -92,12 +114,12 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                                 mbean.getString("type"), mbean.getString("ks"),
                                 mbean.getString("cf"));
                         cf.put(name, cfs);
-                    }                    
+                    }
                     all_cf.add(name);
                 }
-                //removing deleted column family
+                // removing deleted column family
                 for (String n : cf.keySet()) {
-                    if (! all_cf.contains(n)) {
+                    if (!all_cf.contains(n)) {
                         cf.remove(n);
                     }
                 }
@@ -322,6 +344,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     public void forceMajorCompaction() throws ExecutionException,
             InterruptedException {
         log(" forceMajorCompaction() throws ExecutionException, InterruptedException");
+        c.post("column_family/major_compaction/" + getCFName());
     }
 
     /**
@@ -431,7 +454,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int getMinimumCompactionThreshold() {
         log(" getMinimumCompactionThreshold()");
-        return c.getIntValue("");
+        return c.getIntValue("column_family/minimum_compaction/" + getCFName());
     }
 
     /**
@@ -439,6 +462,9 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setMinimumCompactionThreshold(int threshold) {
         log(" setMinimumCompactionThreshold(int threshold)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("value", Integer.toString(threshold));
+        c.post("column_family/minimum_compaction/" + getCFName(), queryParams);
     }
 
     /**
@@ -446,7 +472,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int getMaximumCompactionThreshold() {
         log(" getMaximumCompactionThreshold()");
-        return c.getIntValue("");
+        return c.getIntValue("column_family/maximum_compaction/" + getCFName());
     }
 
     /**
@@ -455,6 +481,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCompactionThresholds(int minThreshold, int maxThreshold) {
         log(" setCompactionThresholds(int minThreshold, int maxThreshold)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("minimum", Integer.toString(minThreshold));
+        queryParams.add("maximum", Integer.toString(maxThreshold));
+        c.post("column_family/compaction" + getCFName(), queryParams);
     }
 
     /**
@@ -462,16 +492,22 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setMaximumCompactionThreshold(int threshold) {
         log(" setMaximumCompactionThreshold(int threshold)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("value", Integer.toString(threshold));
+        c.post("column_family/maximum_compaction/" + getCFName(), queryParams);
     }
 
     /**
      * Sets the compaction strategy by class name
-     * 
+     *
      * @param className
      *            the name of the compaction strategy class
      */
     public void setCompactionStrategyClass(String className) {
         log(" setCompactionStrategyClass(String className)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("class_name", className);
+        c.post("column_family/compaction_strategy/" + getCFName(), queryParams);
     }
 
     /**
@@ -479,7 +515,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public String getCompactionStrategyClass() {
         log(" getCompactionStrategyClass()");
-        return c.getStringValue("");
+        return c.getStringValue("column_family/compaction_strategy/"
+                + getCFName());
     }
 
     /**
@@ -487,17 +524,22 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public Map<String, String> getCompressionParameters() {
         log(" getCompressionParameters()");
-        return c.getMapStrValue("");
+        return c.getMapStrValue("column_family/compression_parameters/"
+                + getCFName());
     }
 
     /**
      * Set the compression parameters
-     * 
+     *
      * @param opts
      *            map of string names to values
      */
     public void setCompressionParameters(Map<String, String> opts) {
         log(" setCompressionParameters(Map<String,String> opts)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("opts", APIClient.mapToString(opts));
+        c.post("column_family/compression_parameters/" + getCFName(),
+                queryParams);
     }
 
     /**
@@ -505,11 +547,14 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCrcCheckChance(double crcCheckChance) {
         log(" setCrcCheckChance(double crcCheckChance)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("check_chance", Double.toString(crcCheckChance));
+        c.post("column_family/crc_check_chance/" + getCFName(), queryParams);
     }
 
     public boolean isAutoCompactionDisabled() {
         log(" isAutoCompactionDisabled()");
-        return c.getBooleanValue("");
+        return c.getBooleanValue("column_family/autocompaction/" + getCFName());
     }
 
     /** Number of tombstoned cells retreived during the last slicequery */
@@ -528,7 +573,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     public long estimateKeys() {
         log(" estimateKeys()");
-        return c.getLongValue("");
+        return c.getLongValue("column_family/estimate_keys/" + getCFName());
     }
 
     /**
@@ -560,23 +605,26 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     /**
      * Returns a list of the names of the built column indexes for current store
-     * 
+     *
      * @return list of the index names
      */
     public List<String> getBuiltIndexes() {
         log(" getBuiltIndexes()");
-        return c.getListStrValue("");
+        return c.getListStrValue("column_family/built_indexes/" + getCFName());
     }
 
     /**
      * Returns a list of filenames that contain the given key on this node
-     * 
+     *
      * @param key
      * @return list of filenames containing the key
      */
     public List<String> getSSTablesForKey(String key) {
         log(" getSSTablesForKey(String key)");
-        return c.getListStrValue("");
+        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        queryParams.add("key", key);
+        return c.getListStrValue(
+                "column_family/sstables/by_key/" + getCFName(), queryParams);
     }
 
     /**
@@ -585,6 +633,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void loadNewSSTables() {
         log(" loadNewSSTables()");
+        c.post("column_family/sstable/" + getCFName());
     }
 
     /**
@@ -593,7 +642,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int getUnleveledSSTables() {
         log(" getUnleveledSSTables()");
-        return c.getIntValue("");
+        return c.getIntValue("column_family/sstables/unleveled/" + getCFName());
     }
 
     /**
@@ -603,18 +652,19 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int[] getSSTableCountPerLevel() {
         log(" getSSTableCountPerLevel()");
-        return c.getIntArrValue("");
+        return c.getIntArrValue("column_family/sstables/per_level/"
+                + getCFName());
     }
 
     /**
      * Get the ratio of droppable tombstones to real columns (and non-droppable
      * tombstones)
-     * 
+     *
      * @return ratio
      */
     public double getDroppableTombstoneRatio() {
         log(" getDroppableTombstoneRatio()");
-        return c.getDoubleValue("");
+        return c.getDoubleValue("column_family/droppable_ratio/" + getCFName());
     }
 
     /**
@@ -623,7 +673,11 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public long trueSnapshotsSize() {
         log(" trueSnapshotsSize()");
-        return c.getLongValue("");
+        return c.getLongValue("column_family/snapshots_size/" + getCFName());
+    }
+
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }

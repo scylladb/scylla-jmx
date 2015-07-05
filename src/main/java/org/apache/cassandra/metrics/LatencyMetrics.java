@@ -98,7 +98,7 @@ public class LatencyMetrics {
         latency = APIMetrics.newTimer(
                 factory.createMetricName(namePrefix + "Latency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        totalLatency = APIMetrics.newCounter(url + "total_latency",
+        totalLatency = APIMetrics.newCounter(url,
                 factory.createMetricName(namePrefix + "TotalLatency"));
     }
 
