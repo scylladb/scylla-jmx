@@ -29,6 +29,8 @@ import java.util.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.apache.cassandra.metrics.CommitLogMetrics;
+
 import com.cloudius.urchin.api.APIClient;
 
 /*
@@ -37,6 +39,7 @@ import com.cloudius.urchin.api.APIClient;
  */
 public class CommitLog implements CommitLogMBean {
 
+    CommitLogMetrics metrics = new CommitLogMetrics();
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(CommitLog.class.getName());
 
