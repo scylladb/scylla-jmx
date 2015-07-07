@@ -34,6 +34,7 @@ import javax.management.*;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
 
 import com.cloudius.urchin.api.APIClient;
@@ -50,7 +51,9 @@ public class StorageService extends NotificationBroadcasterSupport implements
             .getLogger(StorageService.class.getName());
 
     private APIClient c = new APIClient();
-
+    
+    private StorageMetrics metrics = new StorageMetrics();
+    
     public static final StorageService instance = new StorageService();
 
     public static StorageService getInstance() {
