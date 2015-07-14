@@ -31,6 +31,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.yammer.metrics.core.HistogramValues;
 
 import javax.ws.rs.core.MediaType;
 
@@ -484,5 +485,38 @@ public class APIClient {
     public TabularData getCQLResult(String string) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public JsonObject getJsonObj(String string,
+            MultivaluedMap<String, String> queryParams) {
+        if (string.equals("")) {
+            return null;
+        }
+        JsonReader reader = getReader(string, queryParams);
+        JsonObject res = reader.readObject();
+        reader.close();
+        return res;
+    }
+
+    public HistogramValues getHistogramValue(String url,
+            MultivaluedMap<String, String> queryParams) {
+        HistogramValues res = new HistogramValues();
+        JsonObject obj = getJsonObj(url, queryParams);
+        res.count = obj.getJsonNumber("count").longValue();
+        res.max = obj.getJsonNumber("max").longValue();
+        res.min = obj.getJsonNumber("min").longValue();
+        res.sum = obj.getJsonNumber("sum").longValue();
+        res.variance = obj.getJsonNumber("variance").doubleValue();
+        res.svariance = obj.getJsonNumber("svariance").doubleValue();
+        JsonArray arr = obj.getJsonArray("sample");
+        res.sample = new long[arr.size()];
+        for (int i = 0; i < arr.size(); i++) {
+            res.sample[i] = arr.getJsonNumber(i).longValue();
+        }
+        return res;
+    }
+
+    public HistogramValues getHistogramValue(String url) {
+        return getHistogramValue(url, null);
     }
 }
