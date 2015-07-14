@@ -325,13 +325,13 @@ public class ColumnFamilyMetrics {
         colUpdateTimeDeltaHistogram = createColumnFamilyHistogram(
                 "/column_family/metrics/col_update_time_delta_histogram",
                 "ColUpdateTimeDeltaHistogram");
-        coordinatorReadLatency = Metrics.newTimer(
+        coordinatorReadLatency = APIMetrics.newTimer("/column_family/metrics/coordinator/read/" + cfName,
                 factory.createMetricName("CoordinatorReadLatency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        coordinatorScanLatency = Metrics.newTimer(
+        coordinatorScanLatency = APIMetrics.newTimer("/column_family/metrics/coordinator/scan/" + cfName,
                 factory.createMetricName("CoordinatorScanLatency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        waitingOnFreeMemtableSpace = Metrics.newTimer(
+        waitingOnFreeMemtableSpace = APIMetrics.newTimer("/column_family/metrics/waiting_on_free_memtable/" + cfName,
                 factory.createMetricName("WaitingOnFreeMemtableSpace"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
 

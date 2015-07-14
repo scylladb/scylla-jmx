@@ -95,7 +95,7 @@ public class LatencyMetrics {
         this.factory = factory;
         this.namePrefix = namePrefix;
 
-        latency = APIMetrics.newTimer(
+        latency = APIMetrics.newTimer(url + "/histogram",
                 factory.createMetricName(namePrefix + "Latency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
         totalLatency = APIMetrics.newCounter(url,
