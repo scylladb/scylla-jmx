@@ -14,6 +14,7 @@ import com.yammer.metrics.core.Gauge;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
+import com.yammer.metrics.core.APITimer;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.reporting.JmxReporter;
 
@@ -288,7 +289,7 @@ public class APIMetrics {
     }
 
     /**
-     * Creates a new {@link com.yammer.metrics.core.Timer} and registers it
+     * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class and name.
      *
      * @param klass
@@ -299,15 +300,15 @@ public class APIMetrics {
      *            the duration scale unit of the new timer
      * @param rateUnit
      *            the rate scale unit of the new timer
-     * @return a new {@link com.yammer.metrics.core.Timer}
+     * @return a new {@link com.yammer.metrics.core.APITimer}
      */
-    public static Timer newTimer(Class<?> klass, String name,
+    public static Timer newTimer(String url, Class<?> klass, String name,
             TimeUnit durationUnit, TimeUnit rateUnit) {
-        return DEFAULT_REGISTRY.newTimer(klass, name, durationUnit, rateUnit);
+        return DEFAULT_REGISTRY.newTimer(url, klass, name, durationUnit, rateUnit);
     }
 
     /**
-     * Creates a new {@link com.yammer.metrics.core.Timer} and registers it
+     * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class and name, measuring elapsed time in milliseconds
      * and invocations per second.
      *
@@ -315,14 +316,14 @@ public class APIMetrics {
      *            the class which owns the metric
      * @param name
      *            the name of the metric
-     * @return a new {@link com.yammer.metrics.core.Timer}
+     * @return a new {@link com.yammer.metrics.core.APITimer}
      */
-    public static Timer newTimer(Class<?> klass, String name) {
-        return DEFAULT_REGISTRY.newTimer(klass, name);
+    public static Timer newTimer(String url, Class<?> klass, String name) {
+        return DEFAULT_REGISTRY.newTimer(url, klass, name);
     }
 
     /**
-     * Creates a new {@link com.yammer.metrics.core.Timer} and registers it
+     * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class, name, and scope.
      *
      * @param klass
@@ -335,16 +336,16 @@ public class APIMetrics {
      *            the duration scale unit of the new timer
      * @param rateUnit
      *            the rate scale unit of the new timer
-     * @return a new {@link com.yammer.metrics.core.Timer}
+     * @return a new {@link com.yammer.metrics.core.APITimer}
      */
-    public static Timer newTimer(Class<?> klass, String name, String scope,
+    public static Timer newTimer(String url, Class<?> klass, String name, String scope,
             TimeUnit durationUnit, TimeUnit rateUnit) {
-        return DEFAULT_REGISTRY.newTimer(klass, name, scope, durationUnit,
+        return DEFAULT_REGISTRY.newTimer(url, klass, name, scope, durationUnit,
                 rateUnit);
     }
 
     /**
-     * Creates a new {@link com.yammer.metrics.core.Timer} and registers it
+     * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class, name, and scope, measuring elapsed time in
      * milliseconds and invocations per second.
      *
@@ -354,14 +355,14 @@ public class APIMetrics {
      *            the name of the metric
      * @param scope
      *            the scope of the metric
-     * @return a new {@link com.yammer.metrics.core.Timer}
+     * @return a new {@link com.yammer.metrics.core.APITimer}
      */
-    public static Timer newTimer(Class<?> klass, String name, String scope) {
-        return DEFAULT_REGISTRY.newTimer(klass, name, scope);
+    public static Timer newTimer(String url, Class<?> klass, String name, String scope) {
+        return DEFAULT_REGISTRY.newTimer(url, klass, name, scope);
     }
 
     /**
-     * Creates a new {@link com.yammer.metrics.core.Timer} and registers it
+     * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given metric name.
      *
      * @param metricName
@@ -370,11 +371,11 @@ public class APIMetrics {
      *            the duration scale unit of the new timer
      * @param rateUnit
      *            the rate scale unit of the new timer
-     * @return a new {@link com.yammer.metrics.core.Timer}
+     * @return a new {@link com.yammer.metrics.core.APITimer}
      */
-    public static Timer newTimer(MetricName metricName, TimeUnit durationUnit,
+    public static Timer newTimer(String url, MetricName metricName, TimeUnit durationUnit,
             TimeUnit rateUnit) {
-        return DEFAULT_REGISTRY.newTimer(metricName, durationUnit, rateUnit);
+        return DEFAULT_REGISTRY.newTimer(url, metricName, durationUnit, rateUnit);
     }
 
     /**

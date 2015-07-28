@@ -77,10 +77,10 @@ public class CommitLogMetrics {
                         return c.getLongValue("/commitlog/metrics/total_commit_log_size");
                     }
                 });
-        waitingOnSegmentAllocation = APIMetrics.newTimer(
+        waitingOnSegmentAllocation = APIMetrics.newTimer("/commit_log/metrics/waiting_on_segment_allocation",
                 factory.createMetricName("WaitingOnSegmentAllocation"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        waitingOnCommit = APIMetrics.newTimer(
+        waitingOnCommit = APIMetrics.newTimer("/commit_log/metrics/waiting_on_commit",
                 factory.createMetricName("WaitingOnCommit"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
     }
