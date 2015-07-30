@@ -341,8 +341,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     /**
      * force a major compaction of this column family
      */
-    public void forceMajorCompaction() throws ExecutionException,
-            InterruptedException {
+    public void forceMajorCompaction()
+            throws ExecutionException, InterruptedException {
         log(" forceMajorCompaction() throws ExecutionException, InterruptedException");
         c.post("column_family/major_compaction/" + getCFName());
     }
@@ -515,8 +515,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public String getCompactionStrategyClass() {
         log(" getCompactionStrategyClass()");
-        return c.getStringValue("column_family/compaction_strategy/"
-                + getCFName());
+        return c.getStringValue(
+                "column_family/compaction_strategy/" + getCFName());
     }
 
     /**
@@ -524,8 +524,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public Map<String, String> getCompressionParameters() {
         log(" getCompressionParameters()");
-        return c.getMapStrValue("column_family/compression_parameters/"
-                + getCFName());
+        return c.getMapStrValue(
+                "column_family/compression_parameters/" + getCFName());
     }
 
     /**
@@ -623,8 +623,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" getSSTablesForKey(String key)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("key", key);
-        return c.getListStrValue(
-                "column_family/sstables/by_key/" + getCFName(), queryParams);
+        return c.getListStrValue("column_family/sstables/by_key/" + getCFName(),
+                queryParams);
     }
 
     /**
@@ -652,8 +652,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int[] getSSTableCountPerLevel() {
         log(" getSSTableCountPerLevel()");
-        return c.getIntArrValue("column_family/sstables/per_level/"
-                + getCFName());
+        return c.getIntArrValue(
+                "column_family/sstables/per_level/" + getCFName());
     }
 
     /**

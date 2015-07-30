@@ -58,8 +58,8 @@ public class CommitLog implements CommitLogMBean {
     private CommitLog() {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            mbs.registerMBean(this, new ObjectName(
-                    "org.apache.cassandra.db:type=Commitlog"));
+            mbs.registerMBean(this,
+                    new ObjectName("org.apache.cassandra.db:type=Commitlog"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

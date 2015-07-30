@@ -45,15 +45,15 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * space. This token gets gossiped around. This class will also maintain
  * histograms of the load information of other nodes in the cluster.
  */
-public class StorageService extends NotificationBroadcasterSupport implements
-        StorageServiceMBean {
+public class StorageService extends NotificationBroadcasterSupport
+        implements StorageServiceMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(StorageService.class.getName());
 
     private APIClient c = new APIClient();
-    
+
     private StorageMetrics metrics = new StorageMetrics();
-    
+
     public static final StorageService instance = new StorageService();
 
     public static StorageService getInstance() {
@@ -211,7 +211,8 @@ public class StorageService extends NotificationBroadcasterSupport implements
      *
      * @return mapping of ranges to end points
      */
-    public Map<List<String>, List<String>> getRangeToEndpointMap(String keyspace) {
+    public Map<List<String>, List<String>> getRangeToEndpointMap(
+            String keyspace) {
         log(" getRangeToEndpointMap(String keyspace)");
         return c.getMapListStrValue("/storage_service/range/" + keyspace);
     }
@@ -257,8 +258,8 @@ public class StorageService extends NotificationBroadcasterSupport implements
     public Map<List<String>, List<String>> getPendingRangeToEndpointMap(
             String keyspace) {
         log(" getPendingRangeToEndpointMap(String keyspace)");
-        return c.getMapListStrValue("/storage_service/pending_range/"
-                + keyspace);
+        return c.getMapListStrValue(
+                "/storage_service/pending_range/" + keyspace);
     }
 
     /**
@@ -328,14 +329,15 @@ public class StorageService extends NotificationBroadcasterSupport implements
      *            - key for which we need to find the endpoint return value -
      *            the endpoint responsible for this key
      */
-    public List<InetAddress> getNaturalEndpoints(String keyspaceName,
-            String cf, String key) {
+    public List<InetAddress> getNaturalEndpoints(String keyspaceName, String cf,
+            String key) {
         log(" getNaturalEndpoints(String keyspaceName, String cf, String key)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("cf", cf);
         queryParams.add("key", key);
-        return c.getListInetAddressValue("/storage_service/natural_endpoints/"
-                + keyspaceName, queryParams);
+        return c.getListInetAddressValue(
+                "/storage_service/natural_endpoints/" + keyspaceName,
+                queryParams);
     }
 
     public List<InetAddress> getNaturalEndpoints(String keyspaceName,
@@ -430,7 +432,7 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public void forceKeyspaceCompaction(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException {
+                    InterruptedException {
         log(" forceKeyspaceCompaction(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_query_param(queryParams, "cf",
@@ -444,13 +446,14 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public int forceKeyspaceCleanup(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException {
+                    InterruptedException {
         log(" forceKeyspaceCleanup(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
-        return c.getIntValue("/storage_service/keyspace_compaction/"
-                + keyspaceName, queryParams);
+        return c.getIntValue(
+                "/storage_service/keyspace_compaction/" + keyspaceName,
+                queryParams);
     }
 
     /**
@@ -462,7 +465,7 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public int scrub(boolean disableSnapshot, boolean skipCorrupted,
             String keyspaceName, String... columnFamilies) throws IOException,
-            ExecutionException, InterruptedException {
+                    ExecutionException, InterruptedException {
         log(" scrub(boolean disableSnapshot, boolean skipCorrupted, String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_bool_query_param(queryParams, "disable_snapshot",
@@ -480,15 +483,16 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public int upgradeSSTables(String keyspaceName,
             boolean excludeCurrentVersion, String... columnFamilies)
-            throws IOException, ExecutionException, InterruptedException {
+                    throws IOException, ExecutionException,
+                    InterruptedException {
         log(" upgradeSSTables(String keyspaceName, boolean excludeCurrentVersion, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_bool_query_param(queryParams, "exclude_current_version",
                 excludeCurrentVersion);
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
-        return c.getIntValue("/storage_service/keyspace_upgrade_sstables/"
-                + keyspaceName);
+        return c.getIntValue(
+                "/storage_service/keyspace_upgrade_sstables/" + keyspaceName);
     }
 
     /**
@@ -501,7 +505,7 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public void forceKeyspaceFlush(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException {
+                    InterruptedException {
         log(" forceKeyspaceFlush(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_query_param(queryParams, "cf",
@@ -539,16 +543,16 @@ public class StorageService extends NotificationBroadcasterSupport implements
     public int forceRepairAsync(String keyspace, boolean isSequential,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean primaryRange, boolean repairedAt, String... columnFamilies)
-            throws IOException {
+                    throws IOException {
         log(" forceRepairAsync(String keyspace, boolean isSequential, Collection<String> dataCenters, Collection<String> hosts,  boolean primaryRange, boolean repairedAt, String... columnFamilies) throws IOException");
         return c.getIntValue("");
     }
 
     @Deprecated
     public int forceRepairAsync(String keyspace,
-            RepairParallelism parallelismDegree,
-            Collection<String> dataCenters, Collection<String> hosts,
-            boolean primaryRange, boolean fullRepair, String... columnFamilies) {
+            RepairParallelism parallelismDegree, Collection<String> dataCenters,
+            Collection<String> hosts, boolean primaryRange, boolean fullRepair,
+            String... columnFamilies) {
         log(" forceRepairAsync(String keyspace, RepairParallelism parallelismDegree, Collection<String> dataCenters, Collection<String> hosts, boolean primaryRange, boolean fullRepair, String... columnFamilies)");
         return c.getIntValue("");
     }
@@ -699,8 +703,8 @@ public class StorageService extends NotificationBroadcasterSupport implements
      * makes node unavailable for writes, flushes memtables and replays
      * commitlog.
      */
-    public void drain() throws IOException, InterruptedException,
-            ExecutionException {
+    public void drain()
+            throws IOException, InterruptedException, ExecutionException {
         log(" drain() throws IOException, InterruptedException, ExecutionException");
         c.post("/storage_service/drain");
     }
@@ -946,7 +950,8 @@ public class StorageService extends NotificationBroadcasterSupport implements
      */
     public String bulkLoadAsync(String directory) {
         log(" bulkLoadAsync(String directory)");
-        return c.getStringValue("/storage_service/bulk_load_async/" + directory);
+        return c.getStringValue(
+                "/storage_service/bulk_load_async/" + directory);
     }
 
     public void rescheduleFailedDeletions() {
@@ -1104,7 +1109,9 @@ public class StorageService extends NotificationBroadcasterSupport implements
         c.post("/storage_service/batch_size_failure_threshold", queryParams);
     }
 
-    /** Sets the hinted handoff throttle in kb per second, per delivery thread. */
+    /**
+     * Sets the hinted handoff throttle in kb per second, per delivery thread.
+     */
     public void setHintedHandoffThrottleInKB(int throttleInKB) {
         log(" setHintedHandoffThrottleInKB(int throttleInKB)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
