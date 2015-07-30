@@ -58,8 +58,8 @@ public class CommitLog implements CommitLogMBean {
     private CommitLog() {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            mbs.registerMBean(this, new ObjectName(
-                    "org.apache.cassandra.db:type=Commitlog"));
+            mbs.registerMBean(this,
+                    new ObjectName("org.apache.cassandra.db:type=Commitlog"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -133,6 +133,41 @@ public class CommitLog implements CommitLogMBean {
             set.add(name);
         }
         return new ArrayList<String>(set);
+    }
+
+    @Override
+    public String getArchiveCommand() {
+        // TODO Auto-generated method stub
+        log(" getArchiveCommand()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public String getRestoreCommand() {
+        // TODO Auto-generated method stub
+        log(" getRestoreCommand()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public String getRestoreDirectories() {
+        // TODO Auto-generated method stub
+        log(" getRestoreDirectories()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public long getRestorePointInTime() {
+        // TODO Auto-generated method stub
+        log(" getRestorePointInTime()");
+        return c.getLongValue("");
+    }
+
+    @Override
+    public String getRestorePrecision() {
+        // TODO Auto-generated method stub
+        log(" getRestorePrecision()");
+        return c.getStringValue("");
     }
 
 }

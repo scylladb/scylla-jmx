@@ -54,16 +54,16 @@ public class StorageProxy implements StorageProxyMBean {
 
     public static final String UNREACHABLE = "UNREACHABLE";
 
-    private static final ClientRequestMetrics readMetrics = new ClientRequestMetrics("storage_proxy/metrics/read/",
-            "Read");
-    private static final ClientRequestMetrics rangeMetrics = new ClientRequestMetrics("storage_proxy/metrics/range/",
-            "RangeSlice");
-    private static final ClientRequestMetrics writeMetrics = new ClientRequestMetrics("storage_proxy/metrics/write/",
-            "Write");
-    private static final CASClientRequestMetrics casWriteMetrics = new CASClientRequestMetrics("storage_proxy/metrics/cas_write/",
-            "CASWrite");
-    private static final CASClientRequestMetrics casReadMetrics = new CASClientRequestMetrics("storage_proxy/metrics/cas_read/",
-            "CASRead");
+    private static final ClientRequestMetrics readMetrics = new ClientRequestMetrics(
+            "storage_proxy/metrics/read/", "Read");
+    private static final ClientRequestMetrics rangeMetrics = new ClientRequestMetrics(
+            "storage_proxy/metrics/range/", "RangeSlice");
+    private static final ClientRequestMetrics writeMetrics = new ClientRequestMetrics(
+            "storage_proxy/metrics/write/", "Write");
+    private static final CASClientRequestMetrics casWriteMetrics = new CASClientRequestMetrics(
+            "storage_proxy/metrics/cas_write/", "CASWrite");
+    private static final CASClientRequestMetrics casReadMetrics = new CASClientRequestMetrics(
+            "storage_proxy/metrics/cas_read/", "CASRead");
 
     private static final double CONCURRENT_SUBREQUESTS_MARGIN = 0.10;
 
@@ -197,15 +197,15 @@ public class StorageProxy implements StorageProxyMBean {
 
     public Set<String> getHintedHandoffEnabledByDC() {
         log(" getHintedHandoffEnabledByDC()");
-        return c.getSetStringValue("storage_proxy/hinted_handoff_enabled_by_dc");
+        return c.getSetStringValue(
+                "storage_proxy/hinted_handoff_enabled_by_dc");
     }
 
     public void setHintedHandoffEnabled(boolean b) {
         log(" setHintedHandoffEnabled(boolean b)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("enable", Boolean.toString(b));
-        c.post("storage_proxy/hinted_handoff_enabled",
-                queryParams);
+        c.post("storage_proxy/hinted_handoff_enabled", queryParams);
     }
 
     public void setHintedHandoffEnabledByDCList(String dcs) {
@@ -289,8 +289,7 @@ public class StorageProxy implements StorageProxyMBean {
         log(" setCounterWriteRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/counter_write_rpc_timeout",
-                queryParams);
+        c.post("storage_proxy/counter_write_rpc_timeout", queryParams);
     }
 
     public Long getCasContentionTimeout() {
@@ -302,8 +301,7 @@ public class StorageProxy implements StorageProxyMBean {
         log(" setCasContentionTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/cas_contention_timeout",
-                queryParams);
+        c.post("storage_proxy/cas_contention_timeout", queryParams);
     }
 
     public Long getRangeRpcTimeout() {
@@ -354,6 +352,21 @@ public class StorageProxy implements StorageProxyMBean {
     public Map<String, List<String>> getSchemaVersions() {
         log(" getSchemaVersions()");
         return c.getMapStringListStrValue("storage_proxy/schema_versions");
+    }
+
+    @Override
+    public void setNativeTransportMaxConcurrentConnections(
+            Long nativeTransportMaxConcurrentConnections) {
+        // TODO Auto-generated method stub
+        log(" setNativeTransportMaxConcurrentConnections()");
+
+    }
+
+    @Override
+    public Long getNativeTransportMaxConcurrentConnections() {
+        // TODO Auto-generated method stub
+        log(" getNativeTransportMaxConcurrentConnections()");
+        return c.getLongValue("");
     }
 
 }

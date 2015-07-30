@@ -30,6 +30,8 @@ import java.util.concurrent.*;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.ColumnFamilyMetrics;
@@ -341,8 +343,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     /**
      * force a major compaction of this column family
      */
-    public void forceMajorCompaction() throws ExecutionException,
-            InterruptedException {
+    public void forceMajorCompaction()
+            throws ExecutionException, InterruptedException {
         log(" forceMajorCompaction() throws ExecutionException, InterruptedException");
         c.post("column_family/major_compaction/" + getCFName());
     }
@@ -515,8 +517,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public String getCompactionStrategyClass() {
         log(" getCompactionStrategyClass()");
-        return c.getStringValue("column_family/compaction_strategy/"
-                + getCFName());
+        return c.getStringValue(
+                "column_family/compaction_strategy/" + getCFName());
     }
 
     /**
@@ -524,8 +526,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public Map<String, String> getCompressionParameters() {
         log(" getCompressionParameters()");
-        return c.getMapStrValue("column_family/compression_parameters/"
-                + getCFName());
+        return c.getMapStrValue(
+                "column_family/compression_parameters/" + getCFName());
     }
 
     /**
@@ -623,8 +625,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" getSSTablesForKey(String key)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("key", key);
-        return c.getListStrValue(
-                "column_family/sstables/by_key/" + getCFName(), queryParams);
+        return c.getListStrValue("column_family/sstables/by_key/" + getCFName(),
+                queryParams);
     }
 
     /**
@@ -652,8 +654,8 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int[] getSSTableCountPerLevel() {
         log(" getSSTableCountPerLevel()");
-        return c.getIntArrValue("column_family/sstables/per_level/"
-                + getCFName());
+        return c.getIntArrValue(
+                "column_family/sstables/per_level/" + getCFName());
     }
 
     /**
@@ -678,6 +680,56 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     public String getKeyspace() {
         return keyspace;
+    }
+
+    @Override
+    public long getRangeCount() {
+        // TODO Auto-generated method stub
+        log("getRangeCount()");
+        return c.getLongValue("");
+    }
+
+    @Override
+    public long getTotalRangeLatencyMicros() {
+        // TODO Auto-generated method stub
+        log("getTotalRangeLatencyMicros()");
+        return c.getLongValue("");
+    }
+
+    @Override
+    public long[] getLifetimeRangeLatencyHistogramMicros() {
+        // TODO Auto-generated method stub
+        log("getLifetimeRangeLatencyHistogramMicros()");
+        return c.getLongArrValue("");
+    }
+
+    @Override
+    public long[] getRecentRangeLatencyHistogramMicros() {
+        // TODO Auto-generated method stub
+        log("getRecentRangeLatencyHistogramMicros()");
+        return c.getLongArrValue("");
+    }
+
+    @Override
+    public double getRecentRangeLatencyMicros() {
+        // TODO Auto-generated method stub
+        log("getRecentRangeLatencyMicros()");
+        return c.getDoubleValue("");
+    }
+
+    @Override
+    public void beginLocalSampling(String sampler, int capacity) {
+        // TODO Auto-generated method stub
+        log("beginLocalSampling()");
+
+    }
+
+    @Override
+    public CompositeData finishLocalSampling(String sampler, int count)
+            throws OpenDataException {
+        // TODO Auto-generated method stub
+        log("finishLocalSampling()");
+        return null;
     }
 
 }
