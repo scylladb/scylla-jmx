@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+
 /**
  * The MBean interface for ColumnFamilyStore
  */
@@ -144,6 +147,41 @@ public interface ColumnFamilyStoreMBean
      */
     @Deprecated
     public double getRecentWriteLatencyMicros();
+
+    /**
+     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#rangeLatency
+     * @return the number of range slice operations on this column family
+     */
+    @Deprecated
+    public long getRangeCount();
+
+    /**
+     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#rangeLatency
+     * @return total range slice latency (divide by getRangeCount() for average)
+     */
+    @Deprecated
+    public long getTotalRangeLatencyMicros();
+
+    /**
+     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#rangeLatency
+     * @return an array representing the latency histogram
+     */
+    @Deprecated
+    public long[] getLifetimeRangeLatencyHistogramMicros();
+
+    /**
+     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#rangeLatency
+     * @return an array representing the latency histogram
+     */
+    @Deprecated
+    public long[] getRecentRangeLatencyHistogramMicros();
+
+    /**
+     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#rangeLatency
+     * @return average latency per range slice operation since the last call
+     */
+    @Deprecated
+    public double getRecentRangeLatencyMicros();
 
     /**
      * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#pendingFlushes
@@ -367,4 +405,15 @@ public interface ColumnFamilyStoreMBean
      * @return the size of SSTables in "snapshots" subdirectory which aren't live anymore
      */
     public long trueSnapshotsSize();
+
+    /**
+     * begin sampling for a specific sampler with a given capacity.  The cardinality may
+     * be larger than the capacity, but depending on the use case it may affect its accuracy
+     */
+    public void beginLocalSampling(String sampler, int capacity);
+
+    /**
+     * @return top <i>count</i> items for the sampler since beginLocalSampling was called
+     */
+    public CompositeData finishLocalSampling(String sampler, int count) throws OpenDataException;
 }

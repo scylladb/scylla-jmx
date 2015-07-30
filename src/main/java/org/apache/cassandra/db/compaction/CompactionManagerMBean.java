@@ -66,9 +66,7 @@ public interface CompactionManagerMBean {
      * keyspace/columnfamily.
      *
      * @param dataFiles
-     *            a comma separated list of sstable file to compact. must
-     *            contain keyspace and columnfamily name in path(for 2.1+) or
-     *            file name itself.
+     *            a comma separated list of sstable filename to compact
      */
     public void forceUserDefinedCompaction(String dataFiles);
 

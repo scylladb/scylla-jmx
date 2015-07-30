@@ -135,4 +135,39 @@ public class CommitLog implements CommitLogMBean {
         return new ArrayList<String>(set);
     }
 
+    @Override
+    public String getArchiveCommand() {
+        // TODO Auto-generated method stub
+        log(" getArchiveCommand()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public String getRestoreCommand() {
+        // TODO Auto-generated method stub
+        log(" getRestoreCommand()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public String getRestoreDirectories() {
+        // TODO Auto-generated method stub
+        log(" getRestoreDirectories()");
+        return c.getStringValue("");
+    }
+
+    @Override
+    public long getRestorePointInTime() {
+        // TODO Auto-generated method stub
+        log(" getRestorePointInTime()");
+        return c.getLongValue("");
+    }
+
+    @Override
+    public String getRestorePrecision() {
+        // TODO Auto-generated method stub
+        log(" getRestorePrecision()");
+        return c.getStringValue("");
+    }
+
 }

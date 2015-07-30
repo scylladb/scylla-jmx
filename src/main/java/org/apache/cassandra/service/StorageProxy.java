@@ -354,4 +354,19 @@ public class StorageProxy implements StorageProxyMBean {
         return c.getMapStringListStrValue("storage_proxy/schema_versions");
     }
 
+    @Override
+    public void setNativeTransportMaxConcurrentConnections(
+            Long nativeTransportMaxConcurrentConnections) {
+        // TODO Auto-generated method stub
+        log(" setNativeTransportMaxConcurrentConnections()");
+
+    }
+
+    @Override
+    public Long getNativeTransportMaxConcurrentConnections() {
+        // TODO Auto-generated method stub
+        log(" getNativeTransportMaxConcurrentConnections()");
+        return c.getLongValue("");
+    }
+
 }

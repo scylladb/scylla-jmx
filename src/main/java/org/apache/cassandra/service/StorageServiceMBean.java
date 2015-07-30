@@ -17,8 +17,6 @@
  */
 package org.apache.cassandra.service;
 
-import org.apache.cassandra.repair.RepairParallelism;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -127,7 +125,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *
      * @return mapping of ranges to end points
      */
-    public Map<List<String>, List<String>> getRangeToEndpointMap(String keyspace);
+    public Map<List<String>, List<String>> getRangeToEndpointMap(
+            String keyspace);
 
     /**
      * Retrieve a map of range to rpc addresses that describe the ring topology
@@ -207,8 +206,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *            - key for which we need to find the endpoint return value -
      *            the endpoint responsible for this key
      */
-    public List<InetAddress> getNaturalEndpoints(String keyspaceName,
-            String cf, String key);
+    public List<InetAddress> getNaturalEndpoints(String keyspaceName, String cf,
+            String key);
 
     public List<InetAddress> getNaturalEndpoints(String keyspaceName,
             ByteBuffer key);
@@ -240,6 +239,19 @@ public interface StorageServiceMBean extends NotificationEmitter {
             String columnFamilyName, String tag) throws IOException;
 
     /**
+     * Takes the snapshot of a multiple column family from different keyspaces.
+     * A snapshot name must be specified.
+     *
+     * @param tag
+     *            the tag given to the snapshot; may not be null or empty
+     * @param columnFamilyList
+     *            list of columnfamily from different keyspace in the form of
+     *            ks1.cf1 ks2.cf2
+     */
+    public void takeMultipleColumnFamilySnapshot(String tag,
+            String... columnFamilyList) throws IOException;
+
+    /**
      * Remove the snapshot with the given name from the given keyspaces. If no
      * tag is specified we will remove all snapshots.
      */
@@ -265,14 +277,14 @@ public interface StorageServiceMBean extends NotificationEmitter {
      */
     public void forceKeyspaceCompaction(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException;
+                    InterruptedException;
 
     /**
      * Trigger a cleanup of keys on a single keyspace
      */
     public int forceKeyspaceCleanup(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException;
+                    InterruptedException;
 
     /**
      * Scrub (deserialize + reserialize at the latest version, skipping bad rows
@@ -281,9 +293,15 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *
      * Scrubbed CFs will be snapshotted first, if disableSnapshot is false
      */
+    @Deprecated
     public int scrub(boolean disableSnapshot, boolean skipCorrupted,
             String keyspaceName, String... columnFamilies) throws IOException,
-            ExecutionException, InterruptedException;
+                    ExecutionException, InterruptedException;
+
+    public int scrub(boolean disableSnapshot, boolean skipCorrupted,
+            boolean checkData, String keyspaceName, String... columnFamilies)
+                    throws IOException, ExecutionException,
+                    InterruptedException;
 
     /**
      * Rewrite all sstables to the latest version. Unlike scrub, it doesn't skip
@@ -291,7 +309,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
      */
     public int upgradeSSTables(String keyspaceName,
             boolean excludeCurrentVersion, String... columnFamilies)
-            throws IOException, ExecutionException, InterruptedException;
+                    throws IOException, ExecutionException,
+                    InterruptedException;
 
     /**
      * Flush all memtables for the given column families, or all columnfamilies
@@ -303,52 +322,69 @@ public interface StorageServiceMBean extends NotificationEmitter {
      */
     public void forceKeyspaceFlush(String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException,
-            InterruptedException;
+                    InterruptedException;
 
     /**
      * Invoke repair asynchronously. You can track repair progress by
      * subscribing JMX notification sent from this StorageServiceMBean.
      * Notification format is: type: "repair" userObject: int array of length 2,
-     * [0]=command number, [1]=ordinal of AntiEntropyService.Status
+     * [0]=command number, [1]=ordinal of ActiveRepairService.Status
      *
-     * @param keyspace
-     *            Keyspace name to repair. Should not be null.
-     * @param options
-     *            repair option.
      * @return Repair command number, or 0 if nothing to repair
      */
-    public int repairAsync(String keyspace, Map<String, String> options);
-
-    @Deprecated
     public int forceRepairAsync(String keyspace, boolean isSequential,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean primaryRange, boolean repairedAt, String... columnFamilies)
-            throws IOException;
+                    throws IOException;
 
-    @Deprecated
-    public int forceRepairAsync(String keyspace,
-            RepairParallelism parallelismDegree,
+    /**
+     * Invoke repair asynchronously. You can track repair progress by
+     * subscribing JMX notification sent from this StorageServiceMBean.
+     * Notification format is: type: "repair" userObject: int array of length 2,
+     * [0]=command number, [1]=ordinal of ActiveRepairService.Status
+     *
+     * @param parallelismDegree
+     *            0: sequential, 1: parallel, 2: DC parallel
+     * @return Repair command number, or 0 if nothing to repair
+     */
+    public int forceRepairAsync(String keyspace, int parallelismDegree,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean primaryRange, boolean fullRepair, String... columnFamilies);
 
-    @Deprecated
+    /**
+     * Same as forceRepairAsync, but handles a specified range
+     */
     public int forceRepairRangeAsync(String beginToken, String endToken,
             String keyspaceName, boolean isSequential,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean repairedAt, String... columnFamilies) throws IOException;
 
-    @Deprecated
+    /**
+     * Same as forceRepairAsync, but handles a specified range
+     *
+     * @param parallelismDegree
+     *            0: sequential, 1: parallel, 2: DC parallel
+     */
     public int forceRepairRangeAsync(String beginToken, String endToken,
-            String keyspaceName, RepairParallelism parallelismDegree,
+            String keyspaceName, int parallelismDegree,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean fullRepair, String... columnFamilies);
 
-    @Deprecated
+    /**
+     * Invoke repair asynchronously. You can track repair progress by
+     * subscribing JMX notification sent from this StorageServiceMBean.
+     * Notification format is: type: "repair" userObject: int array of length 2,
+     * [0]=command number, [1]=ordinal of ActiveRepairService.Status
+     *
+     * @return Repair command number, or 0 if nothing to repair
+     */
     public int forceRepairAsync(String keyspace, boolean isSequential,
             boolean isLocal, boolean primaryRange, boolean fullRepair,
             String... columnFamilies);
 
-    @Deprecated
+    /**
+     * Same as forceRepairAsync, but handles a specified range
+     */
     public int forceRepairRangeAsync(String beginToken, String endToken,
             String keyspaceName, boolean isSequential, boolean isLocal,
             boolean repairedAt, String... columnFamilies);
@@ -424,8 +460,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
      * makes node unavailable for writes, flushes memtables and replays
      * commitlog.
      */
-    public void drain() throws IOException, InterruptedException,
-            ExecutionException;
+    public void drain()
+            throws IOException, InterruptedException, ExecutionException;
 
     /**
      * Truncates (deletes) the given columnFamily from the provided keyspace.
@@ -459,8 +495,6 @@ public interface StorageServiceMBean extends NotificationEmitter {
             throws IllegalStateException;
 
     public List<String> getKeyspaces();
-
-    public List<String> getNonSystemKeyspaces();
 
     /**
      * Change endpointsnitch class and dynamic-ness (and dynamic attributes) at
@@ -600,7 +634,7 @@ public interface StorageServiceMBean extends NotificationEmitter {
     /**
      * Returns the configured tracing probability.
      */
-    public double getTraceProbability();
+    public double getTracingProbability();
 
     void disableAutoCompaction(String ks, String... columnFamilies)
             throws IOException;
@@ -628,12 +662,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
     /** Sets the threshold for abandoning queries with many tombstones */
     public void setTombstoneFailureThreshold(int tombstoneDebugThreshold);
 
-    /** Returns the threshold for rejecting queries due to a large batch size */
-    public int getBatchSizeFailureThreshold();
-
-    /** Sets the threshold for rejecting queries due to a large batch size */
-    public void setBatchSizeFailureThreshold(int batchSizeDebugThreshold);
-
-    /** Sets the hinted handoff throttle in kb per second, per delivery thread. */
+    /**
+     * Sets the hinted handoff throttle in kb per second, per delivery thread.
+     */
     public void setHintedHandoffThrottleInKB(int throttleInKB);
 }

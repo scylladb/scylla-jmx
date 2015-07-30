@@ -1119,4 +1119,48 @@ public class StorageService extends NotificationBroadcasterSupport
         c.post("/storage_service/hinted_handoff", queryParams);
 
     }
+
+    @Override
+    public void takeMultipleColumnFamilySnapshot(String tag,
+            String... columnFamilyList) throws IOException {
+        // TODO Auto-generated method stub
+        log(" takeMultipleColumnFamilySnapshot");
+    }
+
+    @Override
+    public int scrub(boolean disableSnapshot, boolean skipCorrupted,
+            boolean checkData, String keyspaceName, String... columnFamilies)
+                    throws IOException, ExecutionException,
+                    InterruptedException {
+        // TODO Auto-generated method stub
+        log(" scrub()");
+        return c.getIntValue("");
+    }
+
+    @Override
+    public int forceRepairAsync(String keyspace, int parallelismDegree,
+            Collection<String> dataCenters, Collection<String> hosts,
+            boolean primaryRange, boolean fullRepair,
+            String... columnFamilies) {
+        // TODO Auto-generated method stub
+        log(" forceRepairAsync()");
+        return c.getIntValue("");
+    }
+
+    @Override
+    public int forceRepairRangeAsync(String beginToken, String endToken,
+            String keyspaceName, int parallelismDegree,
+            Collection<String> dataCenters, Collection<String> hosts,
+            boolean fullRepair, String... columnFamilies) {
+        // TODO Auto-generated method stub
+        log(" forceRepairRangeAsync()");
+        return c.getIntValue("");
+    }
+
+    @Override
+    public double getTracingProbability() {
+        // TODO Auto-generated method stub
+        log(" getTracingProbability()");
+        return c.getDoubleValue("");
+    }
 }
