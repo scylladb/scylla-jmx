@@ -225,7 +225,7 @@ public class ColumnFamilyMetrics {
                 factory.createMetricName("EstimatedRowSizeHistogram"),
                 new Gauge<long[]>() {
                     public long[] value() {
-                        return c.getLongArrValue("/column_family/metrics/estimated_row_size_histogram/"
+                        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_row_size_histogram/"
                                 + cfName);
                     }
                 });
@@ -233,7 +233,7 @@ public class ColumnFamilyMetrics {
                 factory.createMetricName("EstimatedColumnCountHistogram"),
                 new Gauge<long[]>() {
                     public long[] value() {
-                        return c.getLongArrValue("/column_family/metrics/estimated_column_count_histogram/"
+                        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_column_count_histogram/"
                                 + cfName);
                     }
                 });
