@@ -539,4 +539,19 @@ public class APIClient {
     public HistogramValues getHistogramValue(String url) {
         return getHistogramValue(url, null);
     }
+
+    public long[] getEstimatedHistogramAsLongArrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        JsonObject obj = getJsonObj(string, queryParams);
+        JsonArray arr = obj.getJsonArray("buckets");
+        long res[] = new long[arr.size()];
+        for (int i = 0; i< arr.size(); i++) {
+            res[i] = arr.getJsonNumber(i).longValue();
+        }
+        return res;
+    }
+
+    public long[] getEstimatedHistogramAsLongArrValue(String string) {
+        return getEstimatedHistogramAsLongArrValue(string, null);
+    }
 }
