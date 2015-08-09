@@ -86,7 +86,7 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long getReadOperations() {
         log(" getReadOperations()");
-        return c.getLongValue("");
+        return readMetrics.latency.count();
     }
 
     /**
@@ -95,7 +95,7 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long getTotalReadLatencyMicros() {
         log(" getTotalReadLatencyMicros()");
-        return c.getLongValue("");
+        return readMetrics.totalLatency.count();
     }
 
     /**
@@ -104,7 +104,7 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public double getRecentReadLatencyMicros() {
         log(" getRecentReadLatencyMicros()");
-        return c.getDoubleValue("");
+        return readMetrics.getRecentLatency();
     }
 
     /**
@@ -128,19 +128,19 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long getRangeOperations() {
         log(" getRangeOperations()");
-        return c.getLongValue("");
+        return rangeMetrics.latency.count();
     }
 
     @Deprecated
     public long getTotalRangeLatencyMicros() {
         log(" getTotalRangeLatencyMicros()");
-        return c.getLongValue("");
+        return rangeMetrics.totalLatency.count();
     }
 
     @Deprecated
     public double getRecentRangeLatencyMicros() {
         log(" getRecentRangeLatencyMicros()");
-        return c.getDoubleValue("");
+        return rangeMetrics.getRecentLatency();
     }
 
     @Deprecated
@@ -158,19 +158,19 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long getWriteOperations() {
         log(" getWriteOperations()");
-        return c.getLongValue("");
+        return writeMetrics.latency.count();
     }
 
     @Deprecated
     public long getTotalWriteLatencyMicros() {
         log(" getTotalWriteLatencyMicros()");
-        return c.getLongValue("");
+        return writeMetrics.totalLatency.count();
     }
 
     @Deprecated
     public double getRecentWriteLatencyMicros() {
         log(" getRecentWriteLatencyMicros()");
-        return c.getDoubleValue("");
+        return writeMetrics.getRecentLatency();
     }
 
     @Deprecated
