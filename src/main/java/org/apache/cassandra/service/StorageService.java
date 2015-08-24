@@ -735,8 +735,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public Map<InetAddress, Float> getOwnership() {
         log(" getOwnership()");
-        // TBD
-        return c.getMapInetAddressFloatValue("");
+        return c.getMapInetAddressFloatValue("/storage_service/ownership/");
     }
 
     /**
@@ -749,8 +748,11 @@ public class StorageService extends NotificationBroadcasterSupport
     public Map<InetAddress, Float> effectiveOwnership(String keyspace)
             throws IllegalStateException {
         log(" effectiveOwnership(String keyspace) throws IllegalStateException");
-        // TBD
-        return c.getMapInetAddressFloatValue("");
+        try {
+            return c.getMapInetAddressFloatValue("/storage_service/ownership/" + keyspace);
+        } catch (Exception e) {
+            throw new IllegalStateException("Non-system keyspaces don't have the same replication settings, effective ownership information is meaningless");
+        }
     }
 
     public List<String> getKeyspaces() {

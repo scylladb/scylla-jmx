@@ -37,6 +37,8 @@ import javax.ws.rs.core.MediaType;
 
 public class APIClient {
     JsonReaderFactory factory = Json.createReaderFactory(null);
+    private static final java.util.logging.Logger logger = java.util.logging.Logger
+            .getLogger(APIClient.class.getName());
 
     public static String getBaseUrl() {
         return "http://" + System.getProperty("apiaddress", "localhost") + ":"
@@ -372,11 +374,29 @@ public class APIClient {
         return Long.parseLong(getStringValue(string));
     }
 
-    public Map<InetAddress, Float> getMapInetAddressFloatValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+    public Map<InetAddress, Float> getMapInetAddressFloatValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        Map<InetAddress, Float> res = new HashMap<InetAddress, Float>();
+
+        JsonReader reader = getReader(string, queryParams);
+
+        JsonArray arr = reader.readArray();
+        JsonObject obj = null;
+        for (int i = 0; i < arr.size(); i++) {
+            try {
+                obj = arr.getJsonObject(i);
+                res.put(InetAddress.getByName(obj.getString("key")),
+                        Float.parseFloat(obj.getString("value")));
+            } catch (UnknownHostException e) {
+                logger.warning("Bad formatted address " + obj.getString("key"));
+            }
+        }
+        return res;
     }
 
+    public Map<InetAddress, Float> getMapInetAddressFloatValue(String string) {
+        return getMapInetAddressFloatValue(string, null);
+    }
     public Map<String, Long> getMapStringLongValue(String string) {
         // TODO Auto-generated method stub
         return null;
