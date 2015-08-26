@@ -225,7 +225,7 @@ public class ColumnFamilyMetrics {
                 factory.createMetricName("EstimatedRowSizeHistogram"),
                 new Gauge<long[]>() {
                     public long[] value() {
-                        return c.getLongArrValue("/column_family/metrics/estimated_row_size_histogram/"
+                        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_row_size_histogram/"
                                 + cfName);
                     }
                 });
@@ -233,7 +233,7 @@ public class ColumnFamilyMetrics {
                 factory.createMetricName("EstimatedColumnCountHistogram"),
                 new Gauge<long[]>() {
                     public long[] value() {
-                        return c.getLongArrValue("/column_family/metrics/estimated_column_count_histogram/"
+                        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_column_count_histogram/"
                                 + cfName);
                     }
                 });
@@ -252,13 +252,13 @@ public class ColumnFamilyMetrics {
                         return c.getDoubleValue("/column_family/metrics/compression_ratio/");
                     }
                 });
-        readLatency = new LatencyMetrics("/column_family/metrics/read_latency/"
-                + cfName, factory, "Read");
+        readLatency = new LatencyMetrics("/column_family/metrics/read_latency",
+                cfName, factory, "Read");
         writeLatency = new LatencyMetrics(
-                "/column_family/metrics/write_latency/" + cfName, factory,
+                "/column_family/metrics/write_latency", cfName, factory,
                 "Write");
         rangeLatency = new LatencyMetrics(
-                "/column_family/metrics/range_latency/" + cfName, factory,
+                "/column_family/metrics/range_latency", cfName, factory,
                 "Range");
         pendingFlushes = createColumnFamilyCounter(
                 "/column_family/metrics/pending_flushes", "PendingFlushes");

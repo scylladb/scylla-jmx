@@ -102,6 +102,18 @@ public class LatencyMetrics {
                 factory.createMetricName(namePrefix + "TotalLatency"));
     }
 
+    public LatencyMetrics(String url, String paramName,
+            MetricNameFactory factory, String namePrefix) {
+        this.factory = factory;
+        this.namePrefix = namePrefix;
+
+        latency = APIMetrics.newTimer(url + "/histogram/" + paramName,
+                factory.createMetricName(namePrefix + "Latency"),
+                TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
+        totalLatency = APIMetrics.newCounter(url + "/" + paramName,
+                factory.createMetricName(namePrefix + "TotalLatency"));
+    }
+
     /**
      * Create LatencyMetrics with given group, type, prefix to append to each
      * metric name, and scope. Any updates to this will also run on parent
@@ -130,8 +142,8 @@ public class LatencyMetrics {
     }
 
     public void release() {
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName(namePrefix + "Latency"));
+        APIMetrics.defaultRegistry()
+                .removeMetric(factory.createMetricName(namePrefix + "Latency"));
         APIMetrics.defaultRegistry().removeMetric(
                 factory.createMetricName(namePrefix + "TotalLatency"));
     }

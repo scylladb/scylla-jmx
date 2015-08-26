@@ -584,7 +584,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getEstimatedRowSizeHistogram() {
         log(" getEstimatedRowSizeHistogram()");
-        return c.getLongArrValue("");
+        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_row_size_histogram/" + getCFName());
     }
 
     /**
