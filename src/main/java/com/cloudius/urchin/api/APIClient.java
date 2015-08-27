@@ -75,6 +75,21 @@ public class APIClient {
         post(path, null);
     }
 
+    public String postGetVal(String path, MultivaluedMap<String, String> queryParams) {
+        if (queryParams != null) {
+            return get(path, queryParams).post(String.class);
+        }
+        return get(path).post(String.class);
+    }
+
+    public int postInt(String path, MultivaluedMap<String, String> queryParams) {
+        return Integer.parseInt(postGetVal(path, queryParams));
+    }
+
+    public int postInt(String path) {
+        return postInt(path, null);
+    }
+
     public void delete(String path, MultivaluedMap<String, String> queryParams) {
         if (queryParams != null) {
             get(path, queryParams).delete();
