@@ -22,6 +22,19 @@
  */
 package org.apache.cassandra.repair;
 
-public class RepairParallelism {
+public enum RepairParallelism {
+    /**
+     * One node at a time
+     */
+    SEQUENTIAL,
 
+    /**
+     * All nodes at the same time
+     */
+    PARALLEL,
+
+    /**
+     * One node per data center at a time
+     */
+    DATACENTER_AWARE
 }

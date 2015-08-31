@@ -351,6 +351,7 @@ public interface StorageServiceMBean extends NotificationEmitter {
             Collection<String> dataCenters, Collection<String> hosts,
             boolean primaryRange, boolean fullRepair, String... columnFamilies);
 
+    public int forceRepairAsync(String keyspace);
     /**
      * Same as forceRepairAsync, but handles a specified range
      */
