@@ -1,0 +1,15 @@
+[Unit]
+Description=Scylla JMX
+Requires=scylla-server.service
+After=scylla-server.service
+
+[Service]
+Type=simple
+User=scylla
+Group=scylla
+ExecStart=/usr/bin/java -jar /usr/lib/scylla/jmx/urchin-mbean-1.0.jar
+KillMode=process
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
