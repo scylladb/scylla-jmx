@@ -2,7 +2,7 @@ Name:           scylla-jmx
 Version:        0.00
 Release:        1%{?dist}
 Summary:        Scylla JMX
-Group:          Applications/Dataases
+Group:          Applications/Databases
 
 License:        Proprietary
 URL:            http://www.seastar-project.org/
