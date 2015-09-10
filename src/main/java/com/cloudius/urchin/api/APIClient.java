@@ -104,12 +104,20 @@ public class APIClient {
         delete(path, null);
     }
 
-    public String getStringValue(String string,
+    public String getRawValue(String string,
             MultivaluedMap<String, String> queryParams) {
         if (!string.equals("")) {
             return get(string, queryParams).get(String.class);
         }
         return "";
+    }
+
+    public String getRawValue(String string) {
+        return getRawValue(string, null);
+    }
+
+    public String getStringValue(String string, MultivaluedMap<String, String> queryParams) {
+        return getReader(string, queryParams).toString();
     }
 
     public String getStringValue(String string) {
@@ -118,7 +126,7 @@ public class APIClient {
 
     public JsonReader getReader(String string,
             MultivaluedMap<String, String> queryParams) {
-        return factory.createReader(new StringReader(getStringValue(string,
+        return factory.createReader(new StringReader(getRawValue(string,
                 queryParams)));
     }
 
@@ -133,7 +141,7 @@ public class APIClient {
 
     public int getIntValue(String string,
             MultivaluedMap<String, String> queryParams) {
-        return Integer.parseInt(getStringValue(string, queryParams));
+        return Integer.parseInt(getRawValue(string, queryParams));
     }
 
     public int getIntValue(String string) {
@@ -141,11 +149,11 @@ public class APIClient {
     }
 
     public boolean getBooleanValue(String string) {
-        return Boolean.parseBoolean(getStringValue(string));
+        return Boolean.parseBoolean(getRawValue(string));
     }
 
     public double getDoubleValue(String string) {
-        return Double.parseDouble(getStringValue(string));
+        return Double.parseDouble(getRawValue(string));
     }
 
     public List<String> getListStrValue(String string,
@@ -386,7 +394,7 @@ public class APIClient {
     }
 
     public long getLongValue(String string) {
-        return Long.parseLong(getStringValue(string));
+        return Long.parseLong(getRawValue(string));
     }
 
     public Map<InetAddress, Float> getMapInetAddressFloatValue(String string,
