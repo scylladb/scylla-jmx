@@ -117,7 +117,8 @@ public class APIClient {
     }
 
     public String getStringValue(String string, MultivaluedMap<String, String> queryParams) {
-        return getReader(string, queryParams).toString();
+        return getRawValue(string,
+                queryParams).replaceAll("^\"|\"$", "");
     }
 
     public String getStringValue(String string) {
