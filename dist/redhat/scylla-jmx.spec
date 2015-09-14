@@ -10,7 +10,7 @@ Source0:        %{name}-%{version}.tar
 
 BuildArch:      noarch
 BuildRequires:  maven java-1.8.0-openjdk
-Requires:       maven java-1.8.0-openjdk
+Requires:       maven java-1.8.0-openjdk scylla-server
 
 %description
 
