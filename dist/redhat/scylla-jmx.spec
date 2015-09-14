@@ -9,7 +9,7 @@ URL:            http://www.seastar-project.org/
 Source0:        %{name}-%{version}.tar
 
 BuildArch:      noarch
-BuildRequires:  maven java-1.8.0-openjdk
+BuildRequires:  maven java-1.8.0-openjdk systemd-units
 Requires:       maven java-1.8.0-openjdk scylla-server
 
 %description
