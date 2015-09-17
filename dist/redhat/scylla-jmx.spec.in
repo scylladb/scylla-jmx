@@ -5,7 +5,7 @@ Summary:        Scylla JMX
 Group:          Applications/Databases
 
 License:        Proprietary
-URL:            http://www.seastar-project.org/
+URL:            http://www.scylladb.com/
 Source0:        %{name}-@@VERSION@@-@@RELEASE@@.tar
 
 BuildArch:      noarch
