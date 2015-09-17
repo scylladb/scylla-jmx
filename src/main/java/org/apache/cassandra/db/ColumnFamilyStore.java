@@ -37,6 +37,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cassandra.metrics.ColumnFamilyMetrics;
 
 import com.cloudius.urchin.api.APIClient;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
@@ -101,7 +102,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     private static final class CheckRegistration extends TimerTask {
         private APIClient c = new APIClient();
-
+        private int missed_response = 0;
+        // After MAX_RETRY retry we assume the API is not available
+        // and the jmx will shutdown
+        private static final int MAX_RETRY = 30;
         @Override
         public void run() {
             try {
@@ -124,6 +128,12 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                     if (!all_cf.contains(n)) {
                         cf.remove(n);
                     }
+                }
+                missed_response = 0;
+            } catch (ClientHandlerException e) {
+                if (missed_response++ > MAX_RETRY) {
+                    System.err.println("API is not available, JMX is shuting down");
+                    System.exit(-1);
                 }
             } catch (Exception e) {
                 // ignoring exceptions, will retry on the next interval
