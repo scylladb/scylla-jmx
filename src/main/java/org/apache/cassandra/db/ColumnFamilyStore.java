@@ -37,6 +37,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cassandra.metrics.ColumnFamilyMetrics;
 
 import com.cloudius.urchin.api.APIClient;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
@@ -101,7 +102,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     private static final class CheckRegistration extends TimerTask {
         private APIClient c = new APIClient();
-
+        private int missed_response = 0;
+        // After MAX_RETRY retry we assume the API is not available
+        // and the jmx will shutdown
+        private static final int MAX_RETRY = 30;
         @Override
         public void run() {
             try {
@@ -124,6 +128,12 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                     if (!all_cf.contains(n)) {
                         cf.remove(n);
                     }
+                }
+                missed_response = 0;
+            } catch (ClientHandlerException e) {
+                if (missed_response++ > MAX_RETRY) {
+                    System.err.println("API is not available, JMX is shuting down");
+                    System.exit(-1);
                 }
             } catch (Exception e) {
                 // ignoring exceptions, will retry on the next interval
@@ -150,7 +160,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getMemtableDataSize() {
         log(" getMemtableDataSize()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/memtable_on_heap_size/" + getCFName());
     }
 
     /**
@@ -175,7 +185,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public int getMemtableSwitchCount() {
         log(" getMemtableSwitchCount()");
-        return c.getIntValue("");
+        return c.getIntValue("/column_family/metrics/memtable_switch_count/"  + getCFName());
     }
 
     /**
@@ -196,7 +206,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getSSTablesPerReadHistogram() {
         log(" getSSTablesPerReadHistogram()");
-        return c.getLongArrValue("");
+        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/sstables_per_read_histogram/" +getCFName());
     }
 
     /**
@@ -206,7 +216,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getReadCount() {
         log(" getReadCount()");
-        return c.getLongValue("");
+        return c.getIntValue("/column_family/metrics/read/" + getCFName());
     }
 
     /**
@@ -216,7 +226,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getTotalReadLatencyMicros() {
         log(" getTotalReadLatencyMicros()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/read_latency/" + getCFName());
     }
 
     /**
@@ -256,7 +266,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getWriteCount() {
         log(" getWriteCount()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/write/" + getCFName());
     }
 
     /**
@@ -266,7 +276,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getTotalWriteLatencyMicros() {
         log(" getTotalWriteLatencyMicros()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/write_latency/" + getCFName());
     }
 
     /**
@@ -306,7 +316,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public int getPendingTasks() {
         log(" getPendingTasks()");
-        return c.getIntValue("");
+        return c.getIntValue("/column_family/metrics/pending_flushes/" + getCFName());
     }
 
     /**
@@ -316,7 +326,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public int getLiveSSTableCount() {
         log(" getLiveSSTableCount()");
-        return c.getIntValue("");
+        return c.getIntValue("/column_family/metrics/live_ss_table_count/" + getCFName());
     }
 
     /**
@@ -326,7 +336,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getLiveDiskSpaceUsed() {
         log(" getLiveDiskSpaceUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/live_disk_space_used/" + getCFName());
     }
 
     /**
@@ -337,7 +347,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getTotalDiskSpaceUsed() {
         log(" getTotalDiskSpaceUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/total_disk_space_used/" + getCFName());
     }
 
     /**
@@ -356,7 +366,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getMinRowSize() {
         log(" getMinRowSize()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/min_row_size/" + getCFName());
     }
 
     /**
@@ -366,7 +376,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getMaxRowSize() {
         log(" getMaxRowSize()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/max_row_size/" + getCFName());
     }
 
     /**
@@ -376,7 +386,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getMeanRowSize() {
         log(" getMeanRowSize()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/mean_row_size/" + getCFName());
     }
 
     /**
@@ -385,7 +395,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getBloomFilterFalsePositives() {
         log(" getBloomFilterFalsePositives()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/bloom_filter_false_positives/" + getCFName());
     }
 
     /**
@@ -394,7 +404,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getRecentBloomFilterFalsePositives() {
         log(" getRecentBloomFilterFalsePositives()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/recent_bloom_filter_false_positives/" +getCFName());
     }
 
     /**
@@ -403,7 +413,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public double getBloomFilterFalseRatio() {
         log(" getBloomFilterFalseRatio()");
-        return c.getDoubleValue("");
+        return c.getDoubleValue("/column_family/metrics/bloom_filter_false_ratio/" + getCFName());
     }
 
     /**
@@ -412,7 +422,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public double getRecentBloomFilterFalseRatio() {
         log(" getRecentBloomFilterFalseRatio()");
-        return c.getDoubleValue("");
+        return c.getDoubleValue("/column_family/metrics/recent_bloom_filter_false_ratio/" + getCFName());
     }
 
     /**
@@ -421,7 +431,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getBloomFilterDiskSpaceUsed() {
         log(" getBloomFilterDiskSpaceUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/bloom_filter_disk_space_used/" + getCFName());
     }
 
     /**
@@ -430,7 +440,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getBloomFilterOffHeapMemoryUsed() {
         log(" getBloomFilterOffHeapMemoryUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/bloom_filter_off_heap_memory_used/" + getCFName());
     }
 
     /**
@@ -439,7 +449,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getIndexSummaryOffHeapMemoryUsed() {
         log(" getIndexSummaryOffHeapMemoryUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/index_summary_off_heap_memory_used/" + getCFName());
     }
 
     /**
@@ -448,7 +458,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getCompressionMetadataOffHeapMemoryUsed() {
         log(" getCompressionMetadataOffHeapMemoryUsed()");
-        return c.getLongValue("");
+        return c.getLongValue("/column_family/metrics/compression_metadata_off_heap_memory_used/" + getCFName());
     }
 
     /**
@@ -593,7 +603,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getEstimatedColumnCountHistogram() {
         log(" getEstimatedColumnCountHistogram()");
-        return c.getLongArrValue("");
+        return c.getLongArrValue("/column_family/metrics/estimated_column_count_histogram/" + getCFName());
     }
 
     /**
@@ -602,7 +612,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public double getCompressionRatio() {
         log(" getCompressionRatio()");
-        return c.getDoubleValue("");
+        return c.getDoubleValue("/column_family/metrics/compression_ratio/" + getCFName());
     }
 
     /**
