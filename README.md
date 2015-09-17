@@ -7,10 +7,10 @@ mvn install
 ```
 
 ## Run
-The maven will copy relevant jars to your local directory and would
-set the classpath accordingly.
+The maven will create an uber-jar with all dependency under the target directory. You should run it with the remote jmx enable so the nodetool will be able to connect to it.
+
 ```
-java -jar target/urchin-mbean-1.0.jar
+java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=7199 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar target/urchin-mbean-1.0.jar
 ```
 
 ## Setting IP and Port
