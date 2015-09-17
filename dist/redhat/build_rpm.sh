@@ -13,7 +13,7 @@ VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
 mkdir -p $RPMBUILD/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-git archive --format=tar --prefix=scylla-jmx-$VERSION/ HEAD -o build/rpmbuild/SOURCES/scylla-jmx-$VERSION.tar
+git archive --format=tar --prefix=scylla-jmx-$SCYLLA_VERSION/ HEAD -o build/rpmbuild/SOURCES/scylla-jmx-$VERSION.tar
 cp dist/redhat/scylla-jmx.spec.in $RPMBUILD/SPECS/scylla-jmx.spec
 sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" $RPMBUILD/SPECS/scylla-jmx.spec
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" $RPMBUILD/SPECS/scylla-jmx.spec
