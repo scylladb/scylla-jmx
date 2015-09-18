@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+#  Copyright (C) 2015 Cloudius Systems, Ltd.
+
+JMX_PORT=7199
+API_ADDR="127.0.0.1"
+API_PORT="10000"
+PARAM_HELP="-h"
+PARAM_JMX_PORT="-jp"
+PARAM_API_PORT="-p"
+PARAM_ADDR="-a"
+PARAM_LOCATION="-l"
+LOCATION="target"
+
+print_help() {
+ cat <<HLPEND
+
+scylla-jmx [$PARAM_HELP] [$PARAM_PORT port] [$PARAM_ADDR address]
+
+This script is used to run the jmx proxy
+
+By default it would connect to the local API ($API_ADDR) and will listen on the JMX port ($JMX_PORT)
+
+This script receives the following command line arguments:
+
+    $PARAM_HELP - print this help screen and exit
+    $PARAM_JMX_PORT <port> - The jmx port to open
+    $PARAM_API_PORT <port> - The API port to connect to
+    $PARAM_ADDR <address> - The API address to connect to
+    $PARAM_LOCATION <location> - The location of the jmx proxy jar file
+HLPEND
+}
+
+while test "$#" -ne 0
+do
+  case "$1" in
+    "$PARAM_API_PORT")
+      API_PORT=$2
+      shift 2
+      ;;
+    "$PARAM_ADDR")
+      API_ADDR=$2
+      shift 2
+      ;;
+    "$PARAM_PORT")
+      API_ADDR=$2
+      shift 2
+      ;;
+    "$PARAM_JMX_PORT")
+      JMX_PORT=$2
+      shift 2
+      ;;
+    "$PARAM_LOCATION")
+      LOCATION=$2
+      shift 2
+      ;;
+    "$PARAM_HELP")
+      print_help
+      exit 0
+      ;;
+    *)
+    esac
+done
+
+java -Dapiaddress=$API_ADDR -Dapiport=$API_PORT -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/urchin-mbean-1.0.jar
