@@ -18,4 +18,4 @@ cp dist/redhat/scylla-jmx.spec.in $RPMBUILD/SPECS/scylla-jmx.spec
 sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" $RPMBUILD/SPECS/scylla-jmx.spec
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" $RPMBUILD/SPECS/scylla-jmx.spec
 rpmbuild -bs --define "_topdir $RPMBUILD" -ba $RPMBUILD/SPECS/scylla-jmx.spec
-mock rebuild --resultdir=`pwd`/build/rpms $RPMBUILD/SRPMS/scylla-jmx-$VERSION*.src.rpm
+/usr/bin/mock rebuild --resultdir=`pwd`/build/rpms $RPMBUILD/SRPMS/scylla-jmx-$VERSION*.src.rpm
