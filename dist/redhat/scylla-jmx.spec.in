@@ -38,6 +38,15 @@ install -m755 dist/redhat/scripts/* $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
 %pre
 /usr/sbin/groupadd scylla 2> /dev/null || :
 /usr/sbin/useradd -g scylla -s /sbin/nologin -r -d ${_sharedstatedir}/scylla scylla 2> /dev/null || :
+ping -c1 `hostname` > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+echo
+echo "**************************************************************"
+echo "* WARNING: You need to add hostname on /etc/hosts, otherwise *"
+echo "*          scylla-jmx will not able to start up.             *"
+echo "**************************************************************"
+echo
+fi
 
 %post
 %systemd_post scylla-jmx.service
