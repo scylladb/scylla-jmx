@@ -10,7 +10,7 @@ Source0:        %{name}-@@VERSION@@-@@RELEASE@@.tar
 
 BuildArch:      noarch
 BuildRequires:  maven java-1.8.0-openjdk-devel systemd-units
-Requires:       maven java-1.8.0-openjdk scylla-server
+Requires:       java-1.8.0-openjdk scylla-server
 
 %description
 
