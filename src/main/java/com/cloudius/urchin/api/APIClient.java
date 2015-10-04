@@ -551,11 +551,13 @@ public class APIClient {
         res.min = obj.getJsonNumber("min").longValue();
         res.sum = obj.getJsonNumber("sum").longValue();
         res.variance = obj.getJsonNumber("variance").doubleValue();
-        res.svariance = obj.getJsonNumber("svariance").doubleValue();
+        res.mean = obj.getJsonNumber("mean").doubleValue();
         JsonArray arr = obj.getJsonArray("sample");
-        res.sample = new long[arr.size()];
-        for (int i = 0; i < arr.size(); i++) {
-            res.sample[i] = arr.getJsonNumber(i).longValue();
+        if (arr != null) {
+            res.sample = new long[arr.size()];
+            for (int i = 0; i < arr.size(); i++) {
+                res.sample[i] = arr.getJsonNumber(i).longValue();
+            }
         }
         return res;
     }
