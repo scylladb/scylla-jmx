@@ -92,14 +92,7 @@ public class LatencyMetrics {
      */
     public LatencyMetrics(String url, MetricNameFactory factory,
             String namePrefix) {
-        this.factory = factory;
-        this.namePrefix = namePrefix;
-
-        latency = APIMetrics.newTimer(url + "/histogram",
-                factory.createMetricName(namePrefix + "Latency"),
-                TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        totalLatency = APIMetrics.newCounter(url,
-                factory.createMetricName(namePrefix + "TotalLatency"));
+        this(url, null, factory, namePrefix);
     }
 
     public LatencyMetrics(String url, String paramName,
@@ -107,10 +100,11 @@ public class LatencyMetrics {
         this.factory = factory;
         this.namePrefix = namePrefix;
 
-        latency = APIMetrics.newTimer(url + "/histogram/" + paramName,
+        paramName = (paramName == null)? "" : "/" + paramName;
+        latency = APIMetrics.newTimer(url + "/histogram" + paramName,
                 factory.createMetricName(namePrefix + "Latency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        totalLatency = APIMetrics.newCounter(url + "/" + paramName,
+        totalLatency = APIMetrics.newCounter(url +  paramName,
                 factory.createMetricName(namePrefix + "TotalLatency"));
     }
 
