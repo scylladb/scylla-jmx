@@ -60,7 +60,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     public static void register_mbeans() {
         TimerTask taskToExecute = new CheckRegistration();
-        timer.scheduleAtFixedRate(taskToExecute, 100, INTERVAL);
+        timer.schedule(taskToExecute, 100, INTERVAL);
     }
 
     public ColumnFamilyStore(String type, String keyspace, String name) {
