@@ -42,6 +42,12 @@ public class APIHistogram extends Histogram {
             sampleField.setAccessible(true);
             countField = Histogram.class.getDeclaredField("count");
             countField.setAccessible(true);
+            try {
+                getCount().set(0);
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                // There's no reason to get here
+                // and there's nothing we can do even if we would
+            }
         } catch (NoSuchFieldException | SecurityException e) {
             e.printStackTrace();
         }
@@ -104,16 +110,18 @@ public class APIHistogram extends Histogram {
         clear();
         HistogramValues vals = c.getHistogramValue(url);
         try {
-            for (long v : vals.sample) {
-                getSample().update(v);
+            if (vals.sample != null) {
+                for (long v : vals.sample) {
+                    getSample().update(v);
+                }
             }
             getCount().set(vals.count);
             getMax().set(vals.max);
             getMin().set(vals.min);
             getSum().set(vals.sum);
             double[] newValue = new double[2];
-            newValue[0] = vals.variance;
-            newValue[1] = vals.svariance;
+            newValue[0] = vals.mean;
+            newValue[1] = vals.variance;
             getVariance().getAndSet(newValue);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();

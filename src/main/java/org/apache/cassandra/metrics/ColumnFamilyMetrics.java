@@ -83,6 +83,8 @@ public class ColumnFamilyMetrics {
     public final Gauge<Double> compressionRatio;
     /** Histogram of estimated row size (in bytes). */
     public final Gauge<long[]> estimatedRowSizeHistogram;
+    /** Approximate number of keys in table. */
+    public final Gauge<Long> estimatedRowCount;
     /** Histogram of estimated number of columns. */
     public final Gauge<long[]> estimatedColumnCountHistogram;
     /** Histogram of the number of sstable data files accessed per read */
@@ -229,6 +231,15 @@ public class ColumnFamilyMetrics {
                                 + cfName);
                     }
                 });
+        estimatedRowCount= Metrics.newGauge(
+                factory.createMetricName("EstimatedRowCount"),
+                new Gauge<Long>() {
+                    public Long value() {
+                        return c.getLongValue("/column_family/metrics/estimated_row_count/"
+                                + cfName);
+                    }
+                });
+
         estimatedColumnCountHistogram = Metrics.newGauge(
                 factory.createMetricName("EstimatedColumnCountHistogram"),
                 new Gauge<long[]>() {
