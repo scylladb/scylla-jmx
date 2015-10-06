@@ -18,6 +18,7 @@
 package org.apache.cassandra.locator;
 
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import javax.management.MBeanServer;
@@ -63,6 +64,9 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     public String getRack(String host) throws UnknownHostException {
         log("getRack(String host) throws UnknownHostException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        if (host == null) {
+            host = InetAddress.getLoopbackAddress().getHostAddress();
+        }
         queryParams.add("host", host);
         return c.getStringValue("/snitch/rack", queryParams);
     }
@@ -77,6 +81,9 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     public String getDatacenter(String host) throws UnknownHostException {
         log(" getDatacenter(String host) throws UnknownHostException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        if (host == null) {
+            host = InetAddress.getLoopbackAddress().getHostAddress();
+        }
         queryParams.add("host", host);
         return c.getStringValue("/snitch/datacenter", queryParams);
     }
