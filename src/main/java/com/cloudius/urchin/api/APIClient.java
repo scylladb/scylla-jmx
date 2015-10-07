@@ -22,6 +22,7 @@ import javax.json.JsonReaderFactory;
 import javax.json.JsonString;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
@@ -33,9 +34,29 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.yammer.metrics.core.HistogramValues;
 
-import javax.ws.rs.core.MediaType;
-
 public class APIClient {
+    Map<String, CacheEntry> cache = new HashMap<String, CacheEntry>();
+    String getCacheKey(String key, MultivaluedMap<String, String> param, long duration) {
+        if (duration <= 0) {
+            return null;
+        }
+        if (param != null) {
+            StringBuilder sb = new StringBuilder(key);
+            sb.append("?");
+            for (String k : param.keySet()) {
+                sb.append(k).append('=').append(param.get(k)).append('&');
+            }
+            return sb.toString();
+        }
+        return key;
+    }
+    String getFromCache(String key, long duration) {
+        if (key == null) {
+            return null;
+        }
+        CacheEntry value = cache.get(key);
+        return (value!= null && value.valid(duration))? value.value : null;
+    }
     JsonReaderFactory factory = Json.createReaderFactory(null);
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(APIClient.class.getName());
@@ -105,20 +126,44 @@ public class APIClient {
     }
 
     public String getRawValue(String string,
-            MultivaluedMap<String, String> queryParams) {
-        if (!string.equals("")) {
-            return get(string, queryParams).get(String.class);
+            MultivaluedMap<String, String> queryParams, long duration) {
+        if (string.equals("")) {
+            return "";
         }
-        return "";
+        String key = getCacheKey(string, queryParams, duration);
+        String res = getFromCache(key, duration);
+        if (res != null) {
+            return res;
+        }
+
+        res = get(string, queryParams).get(String.class);
+        if (duration > 0) {
+            cache.put(key, new CacheEntry(res));
+        }
+        return res;
+    }
+
+    public String getRawValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        return getRawValue(string, queryParams, 0);
+    }
+
+    public String getRawValue(String string, long duration) {
+        return getRawValue(string, null, duration);
     }
 
     public String getRawValue(String string) {
-        return getRawValue(string, null);
+        return getRawValue(string, null, 0);
     }
 
     public String getStringValue(String string, MultivaluedMap<String, String> queryParams) {
         return getRawValue(string,
                 queryParams).replaceAll("^\"|\"$", "");
+    }
+
+    public String getStringValue(String string, MultivaluedMap<String, String> queryParams, long duration) {
+        return getRawValue(string,
+                queryParams, duration).replaceAll("^\"|\"$", "");
     }
 
     public String getStringValue(String string) {

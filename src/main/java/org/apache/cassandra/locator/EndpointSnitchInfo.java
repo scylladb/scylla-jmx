@@ -57,10 +57,11 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     /**
      * Provides the Rack name depending on the respective snitch used, given the
      * host name/ip
-     * 
+     *
      * @param host
      * @throws UnknownHostException
      */
+    @Override
     public String getRack(String host) throws UnknownHostException {
         log("getRack(String host) throws UnknownHostException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -68,16 +69,17 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/rack", queryParams);
+        return c.getStringValue("/snitch/rack", queryParams, 10000);
     }
 
     /**
      * Provides the Datacenter name depending on the respective snitch used,
      * given the hostname/ip
-     * 
+     *
      * @param host
      * @throws UnknownHostException
      */
+    @Override
     public String getDatacenter(String host) throws UnknownHostException {
         log(" getDatacenter(String host) throws UnknownHostException");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -85,14 +87,15 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/datacenter", queryParams);
+        return c.getStringValue("/snitch/datacenter", queryParams, 10000);
     }
 
     /**
      * Provides the snitch name of the cluster
-     * 
+     *
      * @return Snitch name
      */
+    @Override
     public String getSnitchName() {
         log(" getSnitchName()");
         return c.getStringValue("/snitch/name");
