@@ -69,7 +69,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/rack", queryParams);
+        return c.getStringValue("/snitch/rack", queryParams, 10000);
     }
 
     /**
@@ -87,7 +87,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/datacenter", queryParams);
+        return c.getStringValue("/snitch/datacenter", queryParams, 10000);
     }
 
     /**
