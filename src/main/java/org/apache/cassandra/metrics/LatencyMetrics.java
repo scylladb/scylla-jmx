@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import com.cloudius.urchin.metrics.APIMetrics;
 import com.cloudius.urchin.metrics.DefaultNameFactory;
 import com.cloudius.urchin.metrics.MetricNameFactory;
+import com.cloudius.urchin.utils.EstimatedHistogram;
+import com.cloudius.urchin.utils.RecentEstimatedHistogram;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.yammer.metrics.core.Counter;
@@ -48,6 +50,12 @@ public class LatencyMetrics {
 
     protected final MetricNameFactory factory;
     protected final String namePrefix;
+
+    @Deprecated public EstimatedHistogramWrapper totalLatencyHistogram;
+    /*
+     * It should not be called directly, use the getRecentLatencyHistogram
+     */
+    @Deprecated protected final RecentEstimatedHistogram recentLatencyHistogram = new RecentEstimatedHistogram();
 
     protected long lastLatency;
     protected long lastOpCount;
@@ -106,6 +114,7 @@ public class LatencyMetrics {
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
         totalLatency = APIMetrics.newCounter(url +  paramName,
                 factory.createMetricName(namePrefix + "TotalLatency"));
+        totalLatencyHistogram = new EstimatedHistogramWrapper(url + "/estimated_histogram" + paramName);
     }
 
     /**
@@ -154,5 +163,9 @@ public class LatencyMetrics {
             lastLatency = n;
             lastOpCount = ops;
         }
+    }
+
+    public long[] getRecentLatencyHistogram() {
+        return recentLatencyHistogram.getBuckets(totalLatencyHistogram.getBuckets(false));
     }
 }
