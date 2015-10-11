@@ -459,8 +459,7 @@ public class StorageService extends NotificationBroadcasterSupport
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
-        return c.getIntValue(
-                "/storage_service/keyspace_compaction/" + keyspaceName,
+        return c.postInt("/storage_service/keyspace_cleanup/" + keyspaceName,
                 queryParams);
     }
 
@@ -1044,7 +1043,7 @@ public class StorageService extends NotificationBroadcasterSupport
         log(" loadNewSSTables(String ksName, String cfName)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("cf", cfName);
-        c.post("/storage_service/sstables/", queryParams);
+        c.post("/storage_service/sstables/" + ksName, queryParams);
     }
 
     /**
