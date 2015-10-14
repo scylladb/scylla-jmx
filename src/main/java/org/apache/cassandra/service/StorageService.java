@@ -542,8 +542,6 @@ public class StorageService extends NotificationBroadcasterSupport
             if (!status.equals("RUNNING")) {
                 cancel();
                 if (!status.equals("SUCCESSFUL")) {
-                    sendNotification("repair", message + "finished", new int[]{cmd, RepairStatus.SESSION_SUCCESS.ordinal()});
-                } else {
                     sendNotification("repair", message + "failed", new int[]{cmd, RepairStatus.SESSION_FAILED.ordinal()});
                 }
                 sendNotification("repair", message + "finished", new int[]{cmd, RepairStatus.FINISHED.ordinal()});
