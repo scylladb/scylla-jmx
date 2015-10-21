@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import com.cloudius.urchin.utils.EstimatedHistogram;
 import com.cloudius.urchin.utils.SnapshotDetailsTabularData;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
@@ -50,13 +51,23 @@ public class APIClient {
         }
         return key;
     }
-    String getFromCache(String key, long duration) {
+
+    String getStringFromCache(String key, long duration) {
         if (key == null) {
             return null;
         }
         CacheEntry value = cache.get(key);
-        return (value!= null && value.valid(duration))? value.value : null;
+        return (value!= null && value.valid(duration))? value.stringValue() : null;
     }
+
+    EstimatedHistogram getEstimatedHistogramFromCache(String key, long duration) {
+        if (key == null) {
+            return null;
+        }
+        CacheEntry value = cache.get(key);
+        return (value!= null && value.valid(duration))? value.getEstimatedHistogram() : null;
+    }
+
     JsonReaderFactory factory = Json.createReaderFactory(null);
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(APIClient.class.getName());
@@ -131,7 +142,7 @@ public class APIClient {
             return "";
         }
         String key = getCacheKey(string, queryParams, duration);
-        String res = getFromCache(key, duration);
+        String res = getStringFromCache(key, duration);
         if (res != null) {
             return res;
         }
@@ -611,6 +622,20 @@ public class APIClient {
         return getHistogramValue(url, null);
     }
 
+    public EstimatedHistogram getEstimatedHistogram(String string,
+            MultivaluedMap<String, String> queryParams, long duration) {
+        String key = getCacheKey(string, queryParams, duration);
+        EstimatedHistogram res = getEstimatedHistogramFromCache(key, duration);
+        if (res != null) {
+            return res;
+        }
+        res = new EstimatedHistogram(getEstimatedHistogramAsLongArrValue(string, queryParams));
+        if (duration > 0) {
+            cache.put(key, new CacheEntry(res));
+        }
+        return res;
+
+    }
     public long[] getEstimatedHistogramAsLongArrValue(String string,
             MultivaluedMap<String, String> queryParams) {
         JsonObject obj = getJsonObj(string, queryParams);

@@ -34,6 +34,7 @@ import com.cloudius.urchin.api.APIClient;
 import com.cloudius.urchin.metrics.APIMetrics;
 import com.cloudius.urchin.metrics.MetricNameFactory;
 import com.cloudius.urchin.utils.EstimatedHistogram;
+import com.cloudius.urchin.utils.RecentEstimatedHistogram;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.yammer.metrics.Metrics;
@@ -166,10 +167,10 @@ public class ColumnFamilyMetrics {
 
     // for backward compatibility
     @Deprecated
-    public final EstimatedHistogram sstablesPerRead = new EstimatedHistogram(35);
+    public final EstimatedHistogramWrapper sstablesPerRead;
+    // it should not be called directly
     @Deprecated
-    public final EstimatedHistogram recentSSTablesPerRead = new EstimatedHistogram(
-            35);
+    protected final RecentEstimatedHistogram recentSSTablesPerRead = new RecentEstimatedHistogram(35);
     private String cfName;
 
     public final static LatencyMetrics globalReadLatency = new LatencyMetrics(
@@ -362,6 +363,7 @@ public class ColumnFamilyMetrics {
                 + cfName, factory, "CasPropose");
         casCommit = new LatencyMetrics("/column_family/metrics/cas_commit/"
                 + cfName, factory, "CasCommit");
+        sstablesPerRead = new EstimatedHistogramWrapper("/column_family/metrics/sstables_per_read_histogram/" + cfName);
     }
 
     /**
@@ -508,7 +510,7 @@ public class ColumnFamilyMetrics {
 
     /**
      * Registers a metric to be removed when unloading CF.
-     * 
+     *
      * @return true if first time metric with that name has been registered
      */
     private boolean register(String name, Metric metric) {
@@ -517,6 +519,11 @@ public class ColumnFamilyMetrics {
         allColumnFamilyMetrics.get(name).add(metric);
         all.add(name);
         return ret;
+    }
+
+    public long[] getRecentSSTablesPerRead() {
+        return recentSSTablesPerRead
+                .getBuckets(sstablesPerRead.getBuckets(false));
     }
 
     public class ColumnFamilyHistogram {

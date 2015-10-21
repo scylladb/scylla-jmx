@@ -172,7 +172,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long getMemtableColumnsCount() {
         log(" getMemtableColumnsCount()");
-        return c.getLongValue("");
+        return metric.memtableColumnsCount.value();
     }
 
     /**
@@ -196,7 +196,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getRecentSSTablesPerReadHistogram() {
         log(" getRecentSSTablesPerReadHistogram()");
-        return c.getLongArrValue("");
+        return metric.getRecentSSTablesPerRead();
     }
 
     /**
@@ -206,7 +206,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getSSTablesPerReadHistogram() {
         log(" getSSTablesPerReadHistogram()");
-        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/sstables_per_read_histogram/" +getCFName());
+        return metric.sstablesPerRead.getBuckets(false);
     }
 
     /**
@@ -236,7 +236,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getLifetimeReadLatencyHistogramMicros() {
         log(" getLifetimeReadLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.readLatency.totalLatencyHistogram.getBuckets(false);
     }
 
     /**
@@ -246,7 +246,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getRecentReadLatencyHistogramMicros() {
         log(" getRecentReadLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.readLatency.getRecentLatencyHistogram();
     }
 
     /**
@@ -256,7 +256,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public double getRecentReadLatencyMicros() {
         log(" getRecentReadLatencyMicros()");
-        return c.getDoubleValue("");
+        return metric.readLatency.getRecentLatency();
     }
 
     /**
@@ -286,7 +286,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getLifetimeWriteLatencyHistogramMicros() {
         log(" getLifetimeWriteLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.writeLatency.totalLatencyHistogram.getBuckets(false);
     }
 
     /**
@@ -296,7 +296,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getRecentWriteLatencyHistogramMicros() {
         log(" getRecentWriteLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.writeLatency.getRecentLatencyHistogram();
     }
 
     /**
@@ -306,7 +306,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public double getRecentWriteLatencyMicros() {
         log(" getRecentWriteLatencyMicros()");
-        return c.getDoubleValue("");
+        return metric.writeLatency.getRecentLatency();
     }
 
     /**
@@ -594,7 +594,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getEstimatedRowSizeHistogram() {
         log(" getEstimatedRowSizeHistogram()");
-        return c.getEstimatedHistogramAsLongArrValue("/column_family/metrics/estimated_row_size_histogram/" + getCFName());
+        return metric.estimatedRowSizeHistogram.value();
     }
 
     /**
@@ -603,7 +603,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Deprecated
     public long[] getEstimatedColumnCountHistogram() {
         log(" getEstimatedColumnCountHistogram()");
-        return c.getLongArrValue("/column_family/metrics/estimated_column_count_histogram/" + getCFName());
+        return metric.estimatedColumnCountHistogram.value();
     }
 
     /**
@@ -696,35 +696,35 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     public long getRangeCount() {
         // TODO Auto-generated method stub
         log("getRangeCount()");
-        return c.getLongValue("");
+        return metric.rangeLatency.latency.count();
     }
 
     @Override
     public long getTotalRangeLatencyMicros() {
         // TODO Auto-generated method stub
         log("getTotalRangeLatencyMicros()");
-        return c.getLongValue("");
+        return metric.rangeLatency.totalLatency.count();
     }
 
     @Override
     public long[] getLifetimeRangeLatencyHistogramMicros() {
         // TODO Auto-generated method stub
         log("getLifetimeRangeLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.rangeLatency.totalLatencyHistogram.getBuckets(false);
     }
 
     @Override
     public long[] getRecentRangeLatencyHistogramMicros() {
         // TODO Auto-generated method stub
         log("getRecentRangeLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return metric.rangeLatency.getRecentLatencyHistogram();
     }
 
     @Override
     public double getRecentRangeLatencyMicros() {
         // TODO Auto-generated method stub
         log("getRecentRangeLatencyMicros()");
-        return c.getDoubleValue("");
+        return metric.rangeLatency.getRecentLatency();
     }
 
     @Override
