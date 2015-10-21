@@ -694,35 +694,30 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     @Override
     public long getRangeCount() {
-        // TODO Auto-generated method stub
         log("getRangeCount()");
         return metric.rangeLatency.latency.count();
     }
 
     @Override
     public long getTotalRangeLatencyMicros() {
-        // TODO Auto-generated method stub
         log("getTotalRangeLatencyMicros()");
         return metric.rangeLatency.totalLatency.count();
     }
 
     @Override
     public long[] getLifetimeRangeLatencyHistogramMicros() {
-        // TODO Auto-generated method stub
         log("getLifetimeRangeLatencyHistogramMicros()");
         return metric.rangeLatency.totalLatencyHistogram.getBuckets(false);
     }
 
     @Override
     public long[] getRecentRangeLatencyHistogramMicros() {
-        // TODO Auto-generated method stub
         log("getRecentRangeLatencyHistogramMicros()");
         return metric.rangeLatency.getRecentLatencyHistogram();
     }
 
     @Override
     public double getRecentRangeLatencyMicros() {
-        // TODO Auto-generated method stub
         log("getRecentRangeLatencyMicros()");
         return metric.rangeLatency.getRecentLatency();
     }
