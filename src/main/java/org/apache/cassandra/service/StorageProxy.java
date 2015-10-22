@@ -113,7 +113,7 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long[] getTotalReadLatencyHistogramMicros() {
         log(" getTotalReadLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return readMetrics.totalLatencyHistogram.getBuckets(false);
     }
 
     /**
@@ -122,7 +122,7 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long[] getRecentReadLatencyHistogramMicros() {
         log(" getRecentReadLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return readMetrics.getRecentLatencyHistogram();
     }
 
     @Deprecated
@@ -146,13 +146,13 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long[] getTotalRangeLatencyHistogramMicros() {
         log(" getTotalRangeLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return rangeMetrics.totalLatencyHistogram.getBuckets(false);
     }
 
     @Deprecated
     public long[] getRecentRangeLatencyHistogramMicros() {
         log(" getRecentRangeLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return rangeMetrics.getRecentLatencyHistogram();
     }
 
     @Deprecated
@@ -176,13 +176,13 @@ public class StorageProxy implements StorageProxyMBean {
     @Deprecated
     public long[] getTotalWriteLatencyHistogramMicros() {
         log(" getTotalWriteLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return writeMetrics.totalLatencyHistogram.getBuckets(false);
     }
 
     @Deprecated
     public long[] getRecentWriteLatencyHistogramMicros() {
         log(" getRecentWriteLatencyHistogramMicros()");
-        return c.getLongArrValue("");
+        return writeMetrics.getRecentLatencyHistogram();
     }
 
     public long getTotalHints() {
