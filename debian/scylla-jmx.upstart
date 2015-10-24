@@ -1,0 +1,22 @@
+# scylla-jmx - ScyllaDB
+#
+# ScyllaDB
+
+description	"ScyllaDB jmx"
+
+start on starting scylla-server
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+umask 022
+
+expect fork
+
+console log
+
+script
+    . /etc/default/scylla-jmx
+    export JMX_LOCAL_PORT
+    /usr/lib/scylla/jmx/jmx_run
+end script

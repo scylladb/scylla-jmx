@@ -1,0 +1,13 @@
+Source: scylla-jmx
+Maintainer: Takuya ASADA <syuu@scylladb.com>
+Homepage: http://scylladb.com
+Section: database
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9), maven, openjdk-7-jdk
+
+Package: scylla-jmx
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, openjdk-7-jre-headless, scylla-server
+Description: Scylla JMX server binaries 
+ Scylla is a highly scalable, eventually consistent, distributed, partitioned row DB.

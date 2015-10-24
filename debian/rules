@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+DOC = $(CURDIR)/debian/scylla-jmx/usr/share/doc/scylla-jmx
+DEST = $(CURDIR)/debian/scylla-jmx/usr/lib/scylla/jmx
+
+override_dh_auto_build:
+	mvn install
+
+override_dh_auto_clean:
+	rm -rf target
+
+override_dh_auto_install:
+	mkdir -p $(CURDIR)/debian/scylla-jmx/etc/default/ && \
+	cp $(CURDIR)/dist/common/sysconfig/scylla-jmx  \
+		$(CURDIR)/debian/scylla-jmx/etc/default/
+
+	mkdir -p $(DOC) && \
+	cp $(CURDIR)/*.md $(DOC)
+	cp $(CURDIR)/NOTICE $(DOC)
+	cp $(CURDIR)/LICENSE.AGPL $(DOC)
+
+	mkdir -p $(DEST)
+	cp $(CURDIR)/dist/common/scripts/* $(DEST)
+	cp $(CURDIR)/target/urchin-mbean-1.0.jar $(DEST)
+
+%:
+	dh $@
