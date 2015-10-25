@@ -58,7 +58,7 @@ public class CacheMetrics {
      * @param cache
      *            Cache to measure metrics
      */
-    public CacheMetrics(String type, String url) {
+    public CacheMetrics(String type, final String url) {
         MetricNameFactory factory = new DefaultNameFactory("Cache", type);
 
         capacity = APIMetrics.newGauge(factory.createMetricName("Capacity"),

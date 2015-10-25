@@ -399,7 +399,7 @@ public class ColumnFamilyMetrics {
      * families. The global gauge will merge each CF gauge by adding their
      * values
      */
-    protected Gauge<Double> createColumnFamilyGaugeDouble(String url,
+    protected Gauge<Double> createColumnFamilyGaugeDouble(final String url,
             final String name) {
         Gauge<Double> gauge = new Gauge<Double>() {
             public Double value() {
@@ -414,7 +414,7 @@ public class ColumnFamilyMetrics {
      * families. The global gauge will merge each CF gauge by adding their
      * values
      */
-    protected Gauge<Long> createColumnFamilyGauge(String url, final String name) {
+    protected Gauge<Long> createColumnFamilyGauge(final String url, final String name) {
         Gauge<Long> gauge = new Gauge<Long>() {
             public Long value() {
                 return c.getLongValue(url + "/" + cfName);
@@ -428,7 +428,7 @@ public class ColumnFamilyMetrics {
      * families. The global gauge will merge each CF gauge by adding their
      * values
      */
-    protected Gauge<Integer> createColumnFamilyGaugeInt(String url,
+    protected Gauge<Integer> createColumnFamilyGaugeInt(final String url,
             final String name) {
         Gauge<Integer> gauge = new Gauge<Integer>() {
             public Integer value() {
@@ -443,7 +443,7 @@ public class ColumnFamilyMetrics {
      * families. The global gauge will merge each CF gauge by adding their
      * values
      */
-    protected <T extends Number> Gauge<T> createColumnFamilyGauge(String url,
+    protected <T extends Number> Gauge<T> createColumnFamilyGauge(final String url,
             final String name, Gauge<T> gauge) {
         return createColumnFamilyGauge(name, gauge, new Gauge<Long>() {
             public Long value() {
@@ -474,7 +474,7 @@ public class ColumnFamilyMetrics {
      * Creates a counter that will also have a global counter thats the sum of
      * all counters across different column families
      */
-    protected Counter createColumnFamilyCounter(String url, final String name) {
+    protected Counter createColumnFamilyCounter(final String url, final String name) {
         Counter cfCounter = APIMetrics.newCounter(url + "/" + cfName,
                 factory.createMetricName(name));
         if (register(name, cfCounter)) {
