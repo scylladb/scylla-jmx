@@ -59,10 +59,10 @@ public class ClientRequestMetrics extends LatencyMetrics {
     public ClientRequestMetrics(String url, String scope) {
         super(url, "ClientRequest", scope);
 
-        timeouts = APIMetrics.newMeter(url + "timeouts",
+        timeouts = APIMetrics.newMeter(url + "/timeouts",
                 factory.createMetricName("Timeouts"), "timeouts",
                 TimeUnit.SECONDS);
-        unavailables = APIMetrics.newMeter(url + "unavailables",
+        unavailables = APIMetrics.newMeter(url + "/unavailables",
                 factory.createMetricName("Unavailables"), "unavailables",
                 TimeUnit.SECONDS);
     }
