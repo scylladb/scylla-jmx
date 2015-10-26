@@ -689,11 +689,12 @@ public class StorageService extends NotificationBroadcasterSupport
     /**
      * removeToken removes token (and all data associated with enpoint that had
      * it) from the ring
+     * @param hostIdString the host id to remove
      */
-    public void removeNode(String token) {
+    public void removeNode(String hostIdString) {
         log(" removeNode(String token)");
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-        APIClient.set_query_param(queryParams, "new_token", token);
+        APIClient.set_query_param(queryParams, "host_id", hostIdString);
         c.post("/storage_service/remove_node", queryParams);
     }
 
