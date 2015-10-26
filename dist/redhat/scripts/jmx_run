@@ -2,4 +2,4 @@
 
 args="-Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.port=$JMX_LOCAL_PORT  -Dcom.sun.management.jmxremote.rmi.port=$JMX_LOCAL_PORT -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 
-exec /usr/lib/jvm/jre-1.8.0/bin/java $args -jar /usr/lib/scylla/jmx/urchin-mbean-1.0.jar
+exec java $args -jar /usr/lib/scylla/jmx/urchin-mbean-1.0.jar
