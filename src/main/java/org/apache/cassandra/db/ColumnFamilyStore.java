@@ -24,6 +24,7 @@
 package org.apache.cassandra.db;
 
 import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -32,13 +33,14 @@ import javax.json.JsonObject;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.ColumnFamilyMetrics;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.google.common.base.Throwables;
 
 public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -130,10 +132,14 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                     }
                 }
                 missed_response = 0;
-            } catch (ClientHandlerException e) {
-                if (missed_response++ > MAX_RETRY) {
-                    System.err.println("API is not available, JMX is shuting down");
-                    System.exit(-1);
+            } catch (ProcessingException e) {
+                if (Throwables.getRootCause(e) instanceof ConnectException) {
+                    if (missed_response++ > MAX_RETRY) {
+                        System.err.println("API is not available, JMX is shuting down");
+                        System.exit(-1);
+                    }
+                } else {
+                 // ignoring exceptions, will retry on the next interval
                 }
             } catch (Exception e) {
                 // ignoring exceptions, will retry on the next interval
@@ -474,7 +480,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setMinimumCompactionThreshold(int threshold) {
         log(" setMinimumCompactionThreshold(int threshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(threshold));
         c.post("column_family/minimum_compaction/" + getCFName(), queryParams);
     }
@@ -493,7 +499,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCompactionThresholds(int minThreshold, int maxThreshold) {
         log(" setCompactionThresholds(int minThreshold, int maxThreshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("minimum", Integer.toString(minThreshold));
         queryParams.add("maximum", Integer.toString(maxThreshold));
         c.post("column_family/compaction" + getCFName(), queryParams);
@@ -504,7 +510,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setMaximumCompactionThreshold(int threshold) {
         log(" setMaximumCompactionThreshold(int threshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(threshold));
         c.post("column_family/maximum_compaction/" + getCFName(), queryParams);
     }
@@ -517,7 +523,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCompactionStrategyClass(String className) {
         log(" setCompactionStrategyClass(String className)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("class_name", className);
         c.post("column_family/compaction_strategy/" + getCFName(), queryParams);
     }
@@ -548,7 +554,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCompressionParameters(Map<String, String> opts) {
         log(" setCompressionParameters(Map<String,String> opts)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("opts", APIClient.mapToString(opts));
         c.post("column_family/compression_parameters/" + getCFName(),
                 queryParams);
@@ -559,7 +565,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public void setCrcCheckChance(double crcCheckChance) {
         log(" setCrcCheckChance(double crcCheckChance)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("check_chance", Double.toString(crcCheckChance));
         c.post("column_family/crc_check_chance/" + getCFName(), queryParams);
     }
@@ -633,7 +639,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public List<String> getSSTablesForKey(String key) {
         log(" getSSTablesForKey(String key)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("key", key);
         return c.getListStrValue("column_family/sstables/by_key/" + getCFName(),
                 queryParams);

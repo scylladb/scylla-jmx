@@ -23,12 +23,12 @@ import java.util.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.TabularData;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.CompactionMetrics;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * A singleton which manages a private executor of ongoing compactions.
@@ -140,7 +140,7 @@ public class CompactionManager implements CompactionManagerMBean {
      */
     public void forceUserDefinedCompaction(String dataFiles) {
         log(" forceUserDefinedCompaction(String dataFiles)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dataFiles", dataFiles);
         c.post("compaction_manager/compaction_manager/force_user_defined_compaction",
                 queryParams);
@@ -148,14 +148,14 @@ public class CompactionManager implements CompactionManagerMBean {
 
     /**
      * Stop all running compaction-like tasks having the provided {@code type}.
-     * 
+     *
      * @param type
      *            the type of compaction to stop. Can be one of: - COMPACTION -
      *            VALIDATION - CLEANUP - SCRUB - INDEX_BUILD
      */
     public void stopCompaction(String type) {
         log(" stopCompaction(String type)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("type", type);
         c.post("compaction_manager/compaction_manager/stop_compaction",
                 queryParams);

@@ -23,10 +23,10 @@ import java.net.UnknownHostException;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -64,7 +64,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getRack(String host) throws UnknownHostException {
         log("getRack(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         if (host == null) {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
@@ -82,7 +82,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getDatacenter(String host) throws UnknownHostException {
         log(" getDatacenter(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         if (host == null) {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }

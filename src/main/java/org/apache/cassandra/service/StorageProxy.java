@@ -28,10 +28,10 @@ import java.util.*;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import org.apache.cassandra.metrics.*;
 
@@ -203,14 +203,14 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setHintedHandoffEnabled(boolean b) {
         log(" setHintedHandoffEnabled(boolean b)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("enable", Boolean.toString(b));
         c.post("storage_proxy/hinted_handoff_enabled", queryParams);
     }
 
     public void setHintedHandoffEnabledByDCList(String dcs) {
         log(" setHintedHandoffEnabledByDCList(String dcs)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dcs", dcs);
         c.post("storage_proxy/hinted_handoff_enabled_by_dc_list");
     }
@@ -222,7 +222,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setMaxHintWindow(int ms) {
         log(" setMaxHintWindow(int ms)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("ms", Integer.toString(ms));
         c.post("storage_proxy/max_hint_window", queryParams);
     }
@@ -234,7 +234,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setMaxHintsInProgress(int qs) {
         log(" setMaxHintsInProgress(int qs)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("qs", Integer.toString(qs));
         c.post("storage_proxy/max_hints_in_progress", queryParams);
     }
@@ -251,7 +251,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setRpcTimeout(Long timeoutInMillis) {
         log(" setRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/rpc_timeout", queryParams);
     }
@@ -263,7 +263,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setReadRpcTimeout(Long timeoutInMillis) {
         log(" setReadRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/read_rpc_timeout", queryParams);
     }
@@ -275,7 +275,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setWriteRpcTimeout(Long timeoutInMillis) {
         log(" setWriteRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/write_rpc_timeout", queryParams);
     }
@@ -287,7 +287,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setCounterWriteRpcTimeout(Long timeoutInMillis) {
         log(" setCounterWriteRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/counter_write_rpc_timeout", queryParams);
     }
@@ -299,7 +299,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setCasContentionTimeout(Long timeoutInMillis) {
         log(" setCasContentionTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/cas_contention_timeout", queryParams);
     }
@@ -311,7 +311,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setRangeRpcTimeout(Long timeoutInMillis) {
         log(" setRangeRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/range_rpc_timeout", queryParams);
     }
@@ -323,7 +323,7 @@ public class StorageProxy implements StorageProxyMBean {
 
     public void setTruncateRpcTimeout(Long timeoutInMillis) {
         log(" setTruncateRpcTimeout(Long timeoutInMillis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
         c.post("storage_proxy/truncate_rpc_timeout", queryParams);
     }
