@@ -28,10 +28,10 @@ import java.net.UnknownHostException;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * This module is responsible for Gossiping information for the local endpoint.
@@ -91,7 +91,7 @@ public class Gossiper implements GossiperMBean {
     public void unsafeAssassinateEndpoint(String address)
             throws UnknownHostException {
         log(" unsafeAssassinateEndpoint(String address) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("unsafe", "True");
         c.post("gossiper/assassinate/" + address, queryParams);
     }

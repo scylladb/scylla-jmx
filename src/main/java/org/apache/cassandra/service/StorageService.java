@@ -33,12 +33,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.*;
 import javax.management.openmbean.TabularData;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * This abstraction contains the token/identifier of this node on the identifier
@@ -234,7 +234,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public Map<List<String>, List<String>> getRangeToRpcaddressMap(
             String keyspace) {
         log(" getRangeToRpcaddressMap(String keyspace)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("rpc", "true");
         return c.getMapListStrValue("/storage_service/range/" + keyspace,
                 queryParams);
@@ -340,7 +340,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public List<InetAddress> getNaturalEndpoints(String keyspaceName, String cf,
             String key) {
         log(" getNaturalEndpoints(String keyspaceName, String cf, String key)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cf", cf);
         queryParams.add("key", key);
         return c.getListInetAddressValue(
@@ -366,7 +366,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void takeSnapshot(String tag, String... keyspaceNames)
             throws IOException {
         log(" takeSnapshot(String tag, String... keyspaceNames) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "tag", tag);
         APIClient.set_query_param(queryParams, "kn",
                 APIClient.join(keyspaceNames));
@@ -387,7 +387,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void takeColumnFamilySnapshot(String keyspaceName,
             String columnFamilyName, String tag) throws IOException {
         log(" takeColumnFamilySnapshot(String keyspaceName, String columnFamilyName, String tag) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         if (keyspaceName == null)
             throw new IOException("You must supply a keyspace name");
         if (columnFamilyName == null)
@@ -407,7 +407,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void clearSnapshot(String tag, String... keyspaceNames)
             throws IOException {
         log(" clearSnapshot(String tag, String... keyspaceNames) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "tag", tag);
         APIClient.set_query_param(queryParams, "kn",
                 APIClient.join(keyspaceNames));
@@ -442,7 +442,7 @@ public class StorageService extends NotificationBroadcasterSupport
             String... columnFamilies) throws IOException, ExecutionException,
                     InterruptedException {
         log(" forceKeyspaceCompaction(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
         c.post("/storage_service/keyspace_compaction/" + keyspaceName,
@@ -456,7 +456,7 @@ public class StorageService extends NotificationBroadcasterSupport
             String... columnFamilies) throws IOException, ExecutionException,
                     InterruptedException {
         log(" forceKeyspaceCleanup(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
         return c.postInt("/storage_service/keyspace_cleanup/" + keyspaceName,
@@ -474,7 +474,7 @@ public class StorageService extends NotificationBroadcasterSupport
             String keyspaceName, String... columnFamilies) throws IOException,
                     ExecutionException, InterruptedException {
         log(" scrub(boolean disableSnapshot, boolean skipCorrupted, String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "disable_snapshot",
                 disableSnapshot);
         APIClient.set_bool_query_param(queryParams, "skip_corrupted",
@@ -493,7 +493,7 @@ public class StorageService extends NotificationBroadcasterSupport
                     throws IOException, ExecutionException,
                     InterruptedException {
         log(" upgradeSSTables(String keyspaceName, boolean excludeCurrentVersion, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "exclude_current_version",
                 excludeCurrentVersion);
         APIClient.set_query_param(queryParams, "cf",
@@ -514,7 +514,7 @@ public class StorageService extends NotificationBroadcasterSupport
             String... columnFamilies) throws IOException, ExecutionException,
                     InterruptedException {
         log(" forceKeyspaceFlush(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
         c.post("/storage_service/keyspace_flush/" + keyspaceName, queryParams);
@@ -525,7 +525,7 @@ public class StorageService extends NotificationBroadcasterSupport
         int id;
         String keyspace;
         String message;
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         int cmd;
         public CheckRepair(int id, String keyspace) {
             this.id = id;
@@ -598,7 +598,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public int repairAsync(String keyspace, Map<String, String> options) {
         log(" repairAsync(String keyspace, Map<String, String> options)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         String opts = "";
         for (String op : options.keySet()) {
             if (!opts.equals("")) {
@@ -681,7 +681,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void move(String newToken) throws IOException {
         log(" move(String newToken) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "new_token", newToken);
         c.post("/storage_service/move");
     }
@@ -693,7 +693,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void removeNode(String hostIdString) {
         log(" removeNode(String token)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "host_id", hostIdString);
         c.post("/storage_service/remove_node", queryParams);
     }
@@ -736,7 +736,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void setLoggingLevel(String classQualifier, String level)
             throws Exception {
         log(" setLoggingLevel(String classQualifier, String level) throws Exception");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "level", level);
         APIClient.set_query_param(queryParams, "class_qualifier",
                 classQualifier);
@@ -795,7 +795,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void truncate(String keyspace, String columnFamily)
             throws TimeoutException, IOException {
         log(" truncate(String keyspace, String columnFamily)throws TimeoutException, IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf", columnFamily);
         c.post("/storage_service/truncate/" + keyspace, queryParams);
     }
@@ -828,7 +828,7 @@ public class StorageService extends NotificationBroadcasterSupport
 
     public List<String> getKeyspaces() {
         log(" getKeyspaces()");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("non_system", "true");
         return c.getListStrValue("/storage_service/keyspaces", queryParams);
     }
@@ -858,7 +858,7 @@ public class StorageService extends NotificationBroadcasterSupport
             Integer dynamicUpdateInterval, Integer dynamicResetInterval,
             Double dynamicBadnessThreshold) throws ClassNotFoundException {
         log(" updateSnitch(String epSnitchClassName, Boolean dynamic, Integer dynamicUpdateInterval, Integer dynamicResetInterval, Double dynamicBadnessThreshold) throws ClassNotFoundException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "dynamic", dynamic);
         APIClient.set_query_param(queryParams, "epSnitchClassName",
                 epSnitchClassName);
@@ -959,10 +959,9 @@ public class StorageService extends NotificationBroadcasterSupport
 
     public void setStreamThroughputMbPerSec(int value) {
         log(" setStreamThroughputMbPerSec(int value)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(value));
         c.post("/storage_service/stream_throughput", queryParams);
-
     }
 
     public int getStreamThroughputMbPerSec() {
@@ -977,7 +976,7 @@ public class StorageService extends NotificationBroadcasterSupport
 
     public void setCompactionThroughputMbPerSec(int value) {
         log(" setCompactionThroughputMbPerSec(int value)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(value));
         c.post("/storage_service/compaction_throughput", queryParams);
     }
@@ -989,7 +988,7 @@ public class StorageService extends NotificationBroadcasterSupport
 
     public void setIncrementalBackupsEnabled(boolean value) {
         log(" setIncrementalBackupsEnabled(boolean value)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Boolean.toString(value));
         c.post("/storage_service/incremental_backups", queryParams);
     }
@@ -1006,7 +1005,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void rebuild(String sourceDc) {
         log(" rebuild(String sourceDc)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "value", sourceDc);
         c.post("/storage_service/rebuild", queryParams);
     }
@@ -1042,7 +1041,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void loadNewSSTables(String ksName, String cfName) {
         log(" loadNewSSTables(String ksName, String cfName)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cf", cfName);
         c.post("/storage_service/sstables/" + ksName, queryParams);
     }
@@ -1087,7 +1086,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void setTraceProbability(double probability) {
         log(" setTraceProbability(double probability)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("probability", Double.toString(probability));
         c.post("/storage_service/trace_probability", queryParams);
     }
@@ -1103,7 +1102,7 @@ public class StorageService extends NotificationBroadcasterSupport
     public void disableAutoCompaction(String ks, String... columnFamilies)
             throws IOException {
         log("disableAutoCompaction(String ks, String... columnFamilies)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
         c.delete("/storage_service/auto_compaction/", queryParams);
@@ -1112,16 +1111,21 @@ public class StorageService extends NotificationBroadcasterSupport
     public void enableAutoCompaction(String ks, String... columnFamilies)
             throws IOException {
         log("enableAutoCompaction(String ks, String... columnFamilies)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf",
                 APIClient.join(columnFamilies));
-        c.post("/storage_service/auto_compaction/", queryParams);
+        try {
+            c.post("/storage_service/auto_compaction/", queryParams);
+        } catch (RuntimeException e) {
+            // FIXME should throw the right exception
+            throw new IOException(e.getMessage());
+        }
 
     }
 
     public void deliverHints(String host) throws UnknownHostException {
         log(" deliverHints(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("host", host);
         c.post("/storage_service/deliver_hints", queryParams);
     }
@@ -1147,7 +1151,7 @@ public class StorageService extends NotificationBroadcasterSupport
     /** Sets the threshold for warning queries with many tombstones */
     public void setTombstoneWarnThreshold(int tombstoneDebugThreshold) {
         log(" setTombstoneWarnThreshold(int tombstoneDebugThreshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("debug_threshold",
                 Integer.toString(tombstoneDebugThreshold));
         c.post("/storage_service/tombstone_warn_threshold", queryParams);
@@ -1162,7 +1166,7 @@ public class StorageService extends NotificationBroadcasterSupport
     /** Sets the threshold for abandoning queries with many tombstones */
     public void setTombstoneFailureThreshold(int tombstoneDebugThreshold) {
         log(" setTombstoneFailureThreshold(int tombstoneDebugThreshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("debug_threshold",
                 Integer.toString(tombstoneDebugThreshold));
         c.post("/storage_service/tombstone_failure_threshold", queryParams);
@@ -1177,7 +1181,7 @@ public class StorageService extends NotificationBroadcasterSupport
     /** Sets the threshold for rejecting queries due to a large batch size */
     public void setBatchSizeFailureThreshold(int batchSizeDebugThreshold) {
         log(" setBatchSizeFailureThreshold(int batchSizeDebugThreshold)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("threshold", Integer.toString(batchSizeDebugThreshold));
         c.post("/storage_service/batch_size_failure_threshold", queryParams);
     }
@@ -1187,7 +1191,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void setHintedHandoffThrottleInKB(int throttleInKB) {
         log(" setHintedHandoffThrottleInKB(int throttleInKB)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("throttle", Integer.toString(throttleInKB));
         c.post("/storage_service/hinted_handoff", queryParams);
 

@@ -29,12 +29,12 @@ import java.util.concurrent.ExecutionException;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.CacheMetrics;
 
 import com.cloudius.urchin.api.APIClient;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class CacheService implements CacheServiceMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -77,7 +77,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setRowCacheSavePeriodInSeconds(int rcspis) {
         log(" setRowCacheSavePeriodInSeconds(int rcspis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("period", Integer.toString(rcspis));
         c.post("cache_service/row_cache_save_period", queryParams);
     }
@@ -89,7 +89,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setKeyCacheSavePeriodInSeconds(int kcspis) {
         log(" setKeyCacheSavePeriodInSeconds(int kcspis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("period", Integer.toString(kcspis));
         c.post("cache_service/key_cache_save_period", queryParams);
     }
@@ -101,7 +101,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setCounterCacheSavePeriodInSeconds(int ccspis) {
         log(" setCounterCacheSavePeriodInSeconds(int ccspis)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("ccspis", Integer.toString(ccspis));
         c.post("cache_service/counter_cache_save_period", queryParams);
     }
@@ -113,7 +113,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setRowCacheKeysToSave(int rckts) {
         log(" setRowCacheKeysToSave(int rckts)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("rckts", Integer.toString(rckts));
         c.post("cache_service/row_cache_keys_to_save", queryParams);
     }
@@ -125,7 +125,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setKeyCacheKeysToSave(int kckts) {
         log(" setKeyCacheKeysToSave(int kckts)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("kckts", Integer.toString(kckts));
         c.post("cache_service/key_cache_keys_to_save", queryParams);
     }
@@ -137,7 +137,7 @@ public class CacheService implements CacheServiceMBean {
 
     public void setCounterCacheKeysToSave(int cckts) {
         log(" setCounterCacheKeysToSave(int cckts)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cckts", Integer.toString(cckts));
         c.post("cache_service/counter_cache_keys_to_save", queryParams);
     }
@@ -165,21 +165,21 @@ public class CacheService implements CacheServiceMBean {
 
     public void setRowCacheCapacityInMB(long capacity) {
         log(" setRowCacheCapacityInMB(long capacity)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
         c.post("cache_service/row_cache_capacity", queryParams);
     }
 
     public void setKeyCacheCapacityInMB(long capacity) {
         log(" setKeyCacheCapacityInMB(long capacity)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
         c.post("cache_service/key_cache_capacity", queryParams);
     }
 
     public void setCounterCacheCapacityInMB(long capacity) {
         log(" setCounterCacheCapacityInMB(long capacity)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
         c.post("cache_service/counter_cache_capacity_in_mb", queryParams);
     }

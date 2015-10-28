@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.json.Json;
@@ -22,17 +23,17 @@ import javax.json.JsonReaderFactory;
 import javax.json.JsonString;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-
+import javax.ws.rs.core.Response;
+import org.glassfish.jersey.client.ClientConfig;
 import com.cloudius.urchin.utils.EstimatedHistogram;
 import com.cloudius.urchin.utils.SnapshotDetailsTabularData;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.yammer.metrics.core.HistogramValues;
 
 public class APIClient {
@@ -77,43 +78,44 @@ public class APIClient {
                 + System.getProperty("apiport", "10000");
     }
 
-    public Builder get(String path) {
-        ClientConfig config = new DefaultClientConfig();
-        Client client = Client.create(config);
-        WebResource service = client.resource(UriBuilder.fromUri(getBaseUrl())
-                .build());
-        return service.path(path).accept(MediaType.APPLICATION_JSON);
-    }
-
-    public Builder get(String path, MultivaluedMap<String, String> queryParams) {
-        if (queryParams == null) {
-            return get(path);
-        }
-        ClientConfig config = new DefaultClientConfig();
-        Client client = Client.create(config);
-        WebResource service = client.resource(UriBuilder.fromUri(getBaseUrl())
-                .build());
-        return service.queryParams(queryParams).path(path)
-                .accept(MediaType.APPLICATION_JSON);
-    }
-
-    public void post(String path, MultivaluedMap<String, String> queryParams) {
+    public Invocation.Builder get(String path, MultivaluedMap<String, String> queryParams) {
+        Client client =  ClientBuilder.newClient( new ClientConfig());
+        WebTarget webTarget = client.target(getBaseUrl()).path(path);
         if (queryParams != null) {
-            get(path, queryParams).post();
-            return;
+            for (Entry<String, List<String>> qp :  queryParams.entrySet()) {
+                for (String e : qp.getValue()) {
+                    webTarget = webTarget.queryParam(qp.getKey(), e);
+                }
+            }
         }
-        get(path).post();
+        return webTarget.request(MediaType.APPLICATION_JSON);
+    }
+
+    public Invocation.Builder get(String path) {
+        return get(path, null);
+    }
+
+    public Response post(String path, MultivaluedMap<String, String> queryParams) {
+        Response response = get(path, queryParams).post(Entity.entity(null, MediaType.TEXT_PLAIN));
+        if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
+            throw getException(response.readEntity(String.class));
+        }
+        return response;
+
     }
 
     public void post(String path) {
         post(path, null);
     }
 
+    public RuntimeException getException(String txt) {
+        JsonReader reader = factory.createReader(new StringReader(txt));
+        JsonObject res = reader.readObject();
+        return new RuntimeException(res.getString("message"));
+    }
+
     public String postGetVal(String path, MultivaluedMap<String, String> queryParams) {
-        if (queryParams != null) {
-            return get(path, queryParams).post(String.class);
-        }
-        return get(path).post(String.class);
+        return post(path, queryParams).readEntity(String.class);
     }
 
     public int postInt(String path, MultivaluedMap<String, String> queryParams) {
@@ -146,8 +148,15 @@ public class APIClient {
         if (res != null) {
             return res;
         }
+        Response response = get(string, queryParams).get(Response.class);
 
-        res = get(string, queryParams).get(String.class);
+        if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
+            // TBD
+            // We are currently not caching errors,
+            // it should be reconsider.
+            throw getException(response.readEntity(String.class));
+        }
+        res = response.readEntity(String.class);
         if (duration > 0) {
             cache.put(key, new CacheEntry(res));
         }
