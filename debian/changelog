@@ -1,4 +1,4 @@
-scylla-jmx (0.10-1) unstable; urgency=medium
+scylla-jmx (0.10-ubuntu1) trusty; urgency=medium
 
   * Initial release.
 
