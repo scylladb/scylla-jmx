@@ -39,6 +39,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
 import com.cloudius.urchin.api.APIClient;
+import com.cloudius.urchin.utils.FileUtils;
 
 /**
  * This abstraction contains the token/identifier of this node on the identifier
@@ -306,7 +307,7 @@ public class StorageService extends NotificationBroadcasterSupport
     /** Human-readable load value */
     public String getLoadString() {
         log(" getLoadString()");
-        return String.valueOf(getLoad());
+        return FileUtils.stringifyFileSize(getLoad());
     }
 
     /** Human-readable load value. Keys are IP addresses. */
