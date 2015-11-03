@@ -486,9 +486,24 @@ public class APIClient {
     public Map<InetAddress, Float> getMapInetAddressFloatValue(String string) {
         return getMapInetAddressFloatValue(string, null);
     }
+
+    public Map<String, Long> getMapStringLongValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        Map<String, Long> res = new HashMap<String, Long>();
+
+        JsonReader reader = getReader(string, queryParams);
+
+        JsonArray arr = reader.readArray();
+        JsonObject obj = null;
+        for (int i = 0; i < arr.size(); i++) {
+            obj = arr.getJsonObject(i);
+            res.put(obj.getString("key"), obj.getJsonNumber("value").longValue());
+        }
+        return res;
+    }
+
     public Map<String, Long> getMapStringLongValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return getMapStringLongValue(string, null);
     }
 
     public long[] getLongArrValue(String string,
@@ -507,9 +522,23 @@ public class APIClient {
         return getLongArrValue(string, null);
     }
 
+    public Map<String, Integer> getMapStringIntegerValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        Map<String, Integer> res = new HashMap<String, Integer>();
+
+        JsonReader reader = getReader(string, queryParams);
+
+        JsonArray arr = reader.readArray();
+        JsonObject obj = null;
+        for (int i = 0; i < arr.size(); i++) {
+            obj = arr.getJsonObject(i);
+            res.put(obj.getString("key"), obj.getInt("value"));
+        }
+        return res;
+    }
+
     public Map<String, Integer> getMapStringIntegerValue(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        return getMapStringIntegerValue(string, null);
     }
 
     public int[] getIntArrValue(String string,
