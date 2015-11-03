@@ -94,7 +94,7 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Integer> getResponsePendingTasks() {
         log(" getResponsePendingTasks()");
-        return c.getMapStringIntegerValue("");
+        return c.getMapStringIntegerValue("/messaging_service/messages/respond_pending");
     }
 
     /**
@@ -102,7 +102,7 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Long> getResponseCompletedTasks() {
         log(" getResponseCompletedTasks()");
-        return c.getMapStringLongValue("");
+        return c.getMapStringLongValue("/messaging_service/messages/respond_completed");
     }
 
     /**
@@ -110,7 +110,7 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Integer> getDroppedMessages() {
         log(" getDroppedMessages()");
-        return c.getMapStringIntegerValue("");
+        return c.getMapStringIntegerValue("/messaging_service/messages/dropped");
     }
 
     /**
