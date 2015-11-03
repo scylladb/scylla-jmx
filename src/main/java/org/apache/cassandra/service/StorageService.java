@@ -38,6 +38,8 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
+import org.apache.cassandra.streaming.StreamManager;
+
 import com.cloudius.urchin.api.APIClient;
 
 /**
@@ -76,8 +78,7 @@ public class StorageService extends NotificationBroadcasterSupport
             jmxObjectName = new ObjectName(
                     "org.apache.cassandra.db:type=StorageService");
             mbs.registerMBean(this, jmxObjectName);
-            // mbs.registerMBean(StreamManager.instance, new ObjectName(
-            // StreamManager.OBJECT_NAME));
+            mbs.registerMBean(StreamManager.getInstance(), new ObjectName(StreamManager.OBJECT_NAME));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
