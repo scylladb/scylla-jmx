@@ -3,7 +3,7 @@
  */
 package com.cloudius.urchin.main;
 
-import com.cloudius.urchin.api.APIClient;
+import com.cloudius.urchin.api.APIConfig;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.db.commitlog.CommitLog;
@@ -19,7 +19,8 @@ import org.apache.cassandra.service.StorageService;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Connecting to " + APIClient.getBaseUrl());
+        APIConfig.setConfig();
+        System.out.println("Connecting to " + APIConfig.getBaseUrl());
         System.out.println("Starting the JMX server");
         StorageService.getInstance();
         StorageProxy.getInstance();
