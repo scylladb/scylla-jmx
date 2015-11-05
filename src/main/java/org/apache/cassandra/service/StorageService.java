@@ -685,7 +685,7 @@ public class StorageService extends NotificationBroadcasterSupport
         log(" move(String newToken) throws IOException");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "new_token", newToken);
-        c.post("/storage_service/move");
+        c.post("/storage_service/move", queryParams);
     }
 
     /**
