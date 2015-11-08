@@ -31,6 +31,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonWriter;
 import javax.management.*;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -254,7 +258,18 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public List<String> describeRingJMX(String keyspace) throws IOException {
         log(" describeRingJMX(String keyspace) throws IOException");
-        return c.getListStrValue("/storage_service/describe_ring/" + keyspace);
+        JsonArray arr = c.getJsonArray("/storage_service/describe_ring/" + keyspace);
+        List<String> res = new ArrayList<String>();
+
+        for (int i = 0; i < arr.size(); i++) {
+            StringWriter stringWriter = new StringWriter();
+            JsonWriter writer = Json.createWriter(stringWriter);
+            JsonObject obj = arr.getJsonObject(i);
+            writer.writeObject(obj);
+            writer.close();
+            res.add(stringWriter.getBuffer().toString());
+        }
+        return res;
     }
 
     /**
