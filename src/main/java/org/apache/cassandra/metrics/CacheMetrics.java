@@ -24,6 +24,8 @@
 package org.apache.cassandra.metrics;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
 import com.cloudius.urchin.api.APIClient;
 import com.cloudius.urchin.metrics.APIMetrics;
 import com.cloudius.urchin.metrics.DefaultNameFactory;
@@ -47,6 +49,9 @@ public class CacheMetrics {
     public final Gauge<Long> size;
     /** Total number of cache entries */
     public final Gauge<Integer> entries;
+
+    private final AtomicLong lastRequests = new AtomicLong(0);
+    private final AtomicLong lastHits = new AtomicLong(0);
 
     private APIClient c = new APIClient();
 
@@ -101,6 +106,17 @@ public class CacheMetrics {
     // for backward compatibility
     @Deprecated
     public double getRecentHitRate() {
-        return 0;
+        long r = requests.count();
+        long h = hits.count();
+        try
+        {
+            return ((double)(h - lastHits.get())) / (r - lastRequests.get());
+        }
+        finally
+        {
+            lastRequests.set(r);
+            lastHits.set(h);
+        }
     }
+
 }
