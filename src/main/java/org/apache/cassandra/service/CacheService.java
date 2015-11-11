@@ -211,7 +211,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheHits() {
         log(" getKeyCacheHits()");
-        return c.getLongValue("");
+        return keyCache.hits.count();
     }
 
     /**
@@ -220,7 +220,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheHits() {
         log(" getRowCacheHits()");
-        return c.getLongValue("");
+        return rowCache.hits.count();
     }
 
     /**
@@ -229,7 +229,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheRequests() {
         log(" getKeyCacheRequests()");
-        return c.getLongValue("");
+        return keyCache.requests.count();
     }
 
     /**
@@ -238,7 +238,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheRequests() {
         log(" getRowCacheRequests()");
-        return c.getLongValue("");
+        return rowCache.requests.count();
     }
 
     /**
@@ -247,7 +247,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public double getKeyCacheRecentHitRate() {
         log(" getKeyCacheRecentHitRate()");
-        return c.getDoubleValue("");
+        return keyCache.getRecentHitRate();
     }
 
     /**
@@ -256,7 +256,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public double getRowCacheRecentHitRate() {
         log(" getRowCacheRecentHitRate()");
-        return c.getDoubleValue("");
+        return rowCache.getRecentHitRate();
     }
 
     /**
@@ -265,7 +265,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheCapacityInMB() {
         log(" getRowCacheCapacityInMB()");
-        return c.getLongValue("");
+        return getRowCacheCapacityInBytes() / 1024 / 1024;
     }
 
     /**
@@ -274,7 +274,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheCapacityInBytes() {
         log(" getRowCacheCapacityInBytes()");
-        return c.getLongValue("");
+        return rowCache.capacity.value();
     }
 
     /**
@@ -283,7 +283,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheCapacityInMB() {
         log(" getKeyCacheCapacityInMB()");
-        return c.getLongValue("");
+        return getKeyCacheCapacityInBytes() / 1024 / 1024;
     }
 
     /**
@@ -292,7 +292,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheCapacityInBytes() {
         log(" getKeyCacheCapacityInBytes()");
-        return c.getLongValue("");
+        return keyCache.capacity.value();
     }
 
     /**
@@ -301,7 +301,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheSize() {
         log(" getRowCacheSize()");
-        return c.getLongValue("");
+        return rowCache.size.value();
     }
 
     /**
@@ -310,7 +310,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getRowCacheEntries() {
         log(" getRowCacheEntries()");
-        return c.getLongValue("");
+        return rowCache.size.value();
     }
 
     /**
@@ -319,7 +319,7 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheSize() {
         log(" getKeyCacheSize()");
-        return c.getLongValue("");
+        return keyCache.size.value();
     }
 
     /**
@@ -328,6 +328,6 @@ public class CacheService implements CacheServiceMBean {
     @Deprecated
     public long getKeyCacheEntries() {
         log(" getKeyCacheEntries()");
-        return c.getLongValue("");
+        return keyCache.size.value();
     }
 }

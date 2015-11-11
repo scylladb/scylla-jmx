@@ -784,7 +784,11 @@ public class StorageService extends NotificationBroadcasterSupport
     /** get the progress of a drain operation */
     public String getDrainProgress() {
         log(" getDrainProgress()");
-        return c.getStringValue("/storage_service/drain");
+        // FIXME
+        // This is a workaround so the nodetool would work
+        // it should be revert when the drain progress will be implemented
+        //return c.getStringValue("/storage_service/drain");
+        return String.format("Drained %s/%s ColumnFamilies", 0, 0);
     }
 
     /**
