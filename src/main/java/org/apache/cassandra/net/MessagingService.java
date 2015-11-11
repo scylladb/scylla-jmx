@@ -25,6 +25,7 @@ package org.apache.cassandra.net;
 import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -86,7 +87,7 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Long> getCommandDroppedTasks() {
         log(" getCommandDroppedTasks()");
-        return c.getMapStringLongValue("");
+        return c.getMapStringLongValue("/messaging_service/messages/dropped");
     }
 
     /**
@@ -126,7 +127,12 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public long getTotalTimeouts() {
         log(" getTotalTimeouts()");
-        return c.getLongValue("");
+        Map<String, Long> timeouts = getTimeoutsPerHost();
+        long res = 0;
+        for (Entry<String, Long> t : timeouts.entrySet()) {
+            res += t.getValue();
+        }
+        return res;
     }
 
     /**
@@ -134,7 +140,7 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Long> getTimeoutsPerHost() {
         log(" getTimeoutsPerHost()");
-        return c.getMapStringLongValue("");
+        return c.getMapStringLongValue("/messaging_service/messages/timeout");
     }
 
     /**
