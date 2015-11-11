@@ -74,8 +74,7 @@ public class APIClient {
             .getLogger(APIClient.class.getName());
 
     public static String getBaseUrl() {
-        return "http://" + System.getProperty("apiaddress", "localhost") + ":"
-                + System.getProperty("apiport", "10000");
+        return APIConfig.getBaseUrl();
     }
 
     public Invocation.Builder get(String path, MultivaluedMap<String, String> queryParams) {
