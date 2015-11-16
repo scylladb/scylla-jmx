@@ -289,6 +289,23 @@ public class APIMetrics {
     }
 
     /**
+     * Creates a new {@link com.yammer.metrics.core.Meter} and registers it
+     * under the given metric name.
+     *
+     * @param metricName
+     *            the name of the metric
+     * @param eventType
+     *            the plural name of the type of events the meter is measuring
+     *            (e.g., {@code "requests"})
+     * @param unit
+     *            the rate unit of the new meter
+     * @return a new {@link com.yammer.metrics.core.Meter}
+     */
+    public static Meter newSettableMeter(MetricName metricName,
+            String eventType, TimeUnit unit) {
+        return DEFAULT_REGISTRY.newSettableMeter(metricName, eventType, unit);
+    }
+    /**
      * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class and name.
      *

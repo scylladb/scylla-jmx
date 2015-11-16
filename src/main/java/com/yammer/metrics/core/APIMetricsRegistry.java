@@ -182,6 +182,28 @@ public class APIMetricsRegistry extends MetricsRegistry {
     }
 
     /**
+     * Creates a new {@link APISettableMeter} and registers it under the given metric name.
+     *
+     * @param metricName
+     *            the name of the metric
+     * @param eventType
+     *            the plural name of the type of events the meter is measuring
+     *            (e.g., {@code "requests"})
+     * @param unit
+     *            the rate unit of the new meter
+     * @return a new {@link Meter}
+     */
+    public Meter newSettableMeter(MetricName metricName, String eventType,
+            TimeUnit unit) {
+        final Metric existingMetric = getMetrics().get(metricName);
+        if (existingMetric != null) {
+            return (Meter) existingMetric;
+        }
+        return getOrAdd(metricName, new APISettableMeter(newMeterTickThreadPool(),
+                    eventType, unit, getClock()));
+    }
+
+    /**
      * Creates a new {@link Histogram} and registers it under the given class
      * and name.
      *
