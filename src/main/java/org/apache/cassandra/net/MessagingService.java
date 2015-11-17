@@ -42,8 +42,10 @@ public final class MessagingService implements MessagingServiceMBean {
             .getLogger(MessagingService.class.getName());
     Map<String, DroppedMessageMetrics> dropped;
     private APIClient c = new APIClient();
-
+    Map<String, Long> resent_timeout = new HashMap<String, Long>();
     private final ObjectName jmxObjectName;
+    private long recentTimeoutCount;
+
     /* All verb handler identifiers */
     public enum Verb
     {
@@ -230,7 +232,10 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public long getRecentTotalTimouts() {
         log(" getRecentTotalTimouts()");
-        return c.getLongValue("");
+        long timeoutCount = getTotalTimeouts();
+        long recent = timeoutCount - recentTimeoutCount;
+        recentTimeoutCount = timeoutCount;
+        return recent;
     }
 
     /**
@@ -238,7 +243,16 @@ public final class MessagingService implements MessagingServiceMBean {
      */
     public Map<String, Long> getRecentTimeoutsPerHost() {
         log(" getRecentTimeoutsPerHost()");
-        return c.getMapStringLongValue("");
+        Map<String, Long> timeouts = getTimeoutsPerHost();
+        Map<String, Long> result = new HashMap<String, Long>();
+        for ( Entry<String, Long> e : timeouts.entrySet()) {
+            long res = e.getValue().longValue() -
+                    ((resent_timeout.containsKey(e.getKey()))? (resent_timeout.get(e.getKey())).longValue()
+                            : 0);
+            resent_timeout.put(e.getKey(), e.getValue());
+            result.put(e.getKey(),res);
+        }
+        return result;
     }
 
     public int getVersion(String address) throws UnknownHostException {
