@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.cloudius.urchin.api.APIClient;
 
-public class APIMeter extends Meter {
+public class APIMeter extends APISettableMeter {
     String url;
     private APIClient c = new APIClient();
 
@@ -25,19 +25,8 @@ public class APIMeter extends Meter {
         return c.getLongValue(url);
     }
 
-    // Meter doesn't have a set value method.
-    // to mimic it, we clear the old value and set it to a new one.
-    // This is safe because the only this method would be used
-    // to update the values
-    public long set(long new_value) {
-        long res = super.count();
-        mark(-res);
-        mark(new_value);
-        return res;
-    }
-
     @Override
-    void tick() {
+    public void tick() {
         set(get_value());
         super.tick();
     }
