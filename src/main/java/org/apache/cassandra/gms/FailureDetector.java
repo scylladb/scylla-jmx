@@ -27,6 +27,9 @@ package org.apache.cassandra.gms;
 import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
 import java.util.*;
+
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -64,7 +67,7 @@ public class FailureDetector implements FailureDetectorMBean {
     }
 
     public void setPhiConvictThreshold(double phi) {
-        log(" setPhiConvictThreshold(double phi)");        
+        log(" setPhiConvictThreshold(double phi)");
     }
 
     public double getPhiConvictThreshold() {
@@ -74,7 +77,44 @@ public class FailureDetector implements FailureDetectorMBean {
 
     public String getAllEndpointStates() {
         log(" getAllEndpointStates()");
-        return c.getStringValue("/failure_detector/endpoints");
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, EndpointState> entry : getEndpointStateMap().entrySet())
+        {
+            sb.append(entry.getKey()).append("\n");
+            appendEndpointState(sb, entry.getValue());
+        }
+        return sb.toString();
+    }
+
+    private void appendEndpointState(StringBuilder sb, EndpointState endpointState)
+    {
+        sb.append("  generation:").append(endpointState.getHeartBeatState().getGeneration()).append("\n");
+        sb.append("  heartbeat:").append(endpointState.getHeartBeatState().getHeartBeatVersion()).append("\n");
+        for (Map.Entry<ApplicationState, String> state : endpointState.applicationState.entrySet())
+        {
+            if (state.getKey() == ApplicationState.TOKENS)
+                continue;
+            sb.append("  ").append(state.getKey()).append(":").append(state.getValue()).append("\n");
+        }
+    }
+
+    public Map<String, EndpointState> getEndpointStateMap() {
+        Map<String, EndpointState> res = new HashMap<String, EndpointState>();
+        JsonArray arr = c.getJsonArray("/failure_detector/endpoints");
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            EndpointState ep = new EndpointState(new HeartBeatState(obj.getInt("generation"), obj.getInt("version")));
+            ep.setAliave(obj.getBoolean("is_alive"));
+            ep.setUpdateTimestamp(obj.getJsonNumber("update_time").longValue());
+            JsonArray states = obj.getJsonArray("application_state");
+            for (int j = 0; j < states.size(); j++) {
+                JsonObject state = states.getJsonObject(j);
+                ep.addApplicationState(state.getInt("application_state"), state.getString("value"));
+            }
+            res.put(obj.getString("addrs"), ep);
+        }
+        return res;
     }
 
     public String getEndpointState(String address) throws UnknownHostException {
