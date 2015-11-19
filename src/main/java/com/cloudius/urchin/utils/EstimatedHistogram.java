@@ -74,6 +74,9 @@ public class EstimatedHistogram {
     }
 
     private static long[] newOffsets(int size) {
+        if (size <= 0) {
+            return new long[0];
+        }
         long[] result = new long[size];
         long last = 1;
         result[0] = last;
