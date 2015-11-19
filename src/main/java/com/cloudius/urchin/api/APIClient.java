@@ -677,6 +677,9 @@ public class APIClient {
             MultivaluedMap<String, String> queryParams) {
         JsonObject obj = getJsonObj(string, queryParams);
         JsonArray arr = obj.getJsonArray("buckets");
+        if (arr == null) {
+            return new long[0];
+        }
         long res[] = new long[arr.size()];
         for (int i = 0; i< arr.size(); i++) {
             res[i] = arr.getJsonNumber(i).longValue();
