@@ -50,6 +50,9 @@ public class RecentEstimatedHistogram extends EstimatedHistogram {
      * @return a long[] containing the current histogram difference buckets
      */
     public long[] getBuckets(long[] bucketData) {
+        if (bucketData.length == 0) {
+            return new long[0];
+        }
         final int len = buckets.length();
         long[] rv = new long[len];
 
