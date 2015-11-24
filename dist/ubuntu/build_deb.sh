@@ -5,8 +5,8 @@ if [ ! -e dist/ubuntu/build_deb.sh ]; then
     exit 1
 fi
 
-if [ -e debian ] || [ -e build ] || [ -e target ] || [ -e m2 ]; then
-    rm -rf debian build target m2
+if [ -e debian ] || [ -e build ] || [ -e target ] || [ -e m2 ] || [ -e dependency-reduced-pom.xml ]; then
+    rm -rf debian build target m2 dependency-reduced-pom.xml
 fi
 
 VERSION=$(./SCYLLA-VERSION-GEN)
