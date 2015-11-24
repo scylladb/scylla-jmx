@@ -10,3 +10,7 @@ License: AGPL-3.0
 Files: debian/*
 Copyright: Copyright (C) 2015 ScyllaDB
 License: AGPL-3.0
+
+Files: scripts/git-archive-all
+Copyright: Copyright (c) 2010 Ilya Kulakov
+License: MIT
