@@ -2,12 +2,13 @@
 
 DOC = $(CURDIR)/debian/scylla-jmx/usr/share/doc/scylla-jmx
 DEST = $(CURDIR)/debian/scylla-jmx/usr/lib/scylla/jmx
+M2_REPO= $(CURDIR)/m2
 
 override_dh_auto_build:
-	mvn install
+	mvn -Dmaven.repo.local=$(M2_REPO) install
 
 override_dh_auto_clean:
-	rm -rf target
+	rm -rf target m2
 
 override_dh_auto_install:
 	mkdir -p $(CURDIR)/debian/scylla-jmx/etc/default/ && \
