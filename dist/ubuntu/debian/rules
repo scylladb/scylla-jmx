@@ -18,7 +18,6 @@ override_dh_auto_install:
 	mkdir -p $(DOC) && \
 	cp $(CURDIR)/*.md $(DOC)
 	cp $(CURDIR)/NOTICE $(DOC)
-	cp $(CURDIR)/LICENSE.AGPL $(DOC)
 
 	mkdir -p $(DEST)
 	cp $(CURDIR)/dist/common/scripts/* $(DEST)
