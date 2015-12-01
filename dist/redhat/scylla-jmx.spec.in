@@ -64,7 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 
-%{_sysconfdir}/sysconfig/scylla-jmx
+%config(noreplace) %{_sysconfdir}/sysconfig/scylla-jmx
 %{_unitdir}/scylla-jmx.service
 %{_prefix}/lib/scylla/jmx/scylla-jmx
 %{_prefix}/lib/scylla/jmx/urchin-mbean-1.0.jar
