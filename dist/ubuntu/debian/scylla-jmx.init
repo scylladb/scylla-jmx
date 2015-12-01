@@ -20,7 +20,6 @@ DESC="Scylla JMX server"
 NAME=scylla-jmx
 
 SCYLLA_JMX=scylla-jmx
-DAEMON=/usr/lib/scylla/jmx/jmx_run
 PIDFILE=/var/run/scylla-jmx.pid
 
 SCRIPTNAME=/etc/init.d/$NAME
@@ -30,7 +29,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
-export JMX_LOCAL_PORT
+DAEMON=/usr/lib/scylla/jmx/scylla-jmx -jp $JMX_PORT -p $API_PORT -a $ADDR -l /usr/lib/scylla/jmx
 
 # Define LSB log_* functions.
 . /lib/lsb/init-functions
