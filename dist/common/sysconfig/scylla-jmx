@@ -6,3 +6,9 @@ API_PORT=10000
 
 # The API address to connect to
 ADDR=127.0.0.1
+
+# scylla home dir
+SCYLLA_HOME=/var/lib/scylla
+
+# scylla config dir
+SCYLLA_CONF=/etc/scylla
