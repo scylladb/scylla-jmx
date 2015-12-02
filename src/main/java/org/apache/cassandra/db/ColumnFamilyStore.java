@@ -691,7 +691,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public long trueSnapshotsSize() {
         log(" trueSnapshotsSize()");
-        return c.getLongValue("column_family/snapshots_size/" + getCFName());
+        return c.getLongValue("column_family/metrics/snapshots_size/" + getCFName());
     }
 
     public String getKeyspace() {

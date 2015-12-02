@@ -348,7 +348,7 @@ public class ColumnFamilyMetrics {
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
 
         trueSnapshotsSize = createColumnFamilyGauge(
-                "/column_family/metrics/true_snapshots_size", "SnapshotsSize");
+                "/column_family/metrics/snapshots_size", "SnapshotsSize");
         rowCacheHitOutOfRange = createColumnFamilyCounter(
                 "/column_family/metrics/row_cache_hit_out_of_range",
                 "RowCacheHitOutOfRange");
