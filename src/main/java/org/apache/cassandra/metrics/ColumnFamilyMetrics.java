@@ -417,7 +417,7 @@ public class ColumnFamilyMetrics {
     protected Gauge<Long> createColumnFamilyGauge(final String url, final String name) {
         Gauge<Long> gauge = new Gauge<Long>() {
             public Long value() {
-                return c.getLongValue(url + "/" + cfName);
+                return (long)c.getDoubleValue(url + "/" + cfName);
             }
         };
         return createColumnFamilyGauge(url, name, gauge);
@@ -432,7 +432,7 @@ public class ColumnFamilyMetrics {
             final String name) {
         Gauge<Integer> gauge = new Gauge<Integer>() {
             public Integer value() {
-                return c.getIntValue(url + "/" + cfName);
+                return (int)c.getDoubleValue(url + "/" + cfName);
             }
         };
         return createColumnFamilyGauge(url, name, gauge);
