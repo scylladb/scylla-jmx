@@ -670,8 +670,14 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public int[] getSSTableCountPerLevel() {
         log(" getSSTableCountPerLevel()");
-        return c.getIntArrValue(
+        int[] res = c.getIntArrValue(
                 "column_family/sstables/per_level/" + getCFName());
+        if (res.length == 0) {
+            // no sstable count
+            // should return null
+            return null;
+        }
+        return res;
     }
 
     /**
