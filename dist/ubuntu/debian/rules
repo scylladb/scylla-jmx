@@ -20,7 +20,7 @@ override_dh_auto_install:
 	cp $(CURDIR)/NOTICE $(DOC)
 
 	mkdir -p $(DEST)
-	cp $(CURDIR)/dist/common/scripts/* $(DEST)
+	cp $(CURDIR)/scripts/scylla-jmx $(DEST)
 	cp $(CURDIR)/target/urchin-mbean-1.0.jar $(DEST)
 
 %:
