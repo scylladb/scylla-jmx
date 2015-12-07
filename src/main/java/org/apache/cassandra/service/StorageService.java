@@ -387,7 +387,7 @@ public class StorageService extends NotificationBroadcasterSupport
         APIClient.set_query_param(queryParams, "tag", tag);
         APIClient.set_query_param(queryParams, "kn",
                 APIClient.join(keyspaceNames));
-        c.post("/storage_service/snapshot", queryParams);
+        c.post("/storage_service/snapshots", queryParams);
     }
 
     /**
