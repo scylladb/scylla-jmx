@@ -13,6 +13,7 @@ import org.apache.cassandra.gms.FailureDetector;
 import org.apache.cassandra.locator.EndpointSnitchInfo;
 import org.apache.cassandra.net.MessagingService;
 import org.apache.cassandra.service.CacheService;
+import org.apache.cassandra.service.GCInspector;
 import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.service.StorageService;
 
@@ -32,6 +33,7 @@ public class Main {
         ColumnFamilyStore.register_mbeans();
         CacheService.getInstance();
         CompactionManager.getInstance();
+        GCInspector.register();
         Thread.sleep(Long.MAX_VALUE);
     }
 
