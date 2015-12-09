@@ -423,14 +423,14 @@ public class APIClient {
         return null;
     }
 
-    private TabularDataSupport getSnapshotData(String ks, JsonArray arr) {
+    private TabularDataSupport getSnapshotData(String key, JsonArray arr) {
         TabularDataSupport data = new TabularDataSupport(
                 SnapshotDetailsTabularData.TABULAR_TYPE);
 
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
-            if (obj.containsKey("key") && obj.containsKey("cf")) {
-                SnapshotDetailsTabularData.from(obj.getString("key"), ks,
+            if (obj.containsKey("ks") && obj.containsKey("cf")) {
+                SnapshotDetailsTabularData.from(key, obj.getString("ks"),
                         obj.getString("cf"), obj.getInt("total"),
                         obj.getInt("live"), data);
             }
