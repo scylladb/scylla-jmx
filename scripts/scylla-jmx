@@ -2,20 +2,22 @@
 #
 #  Copyright (C) 2015 Cloudius Systems, Ltd.
 
-JMX_PORT=7199
-API_ADDR="127.0.0.1"
-API_PORT="10000"
+JMX_PORT="7199"
+API_ADDR=""
+API_PORT=""
+CONF_FILE=""
 PARAM_HELP="-h"
 PARAM_JMX_PORT="-jp"
 PARAM_API_PORT="-p"
 PARAM_ADDR="-a"
 PARAM_LOCATION="-l"
 LOCATION="target"
+PARAM_FILE="-cf"
 
 print_help() {
  cat <<HLPEND
 
-scylla-jmx [$PARAM_HELP] [$PARAM_PORT port] [$PARAM_ADDR address]
+scylla-jmx [$PARAM_HELP] [$PARAM_API_PORT port] [$PARAM_ADDR address] [$PARAM_JMX_PORT port] [$PARAM_FILE file]
 
 This script is used to run the jmx proxy
 
@@ -27,6 +29,7 @@ This script receives the following command line arguments:
     $PARAM_JMX_PORT <port> - The jmx port to open
     $PARAM_API_PORT <port> - The API port to connect to
     $PARAM_ADDR <address> - The API address to connect to
+    $PARAM_FILE <file> - A configuration file to use
     $PARAM_LOCATION <location> - The location of the jmx proxy jar file
 HLPEND
 }
@@ -35,11 +38,11 @@ while test "$#" -ne 0
 do
   case "$1" in
     "$PARAM_API_PORT")
-      API_PORT=$2
+      API_PORT="-Dapiport="$2
       shift 2
       ;;
     "$PARAM_ADDR")
-      API_ADDR=$2
+      API_ADDR="-Dapiaddress="$2
       shift 2
       ;;
     "$PARAM_PORT")
@@ -54,6 +57,10 @@ do
       LOCATION=$2
       shift 2
       ;;
+    "$PARAM_FILE")
+      CONF_FILE="-Dapiconfig="$2
+      shift 2
+      ;;
     "$PARAM_HELP")
       print_help
       exit 0
@@ -62,4 +69,4 @@ do
     esac
 done
 
-exec java -Dapiaddress=$API_ADDR -Dapiport=$API_PORT -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/urchin-mbean-1.0.jar
+exec java $API_ADDR $API_PORT $CONF_FILE -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/urchin-mbean-1.0.jar
