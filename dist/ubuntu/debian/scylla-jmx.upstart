@@ -14,5 +14,5 @@ console log
 script
     . /etc/default/scylla-jmx
     export SCYLLA_HOME SCYLLA_CONF
-    exec /usr/lib/scylla/jmx/scylla-jmx -jp $JMX_PORT -p $API_PORT -a $ADDR -l /usr/lib/scylla/jmx
+    exec /usr/lib/scylla/jmx/scylla-jmx -l /usr/lib/scylla/jmx
 end script
