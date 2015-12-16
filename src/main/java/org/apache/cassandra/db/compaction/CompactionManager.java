@@ -22,6 +22,7 @@ import java.util.*;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -84,7 +85,11 @@ public class CompactionManager implements CompactionManagerMBean {
     /** compaction history **/
     public TabularData getCompactionHistory() {
         log(" getCompactionHistory()");
-        return c.getCQLResult("SELECT * from system.compaction_history");
+        try {
+            return CompactionHistoryTabularData.from(c.getJsonArray("/compaction_manager/compaction_history"));
+        } catch (OpenDataException e) {
+            return null;
+        }
     }
 
     /**
