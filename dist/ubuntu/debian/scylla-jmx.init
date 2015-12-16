@@ -30,7 +30,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 export SCYLLA_HOME SCYLLA_CONF
-DAEMON=/usr/lib/scylla/jmx/scylla-jmx -jp $JMX_PORT -p $API_PORT -a $ADDR -l /usr/lib/scylla/jmx
+DAEMON=/usr/lib/scylla/jmx/scylla-jmx -l /usr/lib/scylla/jmx
 
 # Define LSB log_* functions.
 . /lib/lsb/init-functions
