@@ -1032,9 +1032,13 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public void rebuild(String sourceDc) {
         log(" rebuild(String sourceDc)");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        APIClient.set_query_param(queryParams, "value", sourceDc);
-        c.post("/storage_service/rebuild", queryParams);
+        if (sourceDc != null) {
+            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+            APIClient.set_query_param(queryParams, "source_dc", sourceDc);
+            c.post("/storage_service/rebuild", queryParams);
+        } else {
+            c.post("/storage_service/rebuild");
+        }
     }
 
     /** Starts a bulk load and blocks until it completes. */
