@@ -14,7 +14,6 @@ import com.yammer.metrics.core.Gauge;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.APITimer;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.reporting.JmxReporter;
 

@@ -35,7 +35,6 @@ import com.google.common.collect.Sets;
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.metrics.APIMetrics;
 import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.scylladb.jmx.utils.EstimatedHistogram;
 import com.scylladb.jmx.utils.RecentEstimatedHistogram;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.*;
