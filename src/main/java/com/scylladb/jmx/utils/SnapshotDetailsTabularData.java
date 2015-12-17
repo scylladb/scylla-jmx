@@ -20,7 +20,7 @@
  *
  * Modified by Cloudius Systems
  */
-package com.cloudius.urchin.utils;
+package com.scylladb.jmx.utils;
 
 import java.util.Map;
 import javax.management.openmbean.*;

@@ -39,8 +39,8 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.ColumnFamilyMetrics;
 
-import com.cloudius.urchin.api.APIClient;
 import com.google.common.base.Throwables;
+import com.scylladb.jmx.api.APIClient;
 
 public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger

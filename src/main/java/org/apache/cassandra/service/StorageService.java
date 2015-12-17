@@ -44,8 +44,8 @@ import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
 import org.apache.cassandra.streaming.StreamManager;
 
-import com.cloudius.urchin.api.APIClient;
-import com.cloudius.urchin.utils.FileUtils;
+import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.utils.FileUtils;
 
 /**
  * This abstraction contains the token/identifier of this node on the identifier

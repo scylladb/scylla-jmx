@@ -1,4 +1,4 @@
-package com.cloudius.urchin.utils;
+package com.scylladb.jmx.utils;
 /*
  * Copyright (C) 2015 ScyllaDB
  */

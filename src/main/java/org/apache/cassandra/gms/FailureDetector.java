@@ -33,7 +33,7 @@ import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 public class FailureDetector implements FailureDetectorMBean {
     public static final String MBEAN_NAME = "org.apache.cassandra.net:type=FailureDetector";

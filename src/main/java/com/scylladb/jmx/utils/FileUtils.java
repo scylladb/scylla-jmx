@@ -22,7 +22,7 @@
  * Modified by Cloudius Systems
  */
 
-package com.cloudius.urchin.utils;
+package com.scylladb.jmx.utils;
 
 import java.io.*;
 import java.text.DecimalFormat;

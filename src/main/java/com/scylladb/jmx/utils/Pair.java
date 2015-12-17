@@ -22,7 +22,7 @@
  * Modified by Cloudius Systems
  */
 
-package com.cloudius.urchin.utils;
+package com.scylladb.jmx.utils;
 
 import com.google.common.base.Objects;
 

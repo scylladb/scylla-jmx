@@ -1,9 +1,9 @@
 /*
  * Copyright 2015 Cloudius Systems
  */
-package com.cloudius.urchin.main;
+package com.scylladb.jmx.main;
 
-import com.cloudius.urchin.api.APIConfig;
+import com.scylladb.jmx.api.APIConfig;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.db.commitlog.CommitLog;

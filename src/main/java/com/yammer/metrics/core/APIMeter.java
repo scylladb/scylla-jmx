@@ -8,7 +8,7 @@ package com.yammer.metrics.core;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 public class APIMeter extends APISettableMeter {
     String url;

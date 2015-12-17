@@ -19,9 +19,9 @@
  * along with Scylla.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.cloudius.urchin.api;
+package com.scylladb.jmx.api;
 
-import com.cloudius.urchin.utils.EstimatedHistogram;
+import com.scylladb.jmx.utils.EstimatedHistogram;
 
 public class CacheEntry {
     long time;

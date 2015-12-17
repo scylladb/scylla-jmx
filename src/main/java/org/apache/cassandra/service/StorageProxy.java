@@ -31,7 +31,7 @@ import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 import org.apache.cassandra.metrics.*;
 

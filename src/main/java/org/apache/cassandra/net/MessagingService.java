@@ -31,8 +31,10 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+
 import org.apache.cassandra.metrics.DroppedMessageMetrics;
-import com.cloudius.urchin.api.APIClient;
+
+import com.scylladb.jmx.api.APIClient;
 import com.yammer.metrics.core.APISettableMeter;
 
 public final class MessagingService implements MessagingServiceMBean {

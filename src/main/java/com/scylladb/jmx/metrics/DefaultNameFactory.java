@@ -21,7 +21,7 @@
  *
  * Modified by Cloudius Systems
  */
-package com.cloudius.urchin.metrics;
+package com.scylladb.jmx.metrics;
 
 import com.yammer.metrics.core.MetricName;
 

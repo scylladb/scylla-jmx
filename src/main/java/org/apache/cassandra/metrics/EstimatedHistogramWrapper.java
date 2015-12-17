@@ -22,8 +22,8 @@ package org.apache.cassandra.metrics;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.cloudius.urchin.api.APIClient;
-import com.cloudius.urchin.utils.EstimatedHistogram;
+import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.utils.EstimatedHistogram;
 
 public class EstimatedHistogramWrapper {
     private APIClient c = new APIClient();

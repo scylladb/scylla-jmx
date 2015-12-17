@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.cloudius.urchin</groupId>
+    <groupId>com.scylladb.jmx</groupId>
     <artifactId>scylla-jmx</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
@@ -84,7 +84,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>com.cloudius.urchin.main.Main</Main-Class>
+                                        <Main-Class>com.scylladb.jmx.main.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>

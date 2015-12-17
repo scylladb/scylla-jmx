@@ -25,7 +25,7 @@
 
 package org.apache.cassandra.metrics;
 
-import com.cloudius.urchin.metrics.APIMetrics;
+import com.scylladb.jmx.metrics.APIMetrics;
 import com.yammer.metrics.core.*;
 
 public class CASClientRequestMetrics extends ClientRequestMetrics {

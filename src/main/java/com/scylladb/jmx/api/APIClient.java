@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 Cloudius Systems
  */
-package com.cloudius.urchin.api;
+package com.scylladb.jmx.api;
 
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -31,9 +31,11 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.client.ClientConfig;
-import com.cloudius.urchin.utils.EstimatedHistogram;
-import com.cloudius.urchin.utils.SnapshotDetailsTabularData;
+
+import com.scylladb.jmx.utils.EstimatedHistogram;
+import com.scylladb.jmx.utils.SnapshotDetailsTabularData;
 import com.yammer.metrics.core.HistogramValues;
 
 public class APIClient {

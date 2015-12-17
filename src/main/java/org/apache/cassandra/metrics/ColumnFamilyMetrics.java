@@ -30,13 +30,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
 
-import com.cloudius.urchin.api.APIClient;
-import com.cloudius.urchin.metrics.APIMetrics;
-import com.cloudius.urchin.metrics.MetricNameFactory;
-import com.cloudius.urchin.utils.EstimatedHistogram;
-import com.cloudius.urchin.utils.RecentEstimatedHistogram;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.APIMetrics;
+import com.scylladb.jmx.metrics.MetricNameFactory;
+import com.scylladb.jmx.utils.EstimatedHistogram;
+import com.scylladb.jmx.utils.RecentEstimatedHistogram;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.*;
 

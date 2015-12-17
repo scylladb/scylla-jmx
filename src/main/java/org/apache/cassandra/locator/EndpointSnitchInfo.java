@@ -26,7 +26,7 @@ import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger

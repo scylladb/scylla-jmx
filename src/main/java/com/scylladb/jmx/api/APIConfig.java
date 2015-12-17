@@ -1,4 +1,4 @@
-package com.cloudius.urchin.api;
+package com.scylladb.jmx.api;
 
 import java.io.File;
 import java.io.FileInputStream;

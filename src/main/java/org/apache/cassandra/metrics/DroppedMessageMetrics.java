@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.cassandra.net.MessagingService;
 
-import com.cloudius.urchin.metrics.APIMetrics;
-import com.cloudius.urchin.metrics.DefaultNameFactory;
-import com.cloudius.urchin.metrics.MetricNameFactory;
+import com.scylladb.jmx.metrics.APIMetrics;
+import com.scylladb.jmx.metrics.DefaultNameFactory;
+import com.scylladb.jmx.metrics.MetricNameFactory;
 import com.yammer.metrics.core.APISettableMeter;
 
 /**

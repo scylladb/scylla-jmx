@@ -37,10 +37,10 @@ import javax.management.openmbean.CompositeData;
 
 import org.apache.cassandra.streaming.management.StreamStateCompositeData;
 
-import com.cloudius.urchin.api.APIClient;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.scylladb.jmx.api.APIClient;
 
 /**
  * StreamManager manages currently running {@link StreamResultFuture}s and

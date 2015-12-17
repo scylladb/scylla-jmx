@@ -29,7 +29,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.CompactionMetrics;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 /**
  * A singleton which manages a private executor of ongoing compactions.

@@ -34,7 +34,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.CacheMetrics;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 public class CacheService implements CacheServiceMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger

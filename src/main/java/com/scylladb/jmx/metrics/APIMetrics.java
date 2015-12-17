@@ -1,4 +1,4 @@
-package com.cloudius.urchin.metrics;
+package com.scylladb.jmx.metrics;
 
 /*
  * Copyright 2015 Cloudius Systems

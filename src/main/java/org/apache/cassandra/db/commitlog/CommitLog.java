@@ -31,7 +31,7 @@ import javax.management.ObjectName;
 
 import org.apache.cassandra.metrics.CommitLogMetrics;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 
 /*
  * Commit Log tracks every write operation into the system. The aim of the commit log is to be able to

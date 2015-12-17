@@ -5,7 +5,7 @@ package com.yammer.metrics.core;
  * Modified by Cloudius Systems
  */
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 import com.yammer.metrics.core.Counter;
 
 public class APICounter extends Counter {

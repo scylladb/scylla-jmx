@@ -26,13 +26,13 @@ package org.apache.cassandra.metrics;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.cloudius.urchin.metrics.APIMetrics;
-import com.cloudius.urchin.metrics.DefaultNameFactory;
-import com.cloudius.urchin.metrics.MetricNameFactory;
-import com.cloudius.urchin.utils.EstimatedHistogram;
-import com.cloudius.urchin.utils.RecentEstimatedHistogram;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.scylladb.jmx.metrics.APIMetrics;
+import com.scylladb.jmx.metrics.DefaultNameFactory;
+import com.scylladb.jmx.metrics.MetricNameFactory;
+import com.scylladb.jmx.utils.EstimatedHistogram;
+import com.scylladb.jmx.utils.RecentEstimatedHistogram;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Timer;
 

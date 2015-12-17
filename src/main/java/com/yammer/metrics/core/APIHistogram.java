@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.cloudius.urchin.api.APIClient;
+import com.scylladb.jmx.api.APIClient;
 import com.yammer.metrics.stats.Sample;
 import com.yammer.metrics.stats.Snapshot;
 
