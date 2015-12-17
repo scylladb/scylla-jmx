@@ -32,7 +32,7 @@ install -m644 dist/common/sysconfig/scylla-jmx $RPM_BUILD_ROOT%{_sysconfdir}/sys
 install -m644 dist/redhat/systemd/scylla-jmx.service $RPM_BUILD_ROOT%{_unitdir}/
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
-install -m644 target/urchin-mbean-1.0.jar $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/
+install -m644 target/scylla-jmx-1.0.jar $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/
 install -m755 scripts/scylla-jmx $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
 
 %pre
@@ -67,7 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/sysconfig/scylla-jmx
 %{_unitdir}/scylla-jmx.service
 %{_prefix}/lib/scylla/jmx/scylla-jmx
-%{_prefix}/lib/scylla/jmx/urchin-mbean-1.0.jar
+%{_prefix}/lib/scylla/jmx/scylla-jmx-1.0.jar
 
 %changelog
 * Fri Aug  7 2015 Takuya ASADA Takuya ASADA <syuu@cloudius-systems.com>

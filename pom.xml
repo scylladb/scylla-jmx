@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.cloudius.urchin</groupId>
-    <artifactId>urchin-mbean</artifactId>
+    <artifactId>scylla-jmx</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>Urchin MBean</name>
+    <name>Scylla JMX</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>

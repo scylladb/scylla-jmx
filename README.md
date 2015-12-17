@@ -1,5 +1,5 @@
 # Urchin JMX Interface
-This is the JMX interface for urchin.
+This is the JMX interface for Scylla
 ## Compile
 To compile do:
 ```
@@ -10,7 +10,7 @@ mvn install
 The maven will create an uber-jar with all dependency under the target directory. You should run it with the remote jmx enable so the nodetool will be able to connect to it.
 
 ```
-java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=7199 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar target/urchin-mbean-1.0.jar
+java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=7199 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar target/scylla-jmx-1.0.jar
 ```
 
 ## Setting IP and Port
