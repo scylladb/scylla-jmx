@@ -262,12 +262,48 @@ public class StorageService extends NotificationBroadcasterSupport
         List<String> res = new ArrayList<String>();
 
         for (int i = 0; i < arr.size(); i++) {
-            StringWriter stringWriter = new StringWriter();
-            JsonWriter writer = Json.createWriter(stringWriter);
             JsonObject obj = arr.getJsonObject(i);
-            writer.writeObject(obj);
-            writer.close();
-            res.add(stringWriter.getBuffer().toString());
+            StringBuilder sb = new StringBuilder();
+            sb.append("TokenRange(");
+            sb.append("start_token:");
+            sb.append(obj.getString("start_token"));
+            sb.append(", end_token:");
+            sb.append(obj.getString("end_token"));
+            sb.append(", endpoints:[");
+            JsonArray endpoints = obj.getJsonArray("endpoints");
+            for (int j = 0; j < endpoints.size(); j++) {
+                if (j > 0) {
+                    sb.append(", ");
+                }
+                sb.append(endpoints.getString(j));
+            }
+            sb.append("], rpc_endpoints:[");
+            JsonArray rpc_endpoints = obj.getJsonArray("rpc_endpoints");
+            for (int j = 0; j < rpc_endpoints.size(); j++) {
+                if (j > 0) {
+                    sb.append(", ");
+                }
+                sb.append(rpc_endpoints.getString(j));
+            }
+
+            sb.append("], endpoint_details:[");
+            JsonArray endpoint_details = obj.getJsonArray("endpoint_details");
+            for (int j = 0; j < endpoint_details.size(); j++) {
+                JsonObject detail = endpoint_details.getJsonObject(j);
+                if (j > 0) {
+                    sb.append(", ");
+                }
+                sb.append("EndpointDetails(");
+                sb.append("host:");
+                sb.append(detail.getString("host"));
+                sb.append(", datacenter:");
+                sb.append(detail.getString("datacenter"));
+                sb.append(", rack:");
+                sb.append(detail.getString("rack"));
+                sb.append(')');
+            }
+            sb.append("])");
+            res.add(sb.toString());
         }
         return res;
     }
