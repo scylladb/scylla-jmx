@@ -81,7 +81,7 @@ public class FailureDetector implements FailureDetectorMBean {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, EndpointState> entry : getEndpointStateMap().entrySet())
         {
-            sb.append(entry.getKey()).append("\n");
+            sb.append('/').append(entry.getKey()).append("\n");
             appendEndpointState(sb, entry.getValue());
         }
         return sb.toString();
