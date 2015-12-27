@@ -630,7 +630,8 @@ public class StorageService extends NotificationBroadcasterSupport
             opts = opts + op + "=" + options.get(op);
         }
         APIClient.set_query_param(queryParams, "options", opts);
-        int cmd = c.postInt("/storage_service/repair_async/" + keyspace);
+        int cmd = c.postInt("/storage_service/repair_async/" + keyspace,
+	    queryParams);
         waitAndNotifyRepair(cmd, keyspace, getRepairMessage(cmd, keyspace, 1, RepairParallelism.SEQUENTIAL, true));
         return cmd;
     }
