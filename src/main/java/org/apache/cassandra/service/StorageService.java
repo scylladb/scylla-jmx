@@ -47,6 +47,8 @@ import org.apache.cassandra.streaming.StreamManager;
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.utils.FileUtils;
 
+import com.google.common.base.Joiner;
+
 /**
  * This abstraction contains the token/identifier of this node on the identifier
  * space. This token gets gossiped around. This class will also maintain
@@ -1288,9 +1290,21 @@ public class StorageService extends NotificationBroadcasterSupport
             Collection<String> dataCenters, Collection<String> hosts,
             boolean primaryRange, boolean fullRepair,
             String... columnFamilies) {
-        // TODO Auto-generated method stub
-        log(" forceRepairAsync()");
+        log(" forceRepairAsync(keyspace, parallelismDegree, dataCenters, hosts, primaryRange, fullRepair, columnFamilies)");
         Map<String, String> options = new HashMap<String, String>();
+        Joiner commas = Joiner.on(",");
+        options.put("parallelism", Integer.toString(parallelismDegree));
+        if (dataCenters != null) {
+            options.put("dataCenters", commas.join(dataCenters));
+        }
+        if (hosts != null) {
+            options.put("hosts", commas.join(hosts));
+        }
+        options.put("primaryRange", Boolean.toString(primaryRange));
+        options.put("incremental",  Boolean.toString(!fullRepair));
+        if (columnFamilies != null && columnFamilies.length > 0) {
+            options.put("columnFamilies", commas.join(columnFamilies));
+        }
         return repairAsync(keyspace, options);
     }
 
@@ -1300,7 +1314,7 @@ public class StorageService extends NotificationBroadcasterSupport
             Collection<String> dataCenters, Collection<String> hosts,
             boolean fullRepair, String... columnFamilies) {
         // TODO Auto-generated method stub
-        log(" forceRepairRangeAsync()");
+        log(" forceRepairRangeAsync(beginToken, endToken, keyspaceName, parallelismDegree, dataCenters, hosts, fullRepair, columnFamilies)");
         return c.getIntValue("");
     }
 
