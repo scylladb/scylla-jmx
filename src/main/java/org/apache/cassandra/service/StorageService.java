@@ -660,16 +660,10 @@ public class StorageService extends NotificationBroadcasterSupport
     public int repairAsync(String keyspace, Map<String, String> options) {
         log(" repairAsync(String keyspace, Map<String, String> options)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        String opts = "";
         for (String op : options.keySet()) {
-            // Scylla splits options on "," (between options) and ":" (between
-            // name and value): See scylla/api/storage_service.cc.
-            if (!opts.equals("")) {
-                opts = opts + ",";
-            }
-            opts = opts + op + ":" + options.get(op);
+            APIClient.set_query_param(queryParams, op, options.get(op));
         }
-        APIClient.set_query_param(queryParams, "options", opts);
+
         int cmd = c.postInt("/storage_service/repair_async/" + keyspace, queryParams);
         waitAndNotifyRepair(cmd, keyspace, getRepairMessage(cmd, keyspace, 1, RepairParallelism.SEQUENTIAL, true));
         return cmd;
