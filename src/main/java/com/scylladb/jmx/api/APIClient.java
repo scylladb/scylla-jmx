@@ -576,7 +576,7 @@ public class APIClient {
                 if (obj.get(k) instanceof JsonString) {
                     key = obj.getString(k);
                 } else {
-                    val = obj.getInt(k);
+                    val = obj.getJsonNumber(k).longValue();
                 }
             }
             if (val > 0 && !key.equals("")) {
