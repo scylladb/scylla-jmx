@@ -366,13 +366,18 @@ public class StorageService extends NotificationBroadcasterSupport
     /** Human-readable load value. Keys are IP addresses. */
     public Map<String, String> getLoadMap() {
         log(" getLoadMap()");
-        Map<String, String> load = c.getMapStrValue("/storage_service/load_map");
+        Map<String, Double> load = getLoadMapAsDouble();
         Map<String, String> map = new HashMap<>();
-        for (Map.Entry<String, String> entry : load.entrySet())
+        for (Map.Entry<String, Double> entry : load.entrySet())
         {
-            map.put(entry.getKey(), FileUtils.stringifyFileSize(Double.parseDouble(entry.getValue())));
+            map.put(entry.getKey(), FileUtils.stringifyFileSize(entry.getValue()));
         }
         return map;
+    }
+
+    public Map<String, Double> getLoadMapAsDouble() {
+        log(" getLoadMapAsDouble()");
+        return c.getMapStringDouble("/storage_service/load_map");
     }
 
     /**
