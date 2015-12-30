@@ -97,8 +97,7 @@ public final class MessagingService implements MessagingServiceMBean {
     }
 
     public void log(String str) {
-        System.out.println(str);
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static Timer timer = new Timer("Dropped messages");
@@ -131,7 +130,6 @@ public final class MessagingService implements MessagingServiceMBean {
             for (String k : val.keySet()) {
                 APISettableMeter meter = instance.dropped.get(k).getMeter();
                 meter.set(val.get(k));
-                System.out.println("tick " + k + " " + meter.count());
                 meter.tick();
             }
         }
@@ -153,7 +151,7 @@ public final class MessagingService implements MessagingServiceMBean {
      * Completed tasks for Command(Mutations, Read etc) TCP Connections
      */
     public Map<String, Long> getCommandCompletedTasks() {
-        System.out.println("getCommandCompletedTasks!");
+        log("getCommandCompletedTasks()");
         Map<String, Long> res = c
                 .getListMapStringLongValue("/messaging_service/messages/sent");
         return res;

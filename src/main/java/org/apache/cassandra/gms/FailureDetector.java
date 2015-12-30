@@ -43,7 +43,7 @@ public class FailureDetector implements FailureDetectorMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static final FailureDetector instance = new FailureDetector();

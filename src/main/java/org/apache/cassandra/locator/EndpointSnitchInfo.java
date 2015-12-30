@@ -35,7 +35,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static final EndpointSnitchInfo instance = new EndpointSnitchInfo();

@@ -41,7 +41,7 @@ import com.scylladb.jmx.api.APIClient;
 
 /*
  * Copyright 2015 Cloudius Systems
- * 
+ *
  * Modified by Cloudius Systems
  */
 public class CompactionManager implements CompactionManagerMBean {
@@ -53,7 +53,7 @@ public class CompactionManager implements CompactionManagerMBean {
     CompactionMetrics metrics = new CompactionMetrics();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     static {
@@ -176,7 +176,7 @@ public class CompactionManager implements CompactionManagerMBean {
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -194,7 +194,7 @@ public class CompactionManager implements CompactionManagerMBean {
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -212,7 +212,7 @@ public class CompactionManager implements CompactionManagerMBean {
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -230,7 +230,7 @@ public class CompactionManager implements CompactionManagerMBean {
 
     /**
      * Allows user to resize maximum size of the validator thread pool.
-     * 
+     *
      * @param number
      *            New maximum of validator threads
      */

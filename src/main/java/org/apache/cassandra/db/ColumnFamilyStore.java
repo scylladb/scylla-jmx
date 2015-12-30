@@ -57,7 +57,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private static Timer timer = new Timer("Column Family");
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     public static void register_mbeans() {

@@ -43,7 +43,7 @@ public class StorageProxy implements StorageProxyMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static final StorageProxy instance = new StorageProxy();

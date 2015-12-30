@@ -42,7 +42,7 @@ public class CacheService implements CacheServiceMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     public static final String MBEAN_NAME = "org.apache.cassandra.db:type=Caches";

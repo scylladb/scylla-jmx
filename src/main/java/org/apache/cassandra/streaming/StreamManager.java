@@ -69,7 +69,7 @@ public class StreamManager implements StreamManagerMBean {
         return instance;
     }
     public Set<CompositeData> getCurrentStreams() {
-        logger.info("getCurrentStreams");
+        logger.finest("getCurrentStreams");
         return Sets.newHashSet(Iterables.transform(getState(), new Function<StreamState, CompositeData>()
         {
             public CompositeData apply(StreamState input)

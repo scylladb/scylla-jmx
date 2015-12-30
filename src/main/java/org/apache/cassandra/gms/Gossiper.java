@@ -57,7 +57,7 @@ public class Gossiper implements GossiperMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static final Gossiper instance = new Gossiper();

@@ -93,8 +93,7 @@ public class StorageService extends NotificationBroadcasterSupport
     }
 
     public void log(String str) {
-        System.out.println(str);
-        logger.info(str);
+        logger.finest(str);
     }
 
     /**
@@ -638,7 +637,7 @@ public class StorageService extends NotificationBroadcasterSupport
      * @param repair
      */
     public int waitAndNotifyRepair(int cmd, String keyspace, String message) {
-        logger.info(message);
+        logger.finest(message);
         sendNotification("repair", message, new int[]{cmd, RepairStatus.STARTED.ordinal()});
         TimerTask taskToExecute = new CheckRepair(cmd, keyspace);
         timer.schedule(taskToExecute, 100, 1000);

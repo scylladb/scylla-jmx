@@ -46,7 +46,7 @@ public class CommitLog implements CommitLogMBean {
     private APIClient c = new APIClient();
 
     public void log(String str) {
-        logger.info(str);
+        logger.finest(str);
     }
 
     private static final CommitLog instance = new CommitLog();
