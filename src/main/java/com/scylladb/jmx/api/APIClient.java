@@ -576,7 +576,7 @@ public class APIClient {
                 if (obj.get(k) instanceof JsonString) {
                     key = obj.getString(k);
                 } else {
-                    val = obj.getInt(k);
+                    val = obj.getJsonNumber(k).longValue();
                 }
             }
             if (val > 0 && !key.equals("")) {
@@ -691,5 +691,38 @@ public class APIClient {
 
     public long[] getEstimatedHistogramAsLongArrValue(String string) {
         return getEstimatedHistogramAsLongArrValue(string, null);
+    }
+
+    public Map<String, Double> getMapStringDouble(String string,
+            MultivaluedMap<String, String> queryParams) {
+        if (string.equals("")) {
+            return null;
+        }
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        Map<String, Double> map = new HashMap<String, Double>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            Iterator<String> it = obj.keySet().iterator();
+            String key = "";
+            double val = -1;
+            while (it.hasNext()) {
+                String k = it.next();
+                if (obj.get(k) instanceof JsonString) {
+                    key = obj.getString(k);
+                } else {
+                    val = obj.getJsonNumber(k).doubleValue();
+                }
+            }
+            if (!key.equals("")) {
+                map.put(key, val);
+            }
+
+        }
+        reader.close();
+        return map;
+    }
+    public Map<String, Double> getMapStringDouble(String string) {
+        return getMapStringDouble(string, null);
     }
 }
