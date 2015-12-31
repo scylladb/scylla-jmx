@@ -33,6 +33,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.cassandra.streaming.ProgressInfo;
 import org.apache.cassandra.streaming.SessionInfo;
@@ -175,6 +176,9 @@ public class SessionInfoCompositeData
 
     private static <T> CompositeData[] toArrayOfCompositeData(Collection<T> toConvert, Function<T, CompositeData> func)
     {
+        if (toConvert == null) {
+            toConvert = Sets.newHashSet();
+        }
         CompositeData[] composites = new CompositeData[toConvert.size()];
         return Lists.newArrayList(Iterables.transform(toConvert, func)).toArray(composites);
     }
