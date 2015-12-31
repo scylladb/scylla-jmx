@@ -76,8 +76,8 @@ public final class SessionInfo implements Serializable
         this.peer = peer;
         this.sessionIndex = sessionIndex;
         this.connecting = connecting;
-        this.receivingSummaries = ImmutableSet.copyOf(receivingSummaries);
-        this.sendingSummaries = ImmutableSet.copyOf(sendingSummaries);
+        this.receivingSummaries = receivingSummaries;
+        this.sendingSummaries = sendingSummaries;
         this.receivingFiles = new ConcurrentHashMap<>();
         this.sendingFiles = new ConcurrentHashMap<>();
         this.state = state;
@@ -94,10 +94,10 @@ public final class SessionInfo implements Serializable
     }
 
     public static SessionInfo fromJsonObject(JsonObject obj) {
-        return new SessionInfo(obj.getString("peer"), obj.getInt("sessionIndex"),
+        return new SessionInfo(obj.getString("peer"), obj.getInt("session_index"),
                 obj.getString("connecting"),
-                StreamSummary.fromJsonArr(obj.getJsonArray("receivingSummaries")),
-                StreamSummary.fromJsonArr(obj.getJsonArray("sendingSummaries")),
+                StreamSummary.fromJsonArr(obj.getJsonArray("receiving_summaries")),
+                StreamSummary.fromJsonArr(obj.getJsonArray("sending_summaries")),
                 obj.getString("state"));
     }
 
@@ -222,6 +222,9 @@ public final class SessionInfo implements Serializable
 
     private long getTotalSizes(Collection<StreamSummary> summaries)
     {
+        if (summaries == null) {
+            return 0;
+        }
         long total = 0;
         for (StreamSummary summary : summaries)
             total += summary.totalSize;

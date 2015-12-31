@@ -62,6 +62,9 @@ public class StreamSummary
     }
 
     public static Collection<StreamSummary> fromJsonArr(JsonArray arr) {
+        if (arr == null) {
+            return null;
+        }
         Collection<StreamSummary> res = new ArrayList<StreamSummary>();
         for (int i = 0; i < arr.size(); i++) {
             res.add(fromJsonObject(arr.getJsonObject(i)));
