@@ -18,8 +18,13 @@
 package org.apache.cassandra.db.compaction;
 
 import java.lang.management.ManagementFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
@@ -73,7 +78,20 @@ public class CompactionManager implements CompactionManagerMBean {
     /** List of running compaction objects. */
     public List<Map<String, String>> getCompactions() {
         log(" getCompactions()");
-        return c.getListMapStrValue("compaction_manager/compactions");
+        List<Map<String, String>> results = new ArrayList<Map<String, String>>();
+        JsonArray compactions = c.getJsonArray("compaction_manager/compactions");
+        for (int i = 0; i < compactions.size(); i++) {
+            JsonObject compaction = compactions.getJsonObject(i);
+            Map<String, String> result = new HashMap<String, String>();
+            result.put("total", Long.toString(compaction.getJsonNumber("total").longValue()));
+            result.put("completed", Long.toString(compaction.getJsonNumber("completed").longValue()));
+            result.put("taskType", compaction.getString("task_type"));
+            result.put("keyspace", compaction.getString("ks"));
+            result.put("columnfamily", compaction.getString("cf"));
+            result.put("unit", compaction.getString("unit"));
+            results.add(result);
+        }
+        return results;
     }
 
     /** List of running compaction summary strings. */
