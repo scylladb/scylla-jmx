@@ -10,7 +10,7 @@ User=scylla
 Group=scylla
 ExecStart=/usr/lib/scylla/jmx/scylla-jmx -l /usr/lib/scylla/jmx
 KillMode=process
-Restart=always
+Restart=on-abnormal
 
 [Install]
 WantedBy=multi-user.target
