@@ -80,7 +80,6 @@ public class StreamingMetrics
                     JsonArray sessions = streams.getJsonObject(i).getJsonArray("sessions");
                     for (int j = 0; j < sessions.size(); j++) {
                         String name = sessions.getJsonObject(j).getString("peer");
-                        System.out.println("adding stream" + name);
                         if (!instances.containsKey(name)) {
                             StreamingMetrics metrics = new StreamingMetrics(InetAddress.getByName(name));
                             instances.put(name, metrics);
