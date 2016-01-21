@@ -799,9 +799,7 @@ public class StorageService extends NotificationBroadcasterSupport
         log(" setLoggingLevel(String classQualifier, String level) throws Exception");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "level", level);
-        APIClient.set_query_param(queryParams, "class_qualifier",
-                classQualifier);
-        c.post("/storage_service/logging_level", queryParams);
+        c.post("/system/logger/" + classQualifier, queryParams);
     }
 
     /** get the runtime logging levels */
