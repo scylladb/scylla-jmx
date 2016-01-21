@@ -165,8 +165,7 @@ public class CompactionManager implements CompactionManagerMBean {
         log(" forceUserDefinedCompaction(String dataFiles)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dataFiles", dataFiles);
-        c.post("compaction_manager/compaction_manager/force_user_defined_compaction",
-                queryParams);
+        c.post("compaction_manager/force_user_defined_compaction", queryParams);
     }
 
     /**
@@ -180,8 +179,7 @@ public class CompactionManager implements CompactionManagerMBean {
         log(" stopCompaction(String type)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("type", type);
-        c.post("compaction_manager/compaction_manager/stop_compaction",
-                queryParams);
+        c.post("compaction_manager/stop_compaction", queryParams);
     }
 
     /**
