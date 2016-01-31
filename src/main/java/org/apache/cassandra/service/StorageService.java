@@ -45,6 +45,7 @@ import org.apache.cassandra.repair.RepairParallelism;
 import org.apache.cassandra.streaming.StreamManager;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.api.APIConfig;
 import com.scylladb.jmx.utils.FileUtils;
 
 import com.google.common.base.Joiner;
@@ -155,7 +156,7 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public List<String> getTokens() {
         log(" getTokens()");
-        return c.getListStrValue("/storage_service/tokens/");
+        return c.getListStrValue("/storage_service/tokens/" + APIConfig.getAddress());
     }
 
     /**
