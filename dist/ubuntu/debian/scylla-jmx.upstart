@@ -11,6 +11,9 @@ umask 022
 
 console log
 
+setuid scylla
+setgid scylla
+
 script
     . /etc/default/scylla-jmx
     export SCYLLA_HOME SCYLLA_CONF
