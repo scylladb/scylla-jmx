@@ -31,6 +31,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.cassandra.metrics.DroppedMessageMetrics;
 
@@ -118,6 +119,8 @@ public final class MessagingService implements MessagingServiceMBean {
     static MessagingService instance = new MessagingService();
 
     private static final class CheckDroppedMessages extends TimerTask {
+        int connection_failure = 0;
+        int report_error = 1;
         @Override
         public void run() {
             if (instance.dropped == null) {
@@ -126,11 +129,23 @@ public final class MessagingService implements MessagingServiceMBean {
                     instance.dropped.put(v.name(), new DroppedMessageMetrics(v));
                 }
             }
-            Map<String, Integer> val = instance.getDroppedMessages();
-            for (String k : val.keySet()) {
-                APISettableMeter meter = instance.dropped.get(k).getMeter();
-                meter.set(val.get(k));
-                meter.tick();
+            try {
+                Map<String, Integer> val = instance.getDroppedMessages();
+                for (String k : val.keySet()) {
+                    APISettableMeter meter = instance.dropped.get(k).getMeter();
+                    meter.set(val.get(k));
+                    meter.tick();
+                }
+                connection_failure = 0;
+                report_error = 1;
+            }  catch (ProcessingException e) {
+              // Connection problem, No need to do anything, just retry.
+            } catch (Exception e) {
+                connection_failure++;
+                if ((connection_failure & report_error) == report_error) {
+                    logger.info("Dropped messages failed with " + e.getMessage() + " total error reported " + connection_failure);
+                    report_error <<= 1;
+                }
             }
         }
     }
