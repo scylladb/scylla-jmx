@@ -1310,9 +1310,20 @@ public class StorageService extends NotificationBroadcasterSupport
             String keyspaceName, int parallelismDegree,
             Collection<String> dataCenters, Collection<String> hosts,
             boolean fullRepair, String... columnFamilies) {
-        // TODO Auto-generated method stub
         log(" forceRepairRangeAsync(beginToken, endToken, keyspaceName, parallelismDegree, dataCenters, hosts, fullRepair, columnFamilies)");
-        return c.getIntValue("");
+        Map<String, String> options = new HashMap<String, String>();
+        Joiner commas = Joiner.on(",");
+        options.put("parallelism", Integer.toString(parallelismDegree));
+        if (dataCenters != null) {
+            options.put("dataCenters", commas.join(dataCenters));
+        }
+        if (hosts != null) {
+            options.put("hosts", commas.join(hosts));
+        }
+        options.put("incremental",  Boolean.toString(!fullRepair));
+        options.put("startToken", beginToken);
+        options.put("endToken",  endToken);
+        return repairAsync(keyspaceName, options);
     }
 
     @Override
