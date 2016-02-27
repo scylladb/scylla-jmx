@@ -26,6 +26,11 @@ package org.apache.cassandra.streaming;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 
 import com.google.common.base.Objects;
 
@@ -74,6 +79,31 @@ public class ProgressInfo implements Serializable
         this.totalBytes = totalBytes;
     }
 
+    static public ProgressInfo fromJsonObject(JsonObject obj) {
+        try {
+            return new ProgressInfo(InetAddress.getByName(obj.getString("peer")),
+                    obj.getInt("session_index"),
+                    obj.getString("file_name"),
+                    Direction.valueOf(obj.getString("direction")),
+                    obj.getJsonNumber("current_bytes").longValue(),
+                    obj.getJsonNumber("total_bytes").longValue());
+        } catch (UnknownHostException e) {
+            // Not suppose to get here
+        }
+
+        return null;
+    }
+
+    static public Map<String, ProgressInfo> fromJArrray(JsonArray arr) {
+        Map<String, ProgressInfo> res = new HashMap<String, ProgressInfo>();
+        if (arr != null) {
+            for (int i = 0; i < arr.size(); i++) {
+                ProgressInfo obj = fromJsonObject(arr.getJsonObject(i).getJsonObject("value"));
+                res.put(obj.fileName, obj);
+            }
+        }
+        return res;
+    }
     /**
      * @return true if file transfer is completed
      */

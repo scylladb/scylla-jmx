@@ -39,6 +39,7 @@ import org.apache.cassandra.streaming.ProgressInfo;
 import org.apache.cassandra.streaming.SessionInfo;
 import org.apache.cassandra.streaming.StreamSession;
 import org.apache.cassandra.streaming.StreamSummary;
+import java.util.HashMap;
 
 public class SessionInfoCompositeData
 {
@@ -150,7 +151,8 @@ public class SessionInfoCompositeData
                                            connecting,
                                            fromArrayOfCompositeData((CompositeData[]) values[3], toStreamSummary),
                                            fromArrayOfCompositeData((CompositeData[]) values[4], toStreamSummary),
-                                           StreamSession.State.valueOf((String) values[5]));
+                                           StreamSession.State.valueOf((String) values[5]),
+                                           new HashMap<String, ProgressInfo>(), new HashMap<String, ProgressInfo>());
         Function<CompositeData, ProgressInfo> toProgressInfo = new Function<CompositeData, ProgressInfo>()
         {
             public ProgressInfo apply(CompositeData input)

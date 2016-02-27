@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -72,14 +73,16 @@ public final class SessionInfo implements Serializable
                        InetAddress connecting,
                        Collection<StreamSummary> receivingSummaries,
                        Collection<StreamSummary> sendingSummaries,
-                       StreamSession.State state) {
+                       StreamSession.State state,
+                       Map<String, ProgressInfo> receivingFiles,
+                       Map<String, ProgressInfo> sendingFiles) {
         this.peer = peer;
         this.sessionIndex = sessionIndex;
         this.connecting = connecting;
         this.receivingSummaries = receivingSummaries;
         this.sendingSummaries = sendingSummaries;
-        this.receivingFiles = new ConcurrentHashMap<>();
-        this.sendingFiles = new ConcurrentHashMap<>();
+        this.receivingFiles = receivingFiles;
+        this.sendingFiles = sendingFiles;
         this.state = state;
     }
 
@@ -88,17 +91,21 @@ public final class SessionInfo implements Serializable
             String connecting,
             Collection<StreamSummary> receivingSummaries,
             Collection<StreamSummary> sendingSummaries,
-            String state) {
+            String state,
+            Map<String, ProgressInfo> receivingFiles,
+            Map<String, ProgressInfo> sendingFiles) {
         this(address(peer), sessionIndex, address(connecting), receivingSummaries, sendingSummaries,
-                StreamSession.State.valueOf(state));
+                StreamSession.State.valueOf(state), receivingFiles, sendingFiles);
     }
-
+    ProgressInfo in;
     public static SessionInfo fromJsonObject(JsonObject obj) {
         return new SessionInfo(obj.getString("peer"), obj.getInt("session_index"),
                 obj.getString("connecting"),
                 StreamSummary.fromJsonArr(obj.getJsonArray("receiving_summaries")),
                 StreamSummary.fromJsonArr(obj.getJsonArray("sending_summaries")),
-                obj.getString("state"));
+                obj.getString("state"),
+                ProgressInfo.fromJArrray(obj.getJsonArray("receiving_files")),
+                ProgressInfo.fromJArrray(obj.getJsonArray("sending_files")));
     }
 
     public static Set<SessionInfo> fromJsonArr(JsonArray arr) {
