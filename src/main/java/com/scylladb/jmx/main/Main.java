@@ -4,6 +4,7 @@
 package com.scylladb.jmx.main;
 
 import com.scylladb.jmx.api.APIConfig;
+import com.scylladb.jmx.utils.RMIServerSocketFactoryImpl;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.db.commitlog.CommitLog;
@@ -24,6 +25,7 @@ public class Main {
         APIConfig.setConfig();
         System.out.println("Connecting to " + APIConfig.getBaseUrl());
         System.out.println("Starting the JMX server");
+        RMIServerSocketFactoryImpl.maybeInitJmx();
         StorageService.getInstance();
         StorageProxy.getInstance();
         MessagingService.getInstance();

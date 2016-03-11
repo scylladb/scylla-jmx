@@ -13,6 +13,8 @@ PARAM_ADDR="-a"
 PARAM_LOCATION="-l"
 LOCATION="target"
 PARAM_FILE="-cf"
+ALLOW_REMOTE="-r"
+REMOTE=0
 
 print_help() {
  cat <<HLPEND
@@ -31,6 +33,7 @@ This script receives the following command line arguments:
     $PARAM_ADDR <address> - The API address to connect to
     $PARAM_FILE <file> - A configuration file to use
     $PARAM_LOCATION <location> - The location of the jmx proxy jar file
+    $ALLOW_REMOTE - When set allow remote jmx connectivity
 HLPEND
 }
 
@@ -61,6 +64,10 @@ do
       CONF_FILE="-Dapiconfig="$2
       shift 2
       ;;
+    "$ALLOW_REMOTE")
+      REMOTE=1
+      shift 1
+      ;;
     "$PARAM_HELP")
       print_help
       exit 0
@@ -69,4 +76,10 @@ do
     esac
 done
 
-exec java $API_ADDR $API_PORT $CONF_FILE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
+if [ $REMOTE -eq 1 ]; then
+  REMOTE="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false"
+else
+  REMOTE="-Dcassandra.jmx.local.port=$JMX_PORT"
+fi
+
+exec java $API_ADDR $API_PORT $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
