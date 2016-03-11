@@ -23,6 +23,7 @@ import javax.json.JsonReaderFactory;
 import javax.json.JsonString;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -141,27 +142,31 @@ public class APIClient {
 
     public String getRawValue(String string,
             MultivaluedMap<String, String> queryParams, long duration) {
-        if (string.equals("")) {
-            return "";
-        }
-        String key = getCacheKey(string, queryParams, duration);
-        String res = getStringFromCache(key, duration);
-        if (res != null) {
-            return res;
-        }
-        Response response = get(string, queryParams).get(Response.class);
+        try {
+            if (string.equals("")) {
+                return "";
+            }
+            String key = getCacheKey(string, queryParams, duration);
+            String res = getStringFromCache(key, duration);
+            if (res != null) {
+                return res;
+            }
+            Response response = get(string, queryParams).get(Response.class);
 
-        if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
-            // TBD
-            // We are currently not caching errors,
-            // it should be reconsider.
-            throw getException(response.readEntity(String.class));
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                // TBD
+                // We are currently not caching errors,
+                // it should be reconsider.
+                throw getException(response.readEntity(String.class));
+            }
+            res = response.readEntity(String.class);
+            if (duration > 0) {
+                cache.put(key, new CacheEntry(res));
+            }
+            return res;
+        } catch (ProcessingException e) {
+            throw new IllegalStateException("Unable to connect to Scylla API server: " + e.getMessage());
         }
-        res = response.readEntity(String.class);
-        if (duration > 0) {
-            cache.put(key, new CacheEntry(res));
-        }
-        return res;
     }
 
     public String getRawValue(String string,
