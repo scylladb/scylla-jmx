@@ -549,6 +549,15 @@ public class StorageService extends NotificationBroadcasterSupport
             String keyspaceName, String... columnFamilies) throws IOException,
                     ExecutionException, InterruptedException {
         log(" scrub(boolean disableSnapshot, boolean skipCorrupted, String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
+        return scrub(disableSnapshot, skipCorrupted, true, keyspaceName, columnFamilies);
+    }
+
+    @Override
+    public int scrub(boolean disableSnapshot, boolean skipCorrupted,
+            boolean checkData, String keyspaceName, String... columnFamilies)
+                    throws IOException, ExecutionException,
+                    InterruptedException {
+        log(" scrub(boolean disableSnapshot, boolean skipCorrupted, bool checkData, String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "disable_snapshot",
                 disableSnapshot);
@@ -1279,16 +1288,6 @@ public class StorageService extends NotificationBroadcasterSupport
             String... columnFamilyList) throws IOException {
         // TODO Auto-generated method stub
         log(" takeMultipleColumnFamilySnapshot");
-    }
-
-    @Override
-    public int scrub(boolean disableSnapshot, boolean skipCorrupted,
-            boolean checkData, String keyspaceName, String... columnFamilies)
-                    throws IOException, ExecutionException,
-                    InterruptedException {
-        // TODO Auto-generated method stub
-        log(" scrub()");
-        return c.getIntValue("");
     }
 
     @Override
