@@ -100,7 +100,7 @@ public class APIClient {
     public Response post(String path, MultivaluedMap<String, String> queryParams) {
         Response response = get(path, queryParams).post(Entity.entity(null, MediaType.TEXT_PLAIN));
         if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
-            throw getException(response.readEntity(String.class));
+            throw getException("Scylla API server HTTP POST to URL '" + path + "' failed", response.readEntity(String.class));
         }
         return response;
 
@@ -110,10 +110,10 @@ public class APIClient {
         post(path, null);
     }
 
-    public RuntimeException getException(String txt) {
-        JsonReader reader = factory.createReader(new StringReader(txt));
+    public IllegalStateException getException(String msg, String json) {
+        JsonReader reader = factory.createReader(new StringReader(json));
         JsonObject res = reader.readObject();
-        return new RuntimeException(res.getString("message"));
+        return new IllegalStateException(msg + ": " + res.getString("message"));
     }
 
     public String postGetVal(String path, MultivaluedMap<String, String> queryParams) {
@@ -157,7 +157,7 @@ public class APIClient {
                 // TBD
                 // We are currently not caching errors,
                 // it should be reconsider.
-                throw getException(response.readEntity(String.class));
+                throw getException("Scylla API server HTTP GET to URL '" + string + "' failed", response.readEntity(String.class));
             }
             res = response.readEntity(String.class);
             if (duration > 0) {
