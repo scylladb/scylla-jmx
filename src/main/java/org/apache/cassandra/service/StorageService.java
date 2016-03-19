@@ -156,7 +156,13 @@ public class StorageService extends NotificationBroadcasterSupport
      */
     public List<String> getTokens() {
         log(" getTokens()");
-        return c.getListStrValue("/storage_service/tokens/" + APIConfig.getAddress());
+        try {
+            return getTokens(getLocalBroadCastingAddress());
+        } catch (UnknownHostException e) {
+            // We should never reach here,
+            // but it makes the compiler happy
+            return null;
+        }
     }
 
     /**
@@ -350,10 +356,23 @@ public class StorageService extends NotificationBroadcasterSupport
         return c.getStringValue("/storage_service/hostid/local");
     }
 
+    public String getLocalBroadCastingAddress() {
+        // FIXME:
+        // There is no straight API to get the broadcasting
+        // address, instead of trying to figure it out from the configuration
+        // we will use the getHostIdToAddressMap with the hostid
+        return getHostIdToAddressMap().get(getLocalHostId());
+    }
     /** Retrieve the mapping of endpoint to host ID */
     public Map<String, String> getHostIdMap() {
         log(" getHostIdMap()");
         return c.getMapStrValue("/storage_service/host_id");
+    }
+
+    /** Retrieve the mapping of endpoint to host ID */
+    public Map<String, String> getHostIdToAddressMap() {
+        log(" getHostIdToAddressMap()");
+        return c.getReverseMapStrValue("/storage_service/host_id");
     }
 
     /**
