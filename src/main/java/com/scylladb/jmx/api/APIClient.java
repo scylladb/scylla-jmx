@@ -406,6 +406,28 @@ public class APIClient {
         return getMapStrValue(string, null);
     }
 
+    public  Map<String, String> getReverseMapStrValue(String string,
+            MultivaluedMap<String, String> queryParams) {
+        if (string.equals("")) {
+            return null;
+        }
+        JsonReader reader = getReader(string, queryParams);
+        JsonArray arr = reader.readArray();
+        Map<String, String> map = new HashMap<String, String>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            if (obj.containsKey("key") && obj.containsKey("value")) {
+                map.put(obj.getString("value"), obj.getString("key"));
+            }
+        }
+        reader.close();
+        return map;
+    }
+
+    public  Map<String, String> getReverseMapStrValue(String string) {
+        return getReverseMapStrValue(string, null);
+    }
+
     public List<InetAddress> getListInetAddressValue(String string,
             MultivaluedMap<String, String> queryParams) {
         List<String> vals = getListStrValue(string, queryParams);
