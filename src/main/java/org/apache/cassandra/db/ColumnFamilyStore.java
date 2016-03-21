@@ -132,14 +132,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                     }
                 }
                 missed_response = 0;
-            } catch (ProcessingException e) {
-                if (Throwables.getRootCause(e) instanceof ConnectException) {
-                    if (missed_response++ > MAX_RETRY) {
-                        System.err.println("API is not available, JMX is shuting down");
-                        System.exit(-1);
-                    }
-                } else {
-                 // ignoring exceptions, will retry on the next interval
+            } catch (IllegalStateException e) {
+                if (missed_response++ > MAX_RETRY) {
+                    System.err.println("API is not available, JMX is shuting down");
+                    System.exit(-1);
                 }
             } catch (Exception e) {
                 // ignoring exceptions, will retry on the next interval

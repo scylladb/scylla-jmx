@@ -138,7 +138,7 @@ public final class MessagingService implements MessagingServiceMBean {
                 }
                 connection_failure = 0;
                 report_error = 1;
-            }  catch (ProcessingException e) {
+            }  catch (IllegalStateException e) {
               // Connection problem, No need to do anything, just retry.
             } catch (Exception e) {
                 connection_failure++;
