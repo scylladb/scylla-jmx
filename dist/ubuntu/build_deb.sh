@@ -10,7 +10,7 @@ if [ -e debian ] || [ -e build ] || [ -e target ] || [ -e m2 ] || [ -e dependenc
 fi
 
 VERSION=$(./SCYLLA-VERSION-GEN)
-SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
+SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
 if [ "$SCYLLA_VERSION" = "development" ]; then
 	SCYLLA_VERSION=0development
