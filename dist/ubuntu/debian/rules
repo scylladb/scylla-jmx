@@ -24,7 +24,7 @@ override_dh_auto_install:
 	cp $(CURDIR)/target/scylla-jmx-1.0.jar $(DEST)
 
 override_dh_installinit:
-	dh_installinit --no-start
+	dh_installinit --no-start --upstart-only
 
 %:
 	dh $@
