@@ -40,7 +40,8 @@ public class EndpointState {
     private volatile long updateTimestamp;
     private volatile boolean isAlive;
     ApplicationState[] applicationValues;
-
+    private static final java.util.logging.Logger logger = java.util.logging.Logger
+            .getLogger(EndpointState.class.getName());
     EndpointState(HeartBeatState initialHbState) {
         applicationValues = ApplicationState.values();
         hbState = initialHbState;
@@ -73,6 +74,10 @@ public class EndpointState {
     }
 
     void addApplicationState(int key, String value) {
+        if (key >= applicationValues.length) {
+            logger.warning("Unknown application state with id:" + key);
+            return;
+        }
         addApplicationState(applicationValues[key], value);
     }
 
