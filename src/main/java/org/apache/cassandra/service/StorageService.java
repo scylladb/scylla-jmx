@@ -28,6 +28,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -519,6 +520,27 @@ public class StorageService extends NotificationBroadcasterSupport
                 "/storage_service/snapshots", null);
     }
 
+    public Map<String, Map<String, Set<String>>> getSnapshotKeyspaceColumnFamily() {
+        JsonArray arr = c.getJsonArray("/storage_service/snapshots");
+        Map<String, Map<String, Set<String>>> res = new HashMap<String, Map<String, Set<String>>>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonObject obj = arr.getJsonObject(i);
+            Map<String, Set<String>> kscf = new HashMap<String, Set<String>>();
+            JsonArray snapshots = obj.getJsonArray("value");
+            for (int j = 0; j < snapshots.size(); j++) {
+                JsonObject s = snapshots.getJsonObject(j);
+                String ks = s.getString("ks");
+                String cf = s.getString("cf");
+                if (!kscf.containsKey(ks)) {
+                    kscf.put(ks, new HashSet<String>());
+                }
+                kscf.get(ks).add(cf);
+            }
+            res.put(obj.getString("key"), kscf);
+        }
+        return res;
+    }
+
     /**
      * Get the true size taken by all snapshots across all keyspaces.
      *
@@ -934,6 +956,23 @@ public class StorageService extends NotificationBroadcasterSupport
         return c.getListStrValue("/storage_service/keyspaces", queryParams);
     }
 
+    public Map<String, Set<String>> getColumnFamilyPerKeyspace() {
+        Map<String, Set<String>> res = new HashMap<String, Set<String>>();
+
+        JsonArray mbeans = c.getJsonArray("/column_family/");
+
+        for (int i = 0; i < mbeans.size(); i++) {
+            JsonObject mbean = mbeans.getJsonObject(i);
+            String ks = mbean.getString("ks");
+            String cf = mbean.getString("cf");
+            if (!res.containsKey(ks)) {
+                res.put(ks, new HashSet<String>());
+            }
+            res.get(ks).add(cf);
+        }
+        return res;
+    }
+
     public List<String> getNonSystemKeyspaces() {
         log(" getNonSystemKeyspaces()");
         return c.getListStrValue("/storage_service/keyspaces");
@@ -1305,8 +1344,60 @@ public class StorageService extends NotificationBroadcasterSupport
     @Override
     public void takeMultipleColumnFamilySnapshot(String tag,
             String... columnFamilyList) throws IOException {
-        // TODO Auto-generated method stub
         log(" takeMultipleColumnFamilySnapshot");
+        Map<String, List<String>> keyspaceColumnfamily = new HashMap<String, List<String>>();
+        Map<String, Set<String>> kss = getColumnFamilyPerKeyspace();
+        Map<String, Map<String, Set<String>>> snapshots = getSnapshotKeyspaceColumnFamily();
+        for (String columnFamily : columnFamilyList)
+        {
+            String splittedString[] = columnFamily.split("\\.");
+            if (splittedString.length == 2)
+            {
+                String keyspaceName = splittedString[0];
+                String columnFamilyName = splittedString[1];
+
+                if (keyspaceName == null)
+                    throw new IOException("You must supply a keyspace name");
+                if (columnFamilyName == null)
+                    throw new IOException("You must supply a column family name");
+                if (tag == null || tag.equals(""))
+                    throw new IOException("You must supply a snapshot name.");
+                if (!kss.containsKey(keyspaceName))
+                {
+                    throw new IOException("Keyspace " + keyspaceName + " does not exist");
+                }
+                if (!kss.get(keyspaceName).contains(columnFamilyName)) {
+                   throw new IllegalArgumentException(String.format("Unknown keyspace/cf pair (%s.%s)", keyspaceName, columnFamilyName));
+                }
+                // As there can be multiple column family from same keyspace check if snapshot exist for that specific
+                // columnfamily and not for whole keyspace
+
+                if (snapshots.containsKey(tag) && snapshots.get(tag).containsKey(keyspaceName) && snapshots.get(tag).get(keyspaceName).contains(columnFamilyName)) {
+                    throw new IOException("Snapshot " + tag + " already exists.");
+                }
+
+                if (!keyspaceColumnfamily.containsKey(keyspaceName))
+                {
+                    keyspaceColumnfamily.put(keyspaceName, new ArrayList<String>());
+                }
+
+                // Add Keyspace columnfamily to map in order to support atomicity for snapshot process.
+                // So no snapshot should happen if any one of the above conditions fail for any keyspace or columnfamily
+                keyspaceColumnfamily.get(keyspaceName).add(columnFamilyName);
+
+            }
+            else
+            {
+                throw new IllegalArgumentException(
+                        "Cannot take a snapshot on secondary index or invalid column family name. You must supply a column family name in the form of keyspace.columnfamily");
+            }
+        }
+
+        for (Entry<String, List<String>> entry : keyspaceColumnfamily.entrySet())
+        {
+            for (String columnFamily : entry.getValue())
+                takeColumnFamilySnapshot(entry.getKey(), columnFamily, tag);
+        }
     }
 
     @Override
