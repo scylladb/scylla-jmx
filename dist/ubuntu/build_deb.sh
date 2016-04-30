@@ -28,5 +28,5 @@ sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
 sed -i -e "s/@@CODENAME@@/$CODENAME/g" debian/changelog
 
-sudo apt-get -y install debhelper maven openjdk-7-jdk devscripts
+echo Y | sudo mk-build-deps -i -r
 debuild -r fakeroot -us -uc
