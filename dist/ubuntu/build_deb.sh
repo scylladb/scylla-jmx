@@ -24,9 +24,15 @@ echo $VERSION > version
 
 cp -a dist/ubuntu/debian debian
 cp dist/ubuntu/changelog.in debian/changelog
+cp dist/ubuntu/rules.in debian/rules
 sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
 sed -i -e "s/@@CODENAME@@/$CODENAME/g" debian/changelog
+if [ "$RELEASE" = "14.04" ]; then
+    sed -i -e "s/@@DH_INSTALLINIT@@/--upstart-only/g" debian/rules
+else
+    sed -i -e "s/@@DH_INSTALLINIT@@//g" debian/rules
+fi
 
 echo Y | sudo mk-build-deps -i -r
 debuild -r fakeroot -us -uc
