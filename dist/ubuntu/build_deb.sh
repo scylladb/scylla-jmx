@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 if [ ! -e dist/ubuntu/build_deb.sh ]; then
     echo "run build_deb.sh in top of scylla dir"
@@ -8,6 +8,10 @@ fi
 if [ -e debian ] || [ -e build ] || [ -e target ] || [ -e m2 ] || [ -e dependency-reduced-pom.xml ]; then
     rm -rf debian build target m2 dependency-reduced-pom.xml
 fi
+
+DISTRIBUTION=`lsb_release -i|awk '{print $3}'`
+RELEASE=`lsb_release -r|awk '{print $2}'`
+CODENAME=`lsb_release -c|awk '{print $2}'`
 
 VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
@@ -20,8 +24,15 @@ echo $VERSION > version
 
 cp -a dist/ubuntu/debian debian
 cp dist/ubuntu/changelog.in debian/changelog
+cp dist/ubuntu/rules.in debian/rules
 sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
+sed -i -e "s/@@CODENAME@@/$CODENAME/g" debian/changelog
+if [ "$RELEASE" = "14.04" ]; then
+    sed -i -e "s/@@DH_INSTALLINIT@@/--upstart-only/g" debian/rules
+else
+    sed -i -e "s/@@DH_INSTALLINIT@@//g" debian/rules
+fi
 
-sudo apt-get -y install debhelper maven openjdk-7-jdk devscripts
+echo Y | sudo mk-build-deps -i -r
 debuild -r fakeroot -us -uc
