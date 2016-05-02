@@ -6,13 +6,11 @@ package com.scylladb.jmx.main;
 import com.scylladb.jmx.api.APIConfig;
 import com.scylladb.jmx.utils.RMIServerSocketFactoryImpl;
 
-import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.db.commitlog.CommitLog;
 import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.FailureDetector;
 import org.apache.cassandra.locator.EndpointSnitchInfo;
-import org.apache.cassandra.metrics.StreamingMetrics;
 import org.apache.cassandra.net.MessagingService;
 import org.apache.cassandra.service.CacheService;
 import org.apache.cassandra.service.GCInspector;
@@ -33,11 +31,9 @@ public class Main {
         Gossiper.getInstance();
         EndpointSnitchInfo.getInstance();
         FailureDetector.getInstance();
-        ColumnFamilyStore.register_mbeans();
         CacheService.getInstance();
         CompactionManager.getInstance();
         GCInspector.register();
-        StreamingMetrics.register_mbeans();
         Thread.sleep(Long.MAX_VALUE);
     }
 

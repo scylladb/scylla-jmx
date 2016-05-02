@@ -50,6 +50,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private String keyspace;
     private String name;
     private String mbeanName;
+    private static APIClient s_c = new APIClient();
     static final int INTERVAL = 1000; // update every 1second
     public final ColumnFamilyMetrics metric;
 
@@ -102,8 +103,35 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                 + ",columnfamily=" + name;
     }
 
+    public static boolean checkRegistration() {
+        try {
+            JsonArray mbeans = s_c.getJsonArray("/column_family/");
+            Set<String> all_cf = new HashSet<String>();
+            for (int i = 0; i < mbeans.size(); i++) {
+                JsonObject mbean = mbeans.getJsonObject(i);
+                String name = getName(mbean.getString("type"),
+                        mbean.getString("ks"), mbean.getString("cf"));
+                if (!cf.containsKey(name)) {
+                    ColumnFamilyStore cfs = new ColumnFamilyStore(
+                            mbean.getString("type"), mbean.getString("ks"),
+                            mbean.getString("cf"));
+                    cf.put(name, cfs);
+                }
+                all_cf.add(name);
+            }
+            // removing deleted column family
+            for (String n : cf.keySet()) {
+                if (!all_cf.contains(n)) {
+                    cf.remove(n);
+                }
+            }
+        } catch (IllegalStateException e) {
+            return false;
+        }
+        return true;
+    }
+
     private static final class CheckRegistration extends TimerTask {
-        private APIClient c = new APIClient();
         private int missed_response = 0;
         // After MAX_RETRY retry we assume the API is not available
         // and the jmx will shutdown
@@ -111,31 +139,13 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         @Override
         public void run() {
             try {
-                JsonArray mbeans = c.getJsonArray("/column_family/");
-                Set<String> all_cf = new HashSet<String>();
-                for (int i = 0; i < mbeans.size(); i++) {
-                    JsonObject mbean = mbeans.getJsonObject(i);
-                    String name = getName(mbean.getString("type"),
-                            mbean.getString("ks"), mbean.getString("cf"));
-                    if (!cf.containsKey(name)) {
-                        ColumnFamilyStore cfs = new ColumnFamilyStore(
-                                mbean.getString("type"), mbean.getString("ks"),
-                                mbean.getString("cf"));
-                        cf.put(name, cfs);
+                if (checkRegistration()) {
+                    missed_response = 0;
+                } else {
+                    if (missed_response++ > MAX_RETRY) {
+                        System.err.println("API is not available, JMX is shuting down");
+                        System.exit(-1);
                     }
-                    all_cf.add(name);
-                }
-                // removing deleted column family
-                for (String n : cf.keySet()) {
-                    if (!all_cf.contains(n)) {
-                        cf.remove(n);
-                    }
-                }
-                missed_response = 0;
-            } catch (IllegalStateException e) {
-                if (missed_response++ > MAX_RETRY) {
-                    System.err.println("API is not available, JMX is shuting down");
-                    System.exit(-1);
                 }
             } catch (Exception e) {
                 // ignoring exceptions, will retry on the next interval

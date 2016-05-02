@@ -41,6 +41,9 @@ public class RMIServerSocketFactoryImpl implements RMIServerSocketFactory {
     public static JMXConnectorServer jmxServer = null;
 
     public static void maybeInitJmx() {
+        System.setProperty("javax.management.builder.initial", "com.scylladb.jmx.utils.APIBuilder");
+        System.setProperty("mx4j.strict.mbean.interface", "no");
+
         String jmxPort = System
                 .getProperty("com.sun.management.jmxremote.port");
 
