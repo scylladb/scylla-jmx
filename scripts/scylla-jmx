@@ -6,6 +6,7 @@ JMX_PORT="7199"
 API_ADDR=""
 API_PORT=""
 CONF_FILE=""
+DEBUG=""
 PARAM_HELP="-h"
 PARAM_JMX_PORT="-jp"
 PARAM_API_PORT="-p"
@@ -14,6 +15,7 @@ PARAM_LOCATION="-l"
 LOCATION="target"
 PARAM_FILE="-cf"
 ALLOW_REMOTE="-r"
+ALLOW_DEBUG="-d"
 REMOTE=0
 
 print_help() {
@@ -34,6 +36,7 @@ This script receives the following command line arguments:
     $PARAM_FILE <file> - A configuration file to use
     $PARAM_LOCATION <location> - The location of the jmx proxy jar file
     $ALLOW_REMOTE - When set allow remote jmx connectivity
+    $ALLOW_DEBUG - When set open debug ports for remote debugger
 HLPEND
 }
 
@@ -72,14 +75,19 @@ do
       print_help
       exit 0
       ;;
+    "$ALLOW_DEBUG")
+      DEBUG="-agentlib:jdwp=transport=dt_socket,address=127.0.0.1:7690,server=y,suspend=n"
+      shift 1
+      ;;
     *)
     esac
 done
 
+
 if [ $REMOTE -eq 1 ]; then
-  REMOTE="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false"
+  REMOTE="-Djavax.management.builder.initial=com.scylladb.jmx.utils.APIBuilder -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false"
 else
   REMOTE="-Dcassandra.jmx.local.port=$JMX_PORT"
 fi
 
-exec java $API_ADDR $API_PORT $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
+exec java $API_ADDR $API_PORT $DEBUG $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
