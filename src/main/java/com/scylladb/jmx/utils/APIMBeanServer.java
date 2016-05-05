@@ -20,6 +20,12 @@ package com.scylladb.jmx.utils;
 * along with Scylla.  If not, see <http://www.gnu.org/licenses/>.
 */
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -29,6 +35,8 @@ import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.metrics.StreamingMetrics;
 
 import mx4j.server.ChainedMBeanServer;
+import mx4j.server.MX4JMBeanServer;
+import mx4j.util.Utils;
 
 public class APIMBeanServer extends ChainedMBeanServer {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
@@ -52,14 +60,72 @@ public class APIMBeanServer extends ChainedMBeanServer {
         super.setMBeanServer(server);
     }
 
+    public ObjectName apiNormalizeObjectName(ObjectName name) {
+        try {
+            Class[] cArg = new Class[1];
+            cArg[0] = ObjectName.class;
+            Method met = MX4JMBeanServer.class
+                    .getDeclaredMethod("normalizeObjectName", cArg);
+            met.setAccessible(true);
+            return (ObjectName) met.invoke((MX4JMBeanServer) getMBeanServer(),
+                    name);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            return null;
+        }
+    }
+
     @Override
     public Set<ObjectName> queryNames(ObjectName name, QueryExp query) {
+        if (name == null) {
+            return super.queryNames(name, query);
+        }
         if (name.getCanonicalKeyPropertyListString()
                 .contains("ColumnFamilies")) {
             ColumnFamilyStore.checkRegistration();
         } else if (name.getCanonicalKeyPropertyListString()
                 .contains("Stream")) {
             StreamingMetrics.checkRegistration();
+        }
+        ObjectName no = apiNormalizeObjectName(name);
+        Hashtable patternProps = no.getKeyPropertyList();
+        boolean paternFound = false;
+        for (Iterator j = patternProps.entrySet().iterator(); j.hasNext();) {
+            Map.Entry entry = (Map.Entry) j.next();
+            String patternValue = (String) entry.getValue();
+            if (patternValue.contains("*")) {
+                paternFound = true;
+                break;
+            }
+        }
+        if (paternFound) {
+            Set<ObjectName> res = new HashSet<ObjectName>();
+            for (ObjectName q : (Set<ObjectName>) super.queryNames(null,query)) {
+                if (Utils.wildcardMatch(name.getDomain(), q.getDomain())) {
+                    Hashtable props = q.getKeyPropertyList();
+                    boolean found = true;
+                    for (Iterator j = patternProps.entrySet().iterator(); j
+                            .hasNext();) {
+                        Map.Entry entry = (Map.Entry) j.next();
+                        String patternKey = (String) entry.getKey();
+                        String patternValue = (String) entry.getValue();
+                        if (props.containsKey(patternKey)) {
+                            if (!Utils.wildcardMatch(patternValue,
+                                    props.get(patternKey).toString())) {
+                                found = false;
+                                break;
+                            }
+                        } else {
+                            found = false;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        res.add(q);
+                    }
+                }
+            }
+            return res;
         }
         return super.queryNames(name, query);
     }
