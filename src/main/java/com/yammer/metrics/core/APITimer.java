@@ -4,41 +4,127 @@
  */
 package com.yammer.metrics.core;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.json.JsonObject;
+
+import com.scylladb.jmx.api.APIClient;
 import com.yammer.metrics.core.Histogram.SampleType;
+import com.yammer.metrics.stats.Snapshot;
 
 /**
  * A timer metric which aggregates timing durations and provides duration
  * statistics, plus throughput statistics via {@link Meter}.
  */
 public class APITimer extends Timer {
+    public final static long CACHE_DURATION = 1000;
+
+    final TimeUnit durationUnit, rateUnit;
+    final APIMeter meter;
+    final APIHistogram histogram;
+    APIClient c = new APIClient();
+
+    String url;
 
     public APITimer(String url, ScheduledExecutorService tickThread,
             TimeUnit durationUnit, TimeUnit rateUnit) {
         super(tickThread, durationUnit, rateUnit);
-        setHistogram(url);
+        super.stop();
+        this.url = url;
+        this.durationUnit = durationUnit;
+        this.rateUnit = rateUnit;
+        meter = new APIMeter(null, tickThread, "calls", rateUnit);
+        histogram = new APIHistogram(null, SampleType.BIASED);
     }
 
-    public APITimer(String url, ScheduledExecutorService tickThread,
-            TimeUnit durationUnit, TimeUnit rateUnit, Clock clock) {
-        super(tickThread, durationUnit, rateUnit, clock);
-        setHistogram(url);
+    public void fromJson(JsonObject obj) {
+        meter.fromJson(obj.getJsonObject("meter"));
+        histogram.updateValue(APIClient.json2histogram(obj.getJsonObject("hist")));
     }
 
-    private void setHistogram(String url) {
-        Field histogram;
-        try {
-            histogram = Timer.class.getDeclaredField("histogram");
-            histogram.setAccessible(true);
-            histogram.set(this, new APIHistogram(url, SampleType.BIASED));
-        } catch (NoSuchFieldException | SecurityException
-                | IllegalArgumentException | IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+    public void update_fields() {
+        if (url != null) {
+            fromJson(c.getJsonObj(url, null, CACHE_DURATION));
         }
+    }
+
+    @Override
+    public double max() {
+        update_fields();
+        return histogram.max();
+    }
+
+    @Override
+    public double min() {
+        update_fields();
+        return histogram.min();
+    }
+
+    @Override
+    public double mean() {
+        update_fields();
+        return histogram.mean();
+    }
+
+    @Override
+    public double stdDev() {
+        update_fields();
+        return histogram.stdDev();
+    }
+
+    @Override
+    public double sum() {
+        update_fields();
+        return 0;
+    }
+
+    @Override
+    public Snapshot getSnapshot() {
+        update_fields();
+        return histogram.getSnapshot();
+    }
+
+    @Override
+    public TimeUnit rateUnit() {
+        update_fields();
+        return meter.rateUnit();
+    }
+
+    @Override
+    public String eventType() {
+        update_fields();
+        return meter.eventType();
+    }
+
+    @Override
+    public long count() {
+        update_fields();
+        return meter.count();
+    }
+
+    @Override
+    public double fifteenMinuteRate() {
+        update_fields();
+        return meter.fifteenMinuteRate();
+    }
+
+    @Override
+    public double fiveMinuteRate() {
+        update_fields();
+        return meter.fiveMinuteRate();
+    }
+
+    @Override
+    public double meanRate() {
+        update_fields();
+        return meter.meanRate();
+    }
+
+    @Override
+    public double oneMinuteRate() {
+        update_fields();
+        return meter.oneMinuteRate();
     }
 
 }
