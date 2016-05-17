@@ -128,7 +128,7 @@ public class APIMetricsRegistry extends MetricsRegistry {
      *            the rate unit of the new meter
      * @return a new {@link Meter}
      */
-    public Meter newMeter(String url, Class<?> klass, String name,
+    public APIMeter newMeter(String url, Class<?> klass, String name,
             String eventType, TimeUnit unit) {
         return newMeter(url, klass, name, null, eventType, unit);
     }
@@ -150,7 +150,7 @@ public class APIMetricsRegistry extends MetricsRegistry {
      *            the rate unit of the new meter
      * @return a new {@link Meter}
      */
-    public Meter newMeter(String url, Class<?> klass, String name,
+    public APIMeter newMeter(String url, Class<?> klass, String name,
             String scope, String eventType, TimeUnit unit) {
         return newMeter(url, createName(klass, name, scope), eventType, unit);
     }
@@ -171,14 +171,14 @@ public class APIMetricsRegistry extends MetricsRegistry {
      *            the rate unit of the new meter
      * @return a new {@link Meter}
      */
-    public Meter newMeter(String url, MetricName metricName, String eventType,
+    public APIMeter newMeter(String url, MetricName metricName, String eventType,
             TimeUnit unit) {
         final Metric existingMetric = getMetrics().get(metricName);
         if (existingMetric != null) {
-            return (Meter) existingMetric;
+            return (APIMeter) existingMetric;
         }
         return getOrAdd(metricName, new APIMeter(url, newMeterTickThreadPool(),
-                eventType, unit, getClock()));
+                eventType, unit));
     }
 
     /**
@@ -378,7 +378,7 @@ public class APIMetricsRegistry extends MetricsRegistry {
             return (Timer) existingMetric;
         }
         return getOrAdd(metricName, new APITimer(url, newMeterTickThreadPool(),
-                durationUnit, rateUnit, getClock()));
+                durationUnit, rateUnit));
     }
 
 }
