@@ -65,9 +65,9 @@ public class CacheService implements CacheServiceMBean {
             throw new RuntimeException(e);
         }
 
-        keyCache = new CacheMetrics("KeyCache", "key");
+        keyCache = new CacheMetrics("KeyCache", null);
         rowCache = new CacheMetrics("RowCache", "row");
-        counterCache  = new CacheMetrics("CounterCache", "counter");
+        counterCache  = new CacheMetrics("CounterCache", null);
     }
 
     public int getRowCacheSavePeriodInSeconds() {
