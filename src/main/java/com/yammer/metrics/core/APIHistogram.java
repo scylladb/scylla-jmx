@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.json.JsonObject;
+
 import com.scylladb.jmx.api.APIClient;
 import com.yammer.metrics.stats.Sample;
 import com.yammer.metrics.stats.Snapshot;
@@ -101,14 +103,7 @@ public class APIHistogram extends Histogram {
         this(url, type, UPDATE_INTERVAL);
     }
 
-    public void update() {
-        long now = System.currentTimeMillis();
-        if (now - last_update < UPDATE_INTERVAL) {
-            return;
-        }
-        last_update = now;
-        clear();
-        HistogramValues vals = c.getHistogramValue(url);
+    public void updateValue(HistogramValues vals) {
         try {
             if (vals.sample != null) {
                 for (long v : vals.sample) {
@@ -126,6 +121,25 @@ public class APIHistogram extends Histogram {
         } catch (IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    public void update() {
+        if (url == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (now - last_update < UPDATE_INTERVAL) {
+            return;
+        }
+        last_update = now;
+        clear();
+        JsonObject obj = c.getJsonObj(url, null);
+        if (obj.containsKey("hist")) {
+            updateValue(APIClient.json2histogram(obj.getJsonObject("hist")));
+        } else {
+            updateValue(APIClient.json2histogram(obj));
+        }
+
     }
 
     /**
