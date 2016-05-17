@@ -108,7 +108,7 @@ public class LatencyMetrics {
         this.namePrefix = namePrefix;
 
         paramName = (paramName == null)? "" : "/" + paramName;
-        latency = APIMetrics.newTimer(url + "/histogram" + paramName,
+        latency = APIMetrics.newTimer(url + "/moving_average_histogram" + paramName,
                 factory.createMetricName(namePrefix + "Latency"),
                 TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
         totalLatency = APIMetrics.newCounter(url +  paramName,
@@ -135,12 +135,7 @@ public class LatencyMetrics {
 
     /** takes nanoseconds **/
     public void addNano(long nanos) {
-        // convert to microseconds. 1 millionth
-        latency.update(nanos, TimeUnit.NANOSECONDS);
-        totalLatency.inc(nanos / 1000);
-        for (LatencyMetrics parent : parents) {
-            parent.addNano(nanos);
-        }
+        // the object is only updated from the API
     }
 
     public void release() {
