@@ -31,21 +31,21 @@ import org.apache.cassandra.net.MessagingService;
 import com.scylladb.jmx.metrics.APIMetrics;
 import com.scylladb.jmx.metrics.DefaultNameFactory;
 import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.yammer.metrics.core.APISettableMeter;
+import com.yammer.metrics.core.APIMeter;
 
 /**
  * Metrics for dropped messages by verb.
  */
 public class DroppedMessageMetrics {
     /** Number of dropped messages */
-    public final APISettableMeter dropped;
+    public final APIMeter dropped;
 
     private long lastDropped = 0;
 
     public DroppedMessageMetrics(MessagingService.Verb verb) {
         MetricNameFactory factory = new DefaultNameFactory("DroppedMessage",
                 verb.toString());
-        dropped = (APISettableMeter) APIMetrics.newSettableMeter(
+        dropped = (APIMeter) APIMetrics.newMeter(null,
                 factory.createMetricName("Dropped"), "dropped",
                 TimeUnit.SECONDS);
         dropped.stop();
@@ -59,7 +59,7 @@ public class DroppedMessageMetrics {
         return (int) recentlyDropped;
     }
 
-    public APISettableMeter getMeter() {
+    public APIMeter getMeter() {
         return dropped;
     }
 }
