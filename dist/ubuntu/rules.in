@@ -22,6 +22,8 @@ override_dh_auto_install:
 	mkdir -p $(DEST)
 	cp $(CURDIR)/scripts/scylla-jmx $(DEST)
 	cp $(CURDIR)/target/scylla-jmx-1.0.jar $(DEST)
+	mkdir $(DEST)/symlinks
+	ln -sf /usr/bin/java $(DEST)/symlinks/scylla-jmx
 
 override_dh_installinit:
 	dh_installinit --no-start @@DH_INSTALLINIT@@

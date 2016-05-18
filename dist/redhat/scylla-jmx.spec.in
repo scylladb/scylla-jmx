@@ -32,8 +32,10 @@ install -m644 dist/common/sysconfig/scylla-jmx $RPM_BUILD_ROOT%{_sysconfdir}/sys
 install -m644 dist/redhat/systemd/scylla-jmx.service $RPM_BUILD_ROOT%{_unitdir}/
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
+install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/symlinks
 install -m644 target/scylla-jmx-1.0.jar $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/
 install -m755 scripts/scylla-jmx $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
+ln -sf /usr/bin/java $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/symlinks/scylla-jmx
 
 %pre
 /usr/sbin/groupadd scylla 2> /dev/null || :
@@ -68,6 +70,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_unitdir}/scylla-jmx.service
 %{_prefix}/lib/scylla/jmx/scylla-jmx
 %{_prefix}/lib/scylla/jmx/scylla-jmx-1.0.jar
+%{_prefix}/lib/scylla/jmx/symlinks/scylla-jmx
 
 %changelog
 * Fri Aug  7 2015 Takuya ASADA Takuya ASADA <syuu@cloudius-systems.com>

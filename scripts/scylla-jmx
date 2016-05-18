@@ -13,6 +13,7 @@ PARAM_API_PORT="-p"
 PARAM_ADDR="-a"
 PARAM_LOCATION="-l"
 LOCATION="target"
+LOCATION_SCRIPTS="scripts"
 PARAM_FILE="-cf"
 ALLOW_REMOTE="-r"
 ALLOW_DEBUG="-d"
@@ -61,6 +62,7 @@ do
       ;;
     "$PARAM_LOCATION")
       LOCATION=$2
+      LOCATION_SCRIPTS="$2"
       shift 2
       ;;
     "$PARAM_FILE")
@@ -90,4 +92,4 @@ else
   REMOTE="-Dcassandra.jmx.local.port=$JMX_PORT"
 fi
 
-exec java $API_ADDR $API_PORT $DEBUG $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
+exec "$LOCATION_SCRIPTS"/symlinks/scylla-jmx $API_ADDR $API_PORT $DEBUG $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
