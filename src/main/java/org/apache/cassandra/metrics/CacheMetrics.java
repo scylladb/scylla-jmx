@@ -31,7 +31,7 @@ import com.scylladb.jmx.metrics.APIMetrics;
 import com.scylladb.jmx.metrics.DefaultNameFactory;
 import com.scylladb.jmx.metrics.MetricNameFactory;
 import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.APIMeter;
 
 /**
  * Metrics for {@code ICache}.
@@ -40,9 +40,9 @@ public class CacheMetrics {
     /** Cache capacity in bytes */
     public final Gauge<Long> capacity;
     /** Total number of cache hits */
-    public final Meter hits;
+    public final APIMeter hits;
     /** Total number of cache requests */
-    public final Meter requests;
+    public final APIMeter requests;
     /** cache hit rate */
     public final Gauge<Double> hitRate;
     /** Total size of cache, in bytes */
@@ -55,6 +55,12 @@ public class CacheMetrics {
 
     private APIClient c = new APIClient();
 
+    private String getURL(String url, String value) {
+        if (url == null || value == null) {
+            return null;
+        }
+        return "/cache_service/metrics/" + url + value;
+    }
     /**
      * Create metrics for given cache.
      *
@@ -66,39 +72,50 @@ public class CacheMetrics {
     public CacheMetrics(String type, final String url) {
         MetricNameFactory factory = new DefaultNameFactory("Cache", type);
 
+
         capacity = APIMetrics.newGauge(factory.createMetricName("Capacity"),
                 new Gauge<Long>() {
+                    String u = getURL(url, "/capacity");
                     public Long value() {
-                        return c.getLongValue("/cache_service/metrics/" + url
-                                + "/capacity");
+                        if (u == null) {
+                            return 0L;
+                        }
+                        return c.getLongValue(u);
                     }
                 });
-        hits = APIMetrics.newMeter("/cache_service/metrics/" + url
-                + "/hits", factory.createMetricName("Hits"), "hits",
+        hits = APIMetrics.newMeter(getURL(url, "/hits_moving_avrage"), factory.createMetricName("Hits"), "hits",
                 TimeUnit.SECONDS);
-        requests = APIMetrics.newMeter("/cache_service/metrics/" + url
-                + "/requests", factory.createMetricName("Requests"),
+        requests = APIMetrics.newMeter(getURL(url, "/requests_moving_avrage"), factory.createMetricName("Requests"),
                 "requests", TimeUnit.SECONDS);
         hitRate = APIMetrics.newGauge(factory.createMetricName("HitRate"),
                 new Gauge<Double>() {
+                    String u = getURL(url, "/hit_rate");
                     @Override
                     public Double value() {
-                        return c.getDoubleValue("/cache_service/metrics/" + url
-                                + "/hit_rate");
+                        if (u == null) {
+                            return 0.0;
+                        }
+                        return c.getDoubleValue(u);
                     }
                 });
         size = APIMetrics.newGauge(factory.createMetricName("Size"),
                 new Gauge<Long>() {
+                    String u = getURL(url, "/size");
                     public Long value() {
-                        return c.getLongValue("/cache_service/metrics/" + url
-                                + "/size");
+                        if (u == null) {
+                            return 0L;
+                        }
+                        return c.getLongValue(u);
                     }
                 });
         entries = APIMetrics.newGauge(factory.createMetricName("Entries"),
                 new Gauge<Integer>() {
+                    String u = getURL(url, "/entries");
                     public Integer value() {
-                        return c.getIntValue("/cache_service/metrics/" + url
-                                + "/entries");
+                        if (u == null) {
+                            return 0;
+                        }
+                        return c.getIntValue(u);
                     }
                 });
     }

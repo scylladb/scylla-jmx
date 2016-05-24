@@ -21,6 +21,8 @@
 
 package com.scylladb.jmx.api;
 
+import javax.json.JsonObject;
+
 import com.scylladb.jmx.utils.EstimatedHistogram;
 
 public class CacheEntry {
@@ -42,5 +44,9 @@ public class CacheEntry {
 
     public EstimatedHistogram getEstimatedHistogram() {
         return (EstimatedHistogram)value;
+    }
+
+    public JsonObject jsonObject() {
+        return (JsonObject) value;
     }
 }

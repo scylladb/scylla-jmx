@@ -16,6 +16,7 @@ import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.reporting.JmxReporter;
+import com.yammer.metrics.core.APIMeter;
 
 public class APIMetrics {
     private static final APIMetricsRegistry DEFAULT_REGISTRY = new APIMetricsRegistry();
@@ -241,7 +242,7 @@ public class APIMetrics {
      *            the rate unit of the new meter
      * @return a new {@link com.yammer.metrics.core.Meter}
      */
-    public static Meter newMeter(String url, Class<?> klass, String name,
+    public static APIMeter newMeter(String url, Class<?> klass, String name,
             String eventType, TimeUnit unit) {
         return DEFAULT_REGISTRY.newMeter(url, klass, name, eventType, unit);
     }
@@ -263,7 +264,7 @@ public class APIMetrics {
      *            the rate unit of the new meter
      * @return a new {@link com.yammer.metrics.core.Meter}
      */
-    public static Meter newMeter(String url, Class<?> klass, String name,
+    public static APIMeter newMeter(String url, Class<?> klass, String name,
             String scope, String eventType, TimeUnit unit) {
         return DEFAULT_REGISTRY.newMeter(url, klass, name, scope, eventType,
                 unit);
@@ -282,28 +283,11 @@ public class APIMetrics {
      *            the rate unit of the new meter
      * @return a new {@link com.yammer.metrics.core.Meter}
      */
-    public static Meter newMeter(String url, MetricName metricName,
+    public static APIMeter newMeter(String url, MetricName metricName,
             String eventType, TimeUnit unit) {
         return DEFAULT_REGISTRY.newMeter(url, metricName, eventType, unit);
     }
 
-    /**
-     * Creates a new {@link com.yammer.metrics.core.Meter} and registers it
-     * under the given metric name.
-     *
-     * @param metricName
-     *            the name of the metric
-     * @param eventType
-     *            the plural name of the type of events the meter is measuring
-     *            (e.g., {@code "requests"})
-     * @param unit
-     *            the rate unit of the new meter
-     * @return a new {@link com.yammer.metrics.core.Meter}
-     */
-    public static Meter newSettableMeter(MetricName metricName,
-            String eventType, TimeUnit unit) {
-        return DEFAULT_REGISTRY.newSettableMeter(metricName, eventType, unit);
-    }
     /**
      * Creates a new {@link com.yammer.metrics.core.APITimer} and registers it
      * under the given class and name.

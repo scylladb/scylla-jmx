@@ -31,12 +31,10 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import javax.ws.rs.ProcessingException;
 
 import org.apache.cassandra.metrics.DroppedMessageMetrics;
 
 import com.scylladb.jmx.api.APIClient;
-import com.yammer.metrics.core.APISettableMeter;
 
 public final class MessagingService implements MessagingServiceMBean {
     static final int INTERVAL = 1000; // update every 1second
@@ -101,56 +99,26 @@ public final class MessagingService implements MessagingServiceMBean {
         logger.finest(str);
     }
 
-    private static Timer timer = new Timer("Dropped messages");
-
     public MessagingService() {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
             jmxObjectName = new ObjectName(MBEAN_NAME);
             mbs.registerMBean(this, jmxObjectName);
-            // mbs.registerMBean(StreamManager.instance, new ObjectName(
-            // StreamManager.OBJECT_NAME));
+            dropped = new HashMap<String, DroppedMessageMetrics>();
+            for (Verb v : Verb.values()) {
+                dropped.put(v.name(), new DroppedMessageMetrics(v));
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        timer.schedule(new CheckDroppedMessages(), INTERVAL, INTERVAL);
     }
 
-    static MessagingService instance = new MessagingService();
-
-    private static final class CheckDroppedMessages extends TimerTask {
-        int connection_failure = 0;
-        int report_error = 1;
-        @Override
-        public void run() {
-            if (instance.dropped == null) {
-                instance.dropped = new HashMap<String, DroppedMessageMetrics>();
-                for (Verb v : Verb.values()) {
-                    instance.dropped.put(v.name(), new DroppedMessageMetrics(v));
-                }
-            }
-            try {
-                Map<String, Integer> val = instance.getDroppedMessages();
-                for (String k : val.keySet()) {
-                    APISettableMeter meter = instance.dropped.get(k).getMeter();
-                    meter.set(val.get(k));
-                    meter.tick();
-                }
-                connection_failure = 0;
-                report_error = 1;
-            }  catch (IllegalStateException e) {
-              // Connection problem, No need to do anything, just retry.
-            } catch (Exception e) {
-                connection_failure++;
-                if ((connection_failure & report_error) == report_error) {
-                    logger.info("Dropped messages failed with " + e.getMessage() + " total error reported " + connection_failure);
-                    report_error <<= 1;
-                }
-            }
-        }
-    }
+    static MessagingService instance;
 
     public static MessagingService getInstance() {
+        if (instance == null) {
+            instance = new MessagingService();
+        }
         return instance;
     }
 

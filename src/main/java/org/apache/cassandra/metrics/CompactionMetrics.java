@@ -18,7 +18,7 @@
 
 /*
  * Copyright 2015 Cloudius Systems
- * 
+ *
  * Modified by Cloudius Systems
  */
 package org.apache.cassandra.metrics;
@@ -31,7 +31,7 @@ import com.scylladb.jmx.metrics.DefaultNameFactory;
 import com.scylladb.jmx.metrics.MetricNameFactory;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.APIMeter;
 
 /**
  * Metrics for compaction.
@@ -45,7 +45,7 @@ public class CompactionMetrics {
     /** Number of completed compactions since server [re]start */
     public final Gauge<Long> completedTasks;
     /** Total number of compactions since server [re]start */
-    public final Meter totalCompactionsCompleted;
+    public final APIMeter totalCompactionsCompleted;
     /** Total number of bytes compacted since server [re]start */
     public final Counter bytesCompacted;
 

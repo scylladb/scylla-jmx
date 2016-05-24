@@ -64,6 +64,14 @@ public class APIClient {
         return (value!= null && value.valid(duration))? value.stringValue() : null;
     }
 
+    JsonObject getJsonObjectFromCache(String key, long duration) {
+        if (key == null) {
+            return null;
+        }
+        CacheEntry value = cache.get(key);
+        return (value!= null && value.valid(duration))? value.jsonObject() : null;
+    }
+
     EstimatedHistogram getEstimatedHistogramFromCache(String key, long duration) {
         if (key == null) {
             return null;
@@ -654,20 +662,30 @@ public class APIClient {
     }
 
     public JsonObject getJsonObj(String string,
-            MultivaluedMap<String, String> queryParams) {
+            MultivaluedMap<String, String> queryParams, long duration) {
         if (string.equals("")) {
             return null;
         }
+        String key = getCacheKey(string, queryParams, duration);
+        JsonObject res = getJsonObjectFromCache(key, duration);
+        if (res != null) {
+            return res;
+        }
         JsonReader reader = getReader(string, queryParams);
-        JsonObject res = reader.readObject();
+        res = reader.readObject();
         reader.close();
+        if (duration > 0) {
+            cache.put(key, new CacheEntry(res));
+        }
         return res;
     }
-
-    public HistogramValues getHistogramValue(String url,
+    public JsonObject getJsonObj(String string,
             MultivaluedMap<String, String> queryParams) {
+        return getJsonObj(string, queryParams, 0);
+    }
+
+    public static HistogramValues json2histogram(JsonObject obj) {
         HistogramValues res = new HistogramValues();
-        JsonObject obj = getJsonObj(url, queryParams);
         res.count = obj.getJsonNumber("count").longValue();
         res.max = obj.getJsonNumber("max").longValue();
         res.min = obj.getJsonNumber("min").longValue();
@@ -682,6 +700,11 @@ public class APIClient {
             }
         }
         return res;
+    }
+
+    public HistogramValues getHistogramValue(String url,
+            MultivaluedMap<String, String> queryParams) {
+        return json2histogram(getJsonObj(url, queryParams));
     }
 
     public HistogramValues getHistogramValue(String url) {
