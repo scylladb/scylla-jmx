@@ -33,6 +33,8 @@ if [ "$RELEASE" = "14.04" ]; then
 else
     sed -i -e "s/@@DH_INSTALLINIT@@//g" debian/rules
 fi
+cp dist/common/systemd/scylla-jmx.service.in debian/scylla-jmx.service
+sed -i -e "s#@@SYSCONFDIR@@#/etc/default#g" debian/scylla-jmx.service
 
 echo Y | sudo mk-build-deps -i -r
 debuild -r fakeroot -us -uc

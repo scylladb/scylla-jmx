@@ -21,6 +21,8 @@ Requires:       scylla-server java-headless
 
 %build
 mvn install
+cp dist/common/systemd/scylla-jmx.service.in build/scylla-jmx.service
+sed -i -e "s#@@SYSCONFDIR@@#/etc/sysconfig#g" build/scylla-jmx.service
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -29,7 +31,7 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/scylla/
 
 install -m644 dist/common/sysconfig/scylla-jmx $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/
-install -m644 dist/redhat/systemd/scylla-jmx.service $RPM_BUILD_ROOT%{_unitdir}/
+install -m644 build/*.service $RPM_BUILD_ROOT%{_unitdir}/
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/symlinks
