@@ -25,6 +25,10 @@ public class APITimer extends Timer {
     final APIHistogram histogram;
     APIClient c = new APIClient();
 
+    private double convertFromNS(double ns) {
+        return ns / TimeUnit.NANOSECONDS.convert(1, durationUnit);
+    }
+
     String url;
 
     public APITimer(String url, ScheduledExecutorService tickThread,
@@ -52,31 +56,31 @@ public class APITimer extends Timer {
     @Override
     public double max() {
         update_fields();
-        return histogram.max();
+        return convertFromNS(histogram.max());
     }
 
     @Override
     public double min() {
         update_fields();
-        return histogram.min();
+        return convertFromNS(histogram.min());
     }
 
     @Override
     public double mean() {
         update_fields();
-        return histogram.mean();
+        return convertFromNS(histogram.mean());
     }
 
     @Override
     public double stdDev() {
         update_fields();
-        return histogram.stdDev();
+        return convertFromNS(histogram.stdDev());
     }
 
     @Override
     public double sum() {
         update_fields();
-        return 0;
+        return convertFromNS(histogram.sum());
     }
 
     @Override
