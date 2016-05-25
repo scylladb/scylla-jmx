@@ -16,6 +16,7 @@ Requires:       scylla-server java-headless
 
 
 %prep
+mkdir build
 %setup -q
 
 
