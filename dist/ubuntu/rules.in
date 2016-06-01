@@ -5,7 +5,7 @@ DEST = $(CURDIR)/debian/scylla-jmx/usr/lib/scylla/jmx
 M2_REPO= $(CURDIR)/m2
 
 override_dh_auto_build:
-	mvn -Dmaven.repo.local=$(M2_REPO) install
+	mvn -B -Dmaven.repo.local=$(M2_REPO) install
 
 override_dh_auto_clean:
 	rm -rf target m2
