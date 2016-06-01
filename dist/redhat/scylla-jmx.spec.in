@@ -16,12 +16,12 @@ Requires:       scylla-server java-headless
 
 
 %prep
-mkdir build
 %setup -q
 
 
 %build
 mvn install
+mkdir build
 cp dist/common/systemd/scylla-jmx.service.in build/scylla-jmx.service
 sed -i -e "s#@@SYSCONFDIR@@#/etc/sysconfig#g" build/scylla-jmx.service
 
