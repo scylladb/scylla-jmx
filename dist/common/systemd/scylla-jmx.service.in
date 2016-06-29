@@ -1,7 +1,8 @@
 [Unit]
 Description=Scylla JMX
-Requires=scylla-server.service
+Requisite=scylla-server.service
 After=scylla-server.service
+BindsTo=scylla-server.service
 
 [Service]
 Type=simple
