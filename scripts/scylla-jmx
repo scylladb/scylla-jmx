@@ -82,6 +82,9 @@ do
       shift 1
       ;;
     *)
+      echo "Unknown parameter: $1"
+      print_help
+      exit 1
     esac
 done
 
