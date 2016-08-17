@@ -106,8 +106,12 @@ public class APIClient {
     }
 
     public Response post(String path, MultivaluedMap<String, String> queryParams) {
+        return post(path, queryParams, null);
+    }
+
+    public Response post(String path, MultivaluedMap<String, String> queryParams, Object object, String type) {
         try {
-            Response response = get(path, queryParams).post(Entity.entity(null, MediaType.TEXT_PLAIN));
+            Response response = get(path, queryParams).post(Entity.entity(object, type));
             if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
                 throw getException("Scylla API server HTTP POST to URL '" + path + "' failed", response.readEntity(String.class));
             }
@@ -117,6 +121,10 @@ public class APIClient {
         }
     }
 
+    public Response post(String path, MultivaluedMap<String, String> queryParams, Object object) {
+        return post(path, queryParams, object, MediaType.TEXT_PLAIN);
+    }
+    
     public void post(String path) {
         post(path, null);
     }
