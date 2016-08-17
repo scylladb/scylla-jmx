@@ -77,17 +77,20 @@ public class Gossiper implements GossiperMBean {
         }
     }
 
+    @Override
     public long getEndpointDowntime(String address) throws UnknownHostException {
         log(" getEndpointDowntime(String address) throws UnknownHostException");
         return c.getLongValue("gossiper/downtime/" + address);
     }
 
+    @Override
     public int getCurrentGenerationNumber(String address)
             throws UnknownHostException {
         log(" getCurrentGenerationNumber(String address) throws UnknownHostException");
         return c.getIntValue("gossiper/generation_number/" + address);
     }
 
+    @Override
     public void unsafeAssassinateEndpoint(String address)
             throws UnknownHostException {
         log(" unsafeAssassinateEndpoint(String address) throws UnknownHostException");
@@ -96,6 +99,7 @@ public class Gossiper implements GossiperMBean {
         c.post("gossiper/assassinate/" + address, queryParams);
     }
 
+    @Override
     public void assassinateEndpoint(String address) throws UnknownHostException {
         log(" assassinateEndpoint(String address) throws UnknownHostException");
         c.post("gossiper/assassinate/" + address, null);
