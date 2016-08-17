@@ -22,9 +22,14 @@
  */
 package org.apache.cassandra.db.commitlog;
 
-import java.io.*;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -63,39 +68,6 @@ public class CommitLog implements CommitLogMBean {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Get the number of completed tasks
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#completedTasks
-     */
-    @Deprecated
-    public long getCompletedTasks() {
-        log(" getCompletedTasks()");
-        return c.getLongValue("");
-    }
-
-    /**
-     * Get the number of tasks waiting to be executed
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#pendingTasks
-     */
-    @Deprecated
-    public long getPendingTasks() {
-        log(" getPendingTasks()");
-        return c.getLongValue("");
-    }
-
-    /**
-     * Get the current size used by all the commitlog segments.
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#totalCommitLogSize
-     */
-    @Deprecated
-    public long getTotalCommitlogSize() {
-        log(" getTotalCommitlogSize()");
-        return c.getLongValue("");
     }
 
     /**
@@ -170,4 +142,23 @@ public class CommitLog implements CommitLogMBean {
         return c.getStringValue("");
     }
 
+    @Override
+    public long getActiveContentSize() {
+        // scylla does not compress commit log, so this is equivalent 
+        return getActiveOnDiskSize();
+    }
+
+    @Override
+    public long getActiveOnDiskSize() {
+        return c.getLongValue("/commitlog/metrics/total_commit_log_size");
+    }
+
+    @Override
+    public Map<String, Double> getActiveSegmentCompressionRatios() {
+        HashMap<String, Double> res = new HashMap<>();
+        for (String name : getActiveSegmentNames()) {
+            res.put(name, 1.0);
+        }
+        return res;
+    }
 }
