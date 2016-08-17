@@ -101,4 +101,13 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
         return c.getStringValue("/snitch/name");
     }
 
+    @Override
+    public String getRack() {
+        return c.getStringValue("/snitch/rack", null, 10000);
+    }
+
+    @Override
+    public String getDatacenter() {
+        return c.getStringValue("/snitch/datacenter", null, 10000);
+    }
 }
