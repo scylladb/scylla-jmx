@@ -76,6 +76,7 @@ public class CompactionManager implements CompactionManagerMBean {
     }
 
     /** List of running compaction objects. */
+    @Override
     public List<Map<String, String>> getCompactions() {
         log(" getCompactions()");
         List<Map<String, String>> results = new ArrayList<Map<String, String>>();
@@ -95,12 +96,14 @@ public class CompactionManager implements CompactionManagerMBean {
     }
 
     /** List of running compaction summary strings. */
+    @Override
     public List<String> getCompactionSummary() {
         log(" getCompactionSummary()");
         return c.getListStrValue("compaction_manager/compaction_summary");
     }
 
     /** compaction history **/
+    @Override
     public TabularData getCompactionHistory() {
         log(" getCompactionHistory()");
         try {
@@ -108,46 +111,6 @@ public class CompactionManager implements CompactionManagerMBean {
         } catch (OpenDataException e) {
             return null;
         }
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#pendingTasks
-     * @return estimated number of compactions remaining to perform
-     */
-    @Deprecated
-    public int getPendingTasks() {
-        log(" getPendingTasks()");
-        return c.getIntValue("");
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#completedTasks
-     * @return number of completed compactions since server [re]start
-     */
-    @Deprecated
-    public long getCompletedTasks() {
-        log(" getCompletedTasks()");
-        return c.getLongValue("");
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#bytesCompacted
-     * @return total number of bytes compacted since server [re]start
-     */
-    @Deprecated
-    public long getTotalBytesCompacted() {
-        log(" getTotalBytesCompacted()");
-        return c.getLongValue("");
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#totalCompactionsCompleted
-     * @return total number of compactions since server [re]start
-     */
-    @Deprecated
-    public long getTotalCompactionsCompleted() {
-        log(" getTotalCompactionsCompleted()");
-        return c.getLongValue("");
     }
 
     /**
@@ -161,6 +124,7 @@ public class CompactionManager implements CompactionManagerMBean {
      *            contain keyspace and columnfamily name in path(for 2.1+) or
      *            file name itself.
      */
+    @Override
     public void forceUserDefinedCompaction(String dataFiles) {
         log(" forceUserDefinedCompaction(String dataFiles)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
@@ -175,6 +139,7 @@ public class CompactionManager implements CompactionManagerMBean {
      *            the type of compaction to stop. Can be one of: - COMPACTION -
      *            VALIDATION - CLEANUP - SCRUB - INDEX_BUILD
      */
+    @Override
     public void stopCompaction(String type) {
         log(" stopCompaction(String type)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
@@ -185,6 +150,7 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns core size of compaction thread pool
      */
+    @Override
     public int getCoreCompactorThreads() {
         log(" getCoreCompactorThreads()");
         return c.getIntValue("");
@@ -196,6 +162,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setCoreCompactorThreads(int number) {
         log(" setCoreCompactorThreads(int number)");
     }
@@ -203,6 +170,7 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns maximum size of compaction thread pool
      */
+    @Override
     public int getMaximumCompactorThreads() {
         log(" getMaximumCompactorThreads()");
         return c.getIntValue("");
@@ -214,6 +182,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setMaximumCompactorThreads(int number) {
         log(" setMaximumCompactorThreads(int number)");
     }
@@ -221,6 +190,7 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns core size of validation thread pool
      */
+    @Override
     public int getCoreValidationThreads() {
         log(" getCoreValidationThreads()");
         return c.getIntValue("");
@@ -232,6 +202,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setCoreValidationThreads(int number) {
         log(" setCoreValidationThreads(int number)");
     }
@@ -239,6 +210,7 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns size of validator thread pool
      */
+    @Override
     public int getMaximumValidatorThreads() {
         log(" getMaximumValidatorThreads()");
         return c.getIntValue("");
@@ -250,8 +222,17 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of validator threads
      */
+    @Override
     public void setMaximumValidatorThreads(int number) {
         log(" setMaximumValidatorThreads(int number)");
     }
 
+    @Override
+    public void stopCompactionById(String compactionId) {
+        // scylla does not have neither compaction ids nor the file described in:
+        // "Ids can be found in the transaction log files whose name starts with compaction_, located in the table transactions folder"
+        // (nodetool)        
+        // TODO: throw?
+        log(" stopCompactionById");
+    }
 }
