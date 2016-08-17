@@ -22,9 +22,12 @@
  */
 package org.apache.cassandra.net;
 
+import static java.util.Collections.emptyMap;
+
 import java.lang.management.ManagementFactory;
-import java.net.*;
-import java.util.*;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.json.JsonArray;
@@ -125,6 +128,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Pending tasks for Command(Mutations, Read etc) TCP Connections
      */
+    @Override
     public Map<String, Integer> getCommandPendingTasks() {
         log(" getCommandPendingTasks()");
         return c.getMapStringIntegerValue("/messaging_service/messages/pending");
@@ -133,6 +137,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Completed tasks for Command(Mutations, Read etc) TCP Connections
      */
+    @Override
     public Map<String, Long> getCommandCompletedTasks() {
         log("getCommandCompletedTasks()");
         Map<String, Long> res = c
@@ -143,6 +148,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Dropped tasks for Command(Mutations, Read etc) TCP Connections
      */
+    @Override
     public Map<String, Long> getCommandDroppedTasks() {
         log(" getCommandDroppedTasks()");
         return c.getMapStringLongValue("/messaging_service/messages/dropped");
@@ -151,6 +157,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Pending tasks for Response(GOSSIP & RESPONSE) TCP Connections
      */
+    @Override
     public Map<String, Integer> getResponsePendingTasks() {
         log(" getResponsePendingTasks()");
         return c.getMapStringIntegerValue("/messaging_service/messages/respond_pending");
@@ -159,6 +166,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Completed tasks for Response(GOSSIP & RESPONSE) TCP Connections
      */
+    @Override
     public Map<String, Long> getResponseCompletedTasks() {
         log(" getResponseCompletedTasks()");
         return c.getMapStringLongValue("/messaging_service/messages/respond_completed");
@@ -167,6 +175,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * dropped message counts for server lifetime
      */
+    @Override
     public Map<String, Integer> getDroppedMessages() {
         log(" getDroppedMessages()");
         Map<String, Integer> res = new HashMap<String, Integer>();
@@ -181,6 +190,8 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * dropped message counts since last called
      */
+    @SuppressWarnings("deprecation")
+    @Override
     public Map<String, Integer> getRecentlyDroppedMessages() {
         log(" getRecentlyDroppedMessages()");
         Map<String, Integer> map = new HashMap<String, Integer>();
@@ -192,6 +203,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Total number of timeouts happened on this node
      */
+    @Override
     public long getTotalTimeouts() {
         log(" getTotalTimeouts()");
         Map<String, Long> timeouts = getTimeoutsPerHost();
@@ -205,6 +217,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Number of timeouts per host
      */
+    @Override
     public Map<String, Long> getTimeoutsPerHost() {
         log(" getTimeoutsPerHost()");
         return c.getMapStringLongValue("/messaging_service/messages/timeout");
@@ -213,6 +226,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Number of timeouts since last check.
      */
+    @Override
     public long getRecentTotalTimouts() {
         log(" getRecentTotalTimouts()");
         long timeoutCount = getTotalTimeouts();
@@ -224,6 +238,7 @@ public final class MessagingService implements MessagingServiceMBean {
     /**
      * Number of timeouts since last check per host.
      */
+    @Override
     public Map<String, Long> getRecentTimeoutsPerHost() {
         log(" getRecentTimeoutsPerHost()");
         Map<String, Long> timeouts = getTimeoutsPerHost();
@@ -238,9 +253,63 @@ public final class MessagingService implements MessagingServiceMBean {
         return result;
     }
 
+    @Override
     public int getVersion(String address) throws UnknownHostException {
         log(" getVersion(String address) throws UnknownHostException");
         return c.getIntValue("");
     }
 
+    @Override
+    public Map<String, Integer> getLargeMessagePendingTasks() {
+        // TODO: implement for realsies
+        return getCommandPendingTasks();
+    }
+
+    @Override
+    public Map<String, Long> getLargeMessageCompletedTasks() {
+        // TODO: implement for realsies
+        return getCommandCompletedTasks();
+    }
+
+    @Override
+    public Map<String, Long> getLargeMessageDroppedTasks() {
+        // TODO: implement for realsies
+        return getCommandDroppedTasks();
+    }
+
+    @Override
+    public Map<String, Integer> getSmallMessagePendingTasks() {
+        // TODO: implement for realsies
+        return getResponsePendingTasks();
+    }
+
+    @Override
+    public Map<String, Long> getSmallMessageCompletedTasks() {
+        // TODO: implement for realsies
+        return getResponseCompletedTasks();
+    }
+
+    @Override
+    public Map<String, Long> getSmallMessageDroppedTasks() {
+        // TODO: implement for realsies
+        return emptyMap();
+    }
+
+    @Override
+    public Map<String, Integer> getGossipMessagePendingTasks() {
+        // TODO: implement for realsies
+        return emptyMap();
+    }
+
+    @Override
+    public Map<String, Long> getGossipMessageCompletedTasks() {
+        // TODO: implement for realsies
+        return emptyMap();
+    }
+
+    @Override
+    public Map<String, Long> getGossipMessageDroppedTasks() {
+        // TODO: implement for realsies
+        return emptyMap();
+    }
 }

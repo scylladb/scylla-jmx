@@ -15,7 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Copyright 2015 Cloudius Systems
+ *
+ * Modified by Cloudius Systems
+ */
+
 package org.apache.cassandra.net;
+
+
 
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -25,6 +34,51 @@ import java.util.Map;
  * Command/Response - Pending/Completed Tasks
  */
 public interface MessagingServiceMBean {
+    /**
+     * Pending tasks for large message TCP Connections
+     */
+    public Map<String, Integer> getLargeMessagePendingTasks();
+
+    /**
+     * Completed tasks for large message) TCP Connections
+     */
+    public Map<String, Long> getLargeMessageCompletedTasks();
+
+    /**
+     * Dropped tasks for large message TCP Connections
+     */
+    public Map<String, Long> getLargeMessageDroppedTasks();
+
+    /**
+     * Pending tasks for small message TCP Connections
+     */
+    public Map<String, Integer> getSmallMessagePendingTasks();
+
+    /**
+     * Completed tasks for small message TCP Connections
+     */
+    public Map<String, Long> getSmallMessageCompletedTasks();
+
+    /**
+     * Dropped tasks for small message TCP Connections
+     */
+    public Map<String, Long> getSmallMessageDroppedTasks();
+
+    /**
+     * Pending tasks for gossip message TCP Connections
+     */
+    public Map<String, Integer> getGossipMessagePendingTasks();
+
+    /**
+     * Completed tasks for gossip message TCP Connections
+     */
+    public Map<String, Long> getGossipMessageCompletedTasks();
+
+    /**
+     * Dropped tasks for gossip message TCP Connections
+     */
+    public Map<String, Long> getGossipMessageDroppedTasks();
+
     /**
      * Pending tasks for Command(Mutations, Read etc) TCP Connections
      */
@@ -79,6 +133,6 @@ public interface MessagingServiceMBean {
      * Number of timeouts since last check per host.
      */
     public Map<String, Long> getRecentTimeoutsPerHost();
-
+    
     public int getVersion(String address) throws UnknownHostException;
 }
