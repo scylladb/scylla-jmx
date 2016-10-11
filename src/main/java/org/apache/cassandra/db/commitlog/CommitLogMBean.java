@@ -17,14 +17,13 @@
  */
 package org.apache.cassandra.db.commitlog;
 
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 public interface CommitLogMBean {
     /**
-     *  Command to execute to archive a commitlog segment.  Blank to disabled.
+     * Command to execute to archive a commitlog segment. Blank to disabled.
      */
     public String getArchiveCommand();
 
@@ -66,12 +65,14 @@ public interface CommitLogMBean {
     public List<String> getActiveSegmentNames();
 
     /**
-     * @return Files which are pending for archival attempt.  Does NOT include failed archive attempts.
+     * @return Files which are pending for archival attempt. Does NOT include
+     *         failed archive attempts.
      */
     public List<String> getArchivingSegmentNames();
 
     /**
-     * @return The size of the mutations in all active commit log segments (uncompressed).
+     * @return The size of the mutations in all active commit log segments
+     *         (uncompressed).
      */
     public long getActiveContentSize();
 
@@ -81,7 +82,8 @@ public interface CommitLogMBean {
     public long getActiveOnDiskSize();
 
     /**
-     * @return A map between active log segments and the compression ratio achieved for each.
+     * @return A map between active log segments and the compression ratio
+     *         achieved for each.
      */
     public Map<String, Double> getActiveSegmentCompressionRatios();
 }

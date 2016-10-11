@@ -23,8 +23,7 @@ import java.util.Map;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
-public interface FailureDetectorMBean
-{
+public interface FailureDetectorMBean {
     public void dumpInterArrivalTimes();
 
     public void setPhiConvictThreshold(double phi);

@@ -27,8 +27,7 @@ import javax.management.openmbean.OpenDataException;
 /**
  * The MBean interface for ColumnFamilyStore
  */
-public interface ColumnFamilyStoreMBean
-{
+public interface ColumnFamilyStoreMBean {
     /**
      * @return the name of the column family
      */
@@ -40,7 +39,9 @@ public interface ColumnFamilyStoreMBean
     /**
      * force a major compaction of this column family
      *
-     * @param splitOutput true if the output of the major compaction should be split in several sstables
+     * @param splitOutput
+     *            true if the output of the major compaction should be split in
+     *            several sstables
      */
     public void forceMajorCompaction(boolean splitOutput) throws ExecutionException, InterruptedException;
 
@@ -60,7 +61,8 @@ public interface ColumnFamilyStoreMBean
     public int getMaximumCompactionThreshold();
 
     /**
-     * Sets the maximum and maximum number of SSTables in queue before compaction kicks off
+     * Sets the maximum and maximum number of SSTables in queue before
+     * compaction kicks off
      */
     public void setCompactionThresholds(int minThreshold, int maxThreshold);
 
@@ -72,33 +74,42 @@ public interface ColumnFamilyStoreMBean
     /**
      * Sets the compaction parameters locally for this node
      *
-     * Note that this will be set until an ALTER with compaction = {..} is executed or the node is restarted
+     * Note that this will be set until an ALTER with compaction = {..} is
+     * executed or the node is restarted
      *
-     * @param options compaction options with the same syntax as when doing ALTER ... WITH compaction = {..}
+     * @param options
+     *            compaction options with the same syntax as when doing ALTER
+     *            ... WITH compaction = {..}
      */
     public void setCompactionParametersJson(String options);
+
     public String getCompactionParametersJson();
 
     /**
      * Sets the compaction parameters locally for this node
      *
-     * Note that this will be set until an ALTER with compaction = {..} is executed or the node is restarted
+     * Note that this will be set until an ALTER with compaction = {..} is
+     * executed or the node is restarted
      *
-     * @param options compaction options map
+     * @param options
+     *            compaction options map
      */
     public void setCompactionParameters(Map<String, String> options);
+
     public Map<String, String> getCompactionParameters();
 
     /**
      * Get the compression parameters
      */
-    public Map<String,String> getCompressionParameters();
+    public Map<String, String> getCompressionParameters();
 
     /**
      * Set the compression parameters
-     * @param opts map of string names to values
+     * 
+     * @param opts
+     *            map of string names to values
      */
-    public void setCompressionParameters(Map<String,String> opts);
+    public void setCompressionParameters(Map<String, String> opts);
 
     /**
      * Set new crc check chance
@@ -109,66 +120,74 @@ public interface ColumnFamilyStoreMBean
 
     public long estimateKeys();
 
-
     /**
      * Returns a list of the names of the built column indexes for current store
+     * 
      * @return list of the index names
      */
     public List<String> getBuiltIndexes();
 
     /**
      * Returns a list of filenames that contain the given key on this node
+     * 
      * @param key
      * @return list of filenames containing the key
      */
     public List<String> getSSTablesForKey(String key);
 
     /**
-     * Scan through Keyspace/ColumnFamily's data directory
-     * determine which SSTables should be loaded and load them
+     * Scan through Keyspace/ColumnFamily's data directory determine which
+     * SSTables should be loaded and load them
      */
     public void loadNewSSTables();
 
     /**
-     * @return the number of SSTables in L0.  Always return 0 if Leveled compaction is not enabled.
+     * @return the number of SSTables in L0. Always return 0 if Leveled
+     *         compaction is not enabled.
      */
     public int getUnleveledSSTables();
 
     /**
-     * @return sstable count for each level. null unless leveled compaction is used.
-     *         array index corresponds to level(int[0] is for level 0, ...).
+     * @return sstable count for each level. null unless leveled compaction is
+     *         used. array index corresponds to level(int[0] is for level 0,
+     *         ...).
      */
     public int[] getSSTableCountPerLevel();
 
     /**
-     * Get the ratio of droppable tombstones to real columns (and non-droppable tombstones)
+     * Get the ratio of droppable tombstones to real columns (and non-droppable
+     * tombstones)
+     * 
      * @return ratio
      */
     public double getDroppableTombstoneRatio();
 
     /**
-     * @return the size of SSTables in "snapshots" subdirectory which aren't live anymore
+     * @return the size of SSTables in "snapshots" subdirectory which aren't
+     *         live anymore
      */
     public long trueSnapshotsSize();
 
     /**
-     * begin sampling for a specific sampler with a given capacity.  The cardinality may
-     * be larger than the capacity, but depending on the use case it may affect its accuracy
+     * begin sampling for a specific sampler with a given capacity. The
+     * cardinality may be larger than the capacity, but depending on the use
+     * case it may affect its accuracy
      */
     public void beginLocalSampling(String sampler, int capacity);
 
     /**
-     * @return top <i>count</i> items for the sampler since beginLocalSampling was called
+     * @return top <i>count</i> items for the sampler since beginLocalSampling
+     *         was called
      */
     public CompositeData finishLocalSampling(String sampler, int count) throws OpenDataException;
 
     /*
-        Is Compaction space check enabled
+     * Is Compaction space check enabled
      */
     public boolean isCompactionDiskSpaceCheckEnabled();
 
     /*
-       Enable/Disable compaction space check
+     * Enable/Disable compaction space check
      */
     public void compactionDiskSpaceCheck(boolean enable);
 }

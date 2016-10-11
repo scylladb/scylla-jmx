@@ -83,8 +83,7 @@ public interface StorageProxyMBean {
 
     public void setTruncateRpcTimeout(Long timeoutInMillis);
 
-    public void setNativeTransportMaxConcurrentConnections(
-            Long nativeTransportMaxConcurrentConnections);
+    public void setNativeTransportMaxConcurrentConnections(Long nativeTransportMaxConcurrentConnections);
 
     public Long getNativeTransportMaxConcurrentConnections();
 

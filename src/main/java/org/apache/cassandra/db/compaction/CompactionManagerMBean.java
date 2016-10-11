@@ -19,10 +19,10 @@ package org.apache.cassandra.db.compaction;
 
 import java.util.List;
 import java.util.Map;
+
 import javax.management.openmbean.TabularData;
 
-public interface CompactionManagerMBean
-{
+public interface CompactionManagerMBean {
     /** List of running compaction objects. */
     public List<Map<String, String>> getCompactions();
 
@@ -45,7 +45,7 @@ public interface CompactionManagerMBean
 
     /**
      * Stop all running compaction-like tasks having the provided {@code type}.
-     * 
+     *
      * @param type
      *            the type of compaction to stop. Can be one of: - COMPACTION -
      *            VALIDATION - CLEANUP - SCRUB - INDEX_BUILD
@@ -54,9 +54,11 @@ public interface CompactionManagerMBean
 
     /**
      * Stop an individual running compaction using the compactionId.
-     * @param compactionId Compaction ID of compaction to stop. Such IDs can be found in
-     *                     the transaction log files whose name starts with compaction_,
-     *                     located in the table transactions folder.
+     * 
+     * @param compactionId
+     *            Compaction ID of compaction to stop. Such IDs can be found in
+     *            the transaction log files whose name starts with compaction_,
+     *            located in the table transactions folder.
      */
     public void stopCompactionById(String compactionId);
 
@@ -67,7 +69,7 @@ public interface CompactionManagerMBean
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -80,7 +82,7 @@ public interface CompactionManagerMBean
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -93,7 +95,7 @@ public interface CompactionManagerMBean
 
     /**
      * Allows user to resize maximum size of the compaction thread pool.
-     * 
+     *
      * @param number
      *            New maximum of compaction threads
      */
@@ -106,7 +108,7 @@ public interface CompactionManagerMBean
 
     /**
      * Allows user to resize maximum size of the validator thread pool.
-     * 
+     *
      * @param number
      *            New maximum of validator threads
      */

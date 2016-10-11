@@ -27,63 +27,51 @@ package org.apache.cassandra.streaming.management;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.management.openmbean.*;
 
-import com.google.common.base.Throwables;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 
 import org.apache.cassandra.streaming.StreamSummary;
 
+import com.google.common.base.Throwables;
+
 /**
  */
-public class StreamSummaryCompositeData
-{
-    private static final String[] ITEM_NAMES = new String[]{"cfId",
-                                                            "files",
-                                                            "totalSize"};
-    private static final String[] ITEM_DESCS = new String[]{"ColumnFamilu ID",
-                                                            "Number of files",
-                                                            "Total bytes of the files"};
-    private static final OpenType<?>[] ITEM_TYPES = new OpenType[]{SimpleType.STRING,
-                                                                   SimpleType.INTEGER,
-                                                                   SimpleType.LONG};
+public class StreamSummaryCompositeData {
+    private static final String[] ITEM_NAMES = new String[] { "cfId", "files", "totalSize" };
+    private static final String[] ITEM_DESCS = new String[] { "ColumnFamilu ID", "Number of files",
+            "Total bytes of the files" };
+    private static final OpenType<?>[] ITEM_TYPES = new OpenType[] { SimpleType.STRING, SimpleType.INTEGER,
+            SimpleType.LONG };
 
     public static final CompositeType COMPOSITE_TYPE;
-    static  {
-        try
-        {
-            COMPOSITE_TYPE = new CompositeType(StreamSummary.class.getName(),
-                                               "StreamSummary",
-                                               ITEM_NAMES,
-                                               ITEM_DESCS,
-                                               ITEM_TYPES);
-        }
-        catch (OpenDataException e)
-        {
+    static {
+        try {
+            COMPOSITE_TYPE = new CompositeType(StreamSummary.class.getName(), "StreamSummary", ITEM_NAMES, ITEM_DESCS,
+                    ITEM_TYPES);
+        } catch (OpenDataException e) {
             throw Throwables.propagate(e);
         }
     }
 
-    public static CompositeData toCompositeData(StreamSummary streamSummary)
-    {
+    public static CompositeData toCompositeData(StreamSummary streamSummary) {
         Map<String, Object> valueMap = new HashMap<>();
         valueMap.put(ITEM_NAMES[0], streamSummary.cfId.toString());
         valueMap.put(ITEM_NAMES[1], streamSummary.files);
         valueMap.put(ITEM_NAMES[2], streamSummary.totalSize);
-        try
-        {
+        try {
             return new CompositeDataSupport(COMPOSITE_TYPE, valueMap);
-        }
-        catch (OpenDataException e)
-        {
+        } catch (OpenDataException e) {
             throw Throwables.propagate(e);
         }
     }
 
-    public static StreamSummary fromCompositeData(CompositeData cd)
-    {
+    public static StreamSummary fromCompositeData(CompositeData cd) {
         Object[] values = cd.getAll(ITEM_NAMES);
-        return new StreamSummary(UUID.fromString((String) values[0]),
-                                 (int) values[1],
-                                 (long) values[2]);
+        return new StreamSummary(UUID.fromString((String) values[0]), (int) values[1], (long) values[2]);
     }
 }

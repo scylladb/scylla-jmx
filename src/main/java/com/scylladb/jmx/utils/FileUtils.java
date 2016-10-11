@@ -24,69 +24,57 @@
 
 package com.scylladb.jmx.utils;
 
-import java.io.*;
+import java.io.File;
 import java.text.DecimalFormat;
 
-public class FileUtils
-{
+public class FileUtils {
     private static final double KB = 1024d;
-    private static final double MB = 1024*1024d;
-    private static final double GB = 1024*1024*1024d;
-    private static final double TB = 1024*1024*1024*1024d;
+    private static final double MB = 1024 * 1024d;
+    private static final double GB = 1024 * 1024 * 1024d;
+    private static final double TB = 1024 * 1024 * 1024 * 1024d;
 
     private static final DecimalFormat df = new DecimalFormat("#.##");
- 
 
-    public static String stringifyFileSize(double value)
-    {
+    public static String stringifyFileSize(double value) {
         double d;
-        if ( value >= TB )
-        {
+        if (value >= TB) {
             d = value / TB;
             String val = df.format(d);
             return val + " TB";
-        }
-        else if ( value >= GB )
-        {
+        } else if (value >= GB) {
             d = value / GB;
             String val = df.format(d);
             return val + " GB";
-        }
-        else if ( value >= MB )
-        {
+        } else if (value >= MB) {
             d = value / MB;
             String val = df.format(d);
             return val + " MB";
-        }
-        else if ( value >= KB )
-        {
+        } else if (value >= KB) {
             d = value / KB;
             String val = df.format(d);
             return val + " KB";
-        }
-        else
-        {
+        } else {
             String val = df.format(value);
             return val + " bytes";
         }
     }
 
- 
     /**
      * Get the size of a directory in bytes
-     * @param directory The directory for which we need size.
+     * 
+     * @param directory
+     *            The directory for which we need size.
      * @return The size of the directory
      */
-    public static long folderSize(File directory)
-    {
+    public static long folderSize(File directory) {
         long length = 0;
-        for (File file : directory.listFiles())
-        {
-            if (file.isFile())
+        for (File file : directory.listFiles()) {
+            if (file.isFile()) {
                 length += file.length();
-            else
+            } else {
                 length += folderSize(file);
+            }
         }
         return length;
     }
- }
+}

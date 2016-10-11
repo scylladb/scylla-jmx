@@ -36,13 +36,11 @@ import javax.management.openmbean.TabularType;
 import com.google.common.base.Throwables;
 
 public class CompactionHistoryTabularData {
-    private static final String[] ITEM_NAMES = new String[] { "id",
-            "keyspace_name", "columnfamily_name", "compacted_at", "bytes_in",
-            "bytes_out", "rows_merged" };
+    private static final String[] ITEM_NAMES = new String[] { "id", "keyspace_name", "columnfamily_name",
+            "compacted_at", "bytes_in", "bytes_out", "rows_merged" };
 
-    private static final String[] ITEM_DESCS = new String[] { "time uuid",
-            "keyspace name", "column family name", "compaction finished at",
-            "total bytes in", "total bytes out", "total rows merged" };
+    private static final String[] ITEM_DESCS = new String[] { "time uuid", "keyspace name", "column family name",
+            "compaction finished at", "total bytes in", "total bytes out", "total rows merged" };
 
     private static final String TYPE_NAME = "CompactionHistory";
 
@@ -56,22 +54,18 @@ public class CompactionHistoryTabularData {
 
     static {
         try {
-            ITEM_TYPES = new OpenType[] { SimpleType.STRING, SimpleType.STRING,
-                    SimpleType.STRING, SimpleType.LONG, SimpleType.LONG,
-                    SimpleType.LONG, SimpleType.STRING };
+            ITEM_TYPES = new OpenType[] { SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.LONG,
+                    SimpleType.LONG, SimpleType.LONG, SimpleType.STRING };
 
-            COMPOSITE_TYPE = new CompositeType(TYPE_NAME, ROW_DESC, ITEM_NAMES,
-                    ITEM_DESCS, ITEM_TYPES);
+            COMPOSITE_TYPE = new CompositeType(TYPE_NAME, ROW_DESC, ITEM_NAMES, ITEM_DESCS, ITEM_TYPES);
 
-            TABULAR_TYPE = new TabularType(TYPE_NAME, ROW_DESC, COMPOSITE_TYPE,
-                    ITEM_NAMES);
+            TABULAR_TYPE = new TabularType(TYPE_NAME, ROW_DESC, COMPOSITE_TYPE, ITEM_NAMES);
         } catch (OpenDataException e) {
             throw Throwables.propagate(e);
         }
     }
 
-    public static TabularData from(JsonArray resultSet)
-            throws OpenDataException {
+    public static TabularData from(JsonArray resultSet) throws OpenDataException {
         TabularDataSupport result = new TabularDataSupport(TABULAR_TYPE);
         for (int i = 0; i < resultSet.size(); i++) {
             JsonObject row = resultSet.getJsonObject(i);
@@ -91,15 +85,13 @@ public class CompactionHistoryTabularData {
                     if (m > 0) {
                         sb.append(',');
                     }
-                    sb.append(entry.getString("key")).append(':')
-                            .append(entry.getString("value"));
+                    sb.append(entry.getString("key")).append(':').append(entry.getString("value"));
 
                 }
                 sb.append('}');
             }
             result.put(new CompositeDataSupport(COMPOSITE_TYPE, ITEM_NAMES,
-                    new Object[] { id, ksName, cfName, compactedAt, bytesIn,
-                            bytesOut, sb.toString() }));
+                    new Object[] { id, ksName, cfName, compactedAt, bytesIn, bytesOut, sb.toString() }));
         }
         return result;
     }

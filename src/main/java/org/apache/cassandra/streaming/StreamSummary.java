@@ -36,18 +36,17 @@ import com.google.common.base.Objects;
 /**
  * Summary of streaming.
  */
-public class StreamSummary
-{
+public class StreamSummary {
     public final UUID cfId;
 
     /**
-     * Number of files to transfer. Can be 0 if nothing to transfer for some streaming request.
+     * Number of files to transfer. Can be 0 if nothing to transfer for some
+     * streaming request.
      */
     public final int files;
     public final long totalSize;
 
-    public StreamSummary(UUID cfId, int files, long totalSize)
-    {
+    public StreamSummary(UUID cfId, int files, long totalSize) {
         this.cfId = cfId;
         this.files = files;
         this.totalSize = totalSize;
@@ -58,7 +57,8 @@ public class StreamSummary
     }
 
     public static StreamSummary fromJsonObject(JsonObject obj) {
-        return new StreamSummary(obj.getString("cf_id"), obj.getInt("files"), obj.getJsonNumber("total_size").longValue());
+        return new StreamSummary(obj.getString("cf_id"), obj.getInt("files"),
+                obj.getJsonNumber("total_size").longValue());
     }
 
     public static Collection<StreamSummary> fromJsonArr(JsonArray arr) {
@@ -71,24 +71,26 @@ public class StreamSummary
         }
         return res;
     }
+
     @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         StreamSummary summary = (StreamSummary) o;
         return files == summary.files && totalSize == summary.totalSize && cfId.equals(summary.cfId);
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return Objects.hashCode(cfId, files, totalSize);
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         final StringBuilder sb = new StringBuilder("StreamSummary{");
         sb.append("path=").append(cfId);
         sb.append(", files=").append(files);

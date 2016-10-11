@@ -22,30 +22,33 @@
  * Modified by Cloudius Systems
  */
 
-
-
 package org.apache.cassandra.service;
 
 import java.util.concurrent.ExecutionException;
 
-public interface CacheServiceMBean
-{
+public interface CacheServiceMBean {
     public int getRowCacheSavePeriodInSeconds();
+
     public void setRowCacheSavePeriodInSeconds(int rcspis);
 
     public int getKeyCacheSavePeriodInSeconds();
+
     public void setKeyCacheSavePeriodInSeconds(int kcspis);
 
     public int getCounterCacheSavePeriodInSeconds();
+
     public void setCounterCacheSavePeriodInSeconds(int ccspis);
 
     public int getRowCacheKeysToSave();
+
     public void setRowCacheKeysToSave(int rckts);
 
     public int getKeyCacheKeysToSave();
+
     public void setKeyCacheKeysToSave(int kckts);
 
     public int getCounterCacheKeysToSave();
+
     public void setCounterCacheKeysToSave(int cckts);
 
     /**
@@ -69,8 +72,13 @@ public interface CacheServiceMBean
     /**
      * save row and key caches
      *
-     * @throws ExecutionException when attempting to retrieve the result of a task that aborted by throwing an exception
-     * @throws InterruptedException when a thread is waiting, sleeping, or otherwise occupied, and the thread is interrupted, either before or during the activity.
+     * @throws ExecutionException
+     *             when attempting to retrieve the result of a task that aborted
+     *             by throwing an exception
+     * @throws InterruptedException
+     *             when a thread is waiting, sleeping, or otherwise occupied,
+     *             and the thread is interrupted, either before or during the
+     *             activity.
      */
     public void saveCaches() throws ExecutionException, InterruptedException;
 }
