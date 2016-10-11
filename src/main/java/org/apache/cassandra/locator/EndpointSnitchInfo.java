@@ -17,41 +17,26 @@
  */
 package org.apache.cassandra.locator;
 
-import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.APIMBean;
 
-public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(EndpointSnitchInfo.class.getName());
+public class EndpointSnitchInfo extends APIMBean implements EndpointSnitchInfoMBean {
+    public static final String MBEAN_NAME = "org.apache.cassandra.db:type=EndpointSnitchInfo";
+    private static final Logger logger = Logger.getLogger(EndpointSnitchInfo.class.getName());
 
-    private APIClient c = new APIClient();
+    public EndpointSnitchInfo(APIClient c) {
+        super(c);
+    }
 
     public void log(String str) {
         logger.finest(str);
-    }
-
-    private static final EndpointSnitchInfo instance = new EndpointSnitchInfo();
-
-    public static EndpointSnitchInfo getInstance() {
-        return instance;
-    }
-
-    private EndpointSnitchInfo() {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(this, new ObjectName(
-                    "org.apache.cassandra.db:type=EndpointSnitchInfo"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -69,7 +54,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/rack", queryParams, 10000);
+        return client.getStringValue("/snitch/rack", queryParams, 10000);
     }
 
     /**
@@ -87,7 +72,7 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
             host = InetAddress.getLoopbackAddress().getHostAddress();
         }
         queryParams.add("host", host);
-        return c.getStringValue("/snitch/datacenter", queryParams, 10000);
+        return client.getStringValue("/snitch/datacenter", queryParams, 10000);
     }
 
     /**
@@ -98,16 +83,16 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getSnitchName() {
         log(" getSnitchName()");
-        return c.getStringValue("/snitch/name");
+        return client.getStringValue("/snitch/name");
     }
 
     @Override
     public String getRack() {
-        return c.getStringValue("/snitch/rack", null, 10000);
+        return client.getStringValue("/snitch/rack", null, 10000);
     }
 
     @Override
     public String getDatacenter() {
-        return c.getStringValue("/snitch/datacenter", null, 10000);
+        return client.getStringValue("/snitch/datacenter", null, 10000);
     }
 }
