@@ -24,22 +24,19 @@
 
 package org.apache.cassandra.service;
 
-import java.lang.management.ManagementFactory;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.CacheMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
-public class CacheService implements CacheServiceMBean {
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(CacheService.class.getName());
-    private APIClient c = new APIClient();
+public class CacheService extends MetricsMBean implements CacheServiceMBean {
+    private static final Logger logger = Logger.getLogger(CacheService.class.getName());
 
     public void log(String str) {
         logger.finest(str);
@@ -47,33 +44,15 @@ public class CacheService implements CacheServiceMBean {
 
     public static final String MBEAN_NAME = "org.apache.cassandra.db:type=Caches";
 
-    public final CacheMetrics keyCache;
-    public final CacheMetrics rowCache;
-    public final CacheMetrics counterCache;
-    public final static CacheService instance = new CacheService();
-
-    public static CacheService getInstance() {
-        return instance;
-    }
-
-    private CacheService() {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-
-        try {
-            mbs.registerMBean(this, new ObjectName(MBEAN_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        keyCache = new CacheMetrics("KeyCache", null);
-        rowCache = new CacheMetrics("RowCache", "row");
-        counterCache  = new CacheMetrics("CounterCache", null);
+    public CacheService(APIClient client) {
+        super(MBEAN_NAME, client, new CacheMetrics("KeyCache", "key"), new CacheMetrics("RowCache", "row"),
+                new CacheMetrics("CounterCache", "counter"));
     }
 
     @Override
     public int getRowCacheSavePeriodInSeconds() {
         log(" getRowCacheSavePeriodInSeconds()");
-        return c.getIntValue("cache_service/row_cache_save_period");
+        return client.getIntValue("cache_service/row_cache_save_period");
     }
 
     @Override
@@ -81,13 +60,13 @@ public class CacheService implements CacheServiceMBean {
         log(" setRowCacheSavePeriodInSeconds(int rcspis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("period", Integer.toString(rcspis));
-        c.post("cache_service/row_cache_save_period", queryParams);
+        client.post("cache_service/row_cache_save_period", queryParams);
     }
 
     @Override
     public int getKeyCacheSavePeriodInSeconds() {
         log(" getKeyCacheSavePeriodInSeconds()");
-        return c.getIntValue("cache_service/key_cache_save_period");
+        return client.getIntValue("cache_service/key_cache_save_period");
     }
 
     @Override
@@ -95,13 +74,13 @@ public class CacheService implements CacheServiceMBean {
         log(" setKeyCacheSavePeriodInSeconds(int kcspis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("period", Integer.toString(kcspis));
-        c.post("cache_service/key_cache_save_period", queryParams);
+        client.post("cache_service/key_cache_save_period", queryParams);
     }
 
     @Override
     public int getCounterCacheSavePeriodInSeconds() {
         log(" getCounterCacheSavePeriodInSeconds()");
-        return c.getIntValue("cache_service/counter_cache_save_period");
+        return client.getIntValue("cache_service/counter_cache_save_period");
     }
 
     @Override
@@ -109,13 +88,13 @@ public class CacheService implements CacheServiceMBean {
         log(" setCounterCacheSavePeriodInSeconds(int ccspis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("ccspis", Integer.toString(ccspis));
-        c.post("cache_service/counter_cache_save_period", queryParams);
+        client.post("cache_service/counter_cache_save_period", queryParams);
     }
 
     @Override
     public int getRowCacheKeysToSave() {
         log(" getRowCacheKeysToSave()");
-        return c.getIntValue("cache_service/row_cache_keys_to_save");
+        return client.getIntValue("cache_service/row_cache_keys_to_save");
     }
 
     @Override
@@ -123,13 +102,13 @@ public class CacheService implements CacheServiceMBean {
         log(" setRowCacheKeysToSave(int rckts)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("rckts", Integer.toString(rckts));
-        c.post("cache_service/row_cache_keys_to_save", queryParams);
+        client.post("cache_service/row_cache_keys_to_save", queryParams);
     }
 
     @Override
     public int getKeyCacheKeysToSave() {
         log(" getKeyCacheKeysToSave()");
-        return c.getIntValue("cache_service/key_cache_keys_to_save");
+        return client.getIntValue("cache_service/key_cache_keys_to_save");
     }
 
     @Override
@@ -137,13 +116,13 @@ public class CacheService implements CacheServiceMBean {
         log(" setKeyCacheKeysToSave(int kckts)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("kckts", Integer.toString(kckts));
-        c.post("cache_service/key_cache_keys_to_save", queryParams);
+        client.post("cache_service/key_cache_keys_to_save", queryParams);
     }
 
     @Override
     public int getCounterCacheKeysToSave() {
         log(" getCounterCacheKeysToSave()");
-        return c.getIntValue("cache_service/counter_cache_keys_to_save");
+        return client.getIntValue("cache_service/counter_cache_keys_to_save");
     }
 
     @Override
@@ -151,7 +130,7 @@ public class CacheService implements CacheServiceMBean {
         log(" setCounterCacheKeysToSave(int cckts)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cckts", Integer.toString(cckts));
-        c.post("cache_service/counter_cache_keys_to_save", queryParams);
+        client.post("cache_service/counter_cache_keys_to_save", queryParams);
     }
 
     /**
@@ -160,7 +139,7 @@ public class CacheService implements CacheServiceMBean {
     @Override
     public void invalidateKeyCache() {
         log(" invalidateKeyCache()");
-        c.post("cache_service/invalidate_key_cache");
+        client.post("cache_service/invalidate_key_cache");
     }
 
     /**
@@ -169,13 +148,13 @@ public class CacheService implements CacheServiceMBean {
     @Override
     public void invalidateRowCache() {
         log(" invalidateRowCache()");
-        c.post("cache_service/invalidate_row_cache");
+        client.post("cache_service/invalidate_row_cache");
     }
 
     @Override
     public void invalidateCounterCache() {
         log(" invalidateCounterCache()");
-        c.post("cache_service/invalidate_counter_cache");
+        client.post("cache_service/invalidate_counter_cache");
     }
 
     @Override
@@ -183,7 +162,7 @@ public class CacheService implements CacheServiceMBean {
         log(" setRowCacheCapacityInMB(long capacity)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
-        c.post("cache_service/row_cache_capacity", queryParams);
+        client.post("cache_service/row_cache_capacity", queryParams);
     }
 
     @Override
@@ -191,7 +170,7 @@ public class CacheService implements CacheServiceMBean {
         log(" setKeyCacheCapacityInMB(long capacity)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
-        c.post("cache_service/key_cache_capacity", queryParams);
+        client.post("cache_service/key_cache_capacity", queryParams);
     }
 
     @Override
@@ -199,7 +178,7 @@ public class CacheService implements CacheServiceMBean {
         log(" setCounterCacheCapacityInMB(long capacity)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("capacity", Long.toString(capacity));
-        c.post("cache_service/counter_cache_capacity_in_mb", queryParams);
+        client.post("cache_service/counter_cache_capacity_in_mb", queryParams);
     }
 
     /**
@@ -216,6 +195,6 @@ public class CacheService implements CacheServiceMBean {
     @Override
     public void saveCaches() throws ExecutionException, InterruptedException {
         log(" saveCaches() throws ExecutionException, InterruptedException");
-        c.post("cache_service/save_caches");
+        client.post("cache_service/save_caches");
     }
 }
