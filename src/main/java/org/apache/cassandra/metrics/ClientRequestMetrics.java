@@ -27,52 +27,17 @@
 
 package org.apache.cassandra.metrics;
 
-import java.util.concurrent.TimeUnit;
-
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.scylladb.jmx.metrics.DefaultNameFactory;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Meter;
+import javax.management.MalformedObjectNameException;
 
 public class ClientRequestMetrics extends LatencyMetrics {
-    @Deprecated
-    public static final Counter readTimeouts = Metrics
-            .newCounter(DefaultNameFactory.createMetricName(
-                    "ClientRequestMetrics", "ReadTimeouts", null));
-    @Deprecated
-    public static final Counter writeTimeouts = Metrics
-            .newCounter(DefaultNameFactory.createMetricName(
-                    "ClientRequestMetrics", "WriteTimeouts", null));
-    @Deprecated
-    public static final Counter readUnavailables = Metrics
-            .newCounter(DefaultNameFactory.createMetricName(
-                    "ClientRequestMetrics", "ReadUnavailables", null));
-    @Deprecated
-    public static final Counter writeUnavailables = Metrics
-            .newCounter(DefaultNameFactory.createMetricName(
-                    "ClientRequestMetrics", "WriteUnavailables", null));
-
-    public final Meter timeouts;
-    public final Meter unavailables;
-
-    public ClientRequestMetrics(String url, String scope) {
-        super(url, "ClientRequest", scope);
-
-        timeouts = APIMetrics.newMeter(url + "/timeouts_rates",
-                factory.createMetricName("Timeouts"), "timeouts",
-                TimeUnit.SECONDS);
-        unavailables = APIMetrics.newMeter(url + "/unavailables_rates",
-                factory.createMetricName("Unavailables"), "unavailables",
-                TimeUnit.SECONDS);
-
+    public ClientRequestMetrics(String scope, String url) {
+        super("ClientRequest", scope, url);
     }
 
-    public void release() {
-        super.release();
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName("Timeouts"));
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName("Unavailables"));
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        super.register(registry);
+        registry.register(() -> registry.meter(uri + "/timeouts_rates"), names("Timeouts"));
+        registry.register(() -> registry.meter(uri + "/unavailables_rates"), names("Unavailables"));
     }
 }

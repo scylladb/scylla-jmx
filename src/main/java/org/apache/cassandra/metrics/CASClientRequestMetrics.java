@@ -25,34 +25,20 @@
 
 package org.apache.cassandra.metrics;
 
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.yammer.metrics.core.*;
+import javax.management.MalformedObjectNameException;
 
+// TODO: In StorageProxy
 public class CASClientRequestMetrics extends ClientRequestMetrics {
 
-    public final Histogram contention;
-    /* Used only for write */
-    public final Counter conditionNotMet;
-
-    public final Counter unfinishedCommit;
-
-    public CASClientRequestMetrics(String url, String scope) {
-        super(url, scope);
-        contention = APIMetrics.newHistogram(url + "contention",
-                factory.createMetricName("ContentionHistogram"), true);
-        conditionNotMet = APIMetrics.newCounter(url + "condition_not_met",
-                factory.createMetricName("ConditionNotMet"));
-        unfinishedCommit = APIMetrics.newCounter(url + "unfinished_commit",
-                factory.createMetricName("UnfinishedCommit"));
+    public CASClientRequestMetrics(String scope, String url) {
+        super(scope, url);
     }
 
-    public void release() {
-        super.release();
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName("ContentionHistogram"));
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName("ConditionNotMet"));
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName("UnfinishedCommit"));
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        super.register(registry);
+        registry.register(() -> registry.histogram(uri + "/contention", true), names("ContentionHistogram"));
+        registry.register(() -> registry.counter(uri + "/condition_not_met"), names("ConditionNotMet"));
+        registry.register(() -> registry.counter(uri + "/unfinished_commit"), names("UnfinishedCommit"));
     }
 }

@@ -23,52 +23,30 @@
  */
 package org.apache.cassandra.metrics;
 
-import java.util.concurrent.TimeUnit;
-
-import com.scylladb.jmx.api.APIClient;
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.scylladb.jmx.metrics.DefaultNameFactory;
-import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.APIMeter;
+import javax.management.MalformedObjectNameException;
 
 /**
  * Metrics for compaction.
  */
-public class CompactionMetrics {
-    public static final MetricNameFactory factory = new DefaultNameFactory(
-            "Compaction");
-    private APIClient c = new APIClient();
-    /** Estimated number of compactions remaining to perform */
-    public final Gauge<Integer> pendingTasks;
-    /** Number of completed compactions since server [re]start */
-    public final Gauge<Long> completedTasks;
-    /** Total number of compactions since server [re]start */
-    public final APIMeter totalCompactionsCompleted;
-    /** Total number of bytes compacted since server [re]start */
-    public final Counter bytesCompacted;
-
+public class CompactionMetrics implements Metrics {
     public CompactionMetrics() {
+    }
 
-        pendingTasks = APIMetrics.newGauge(
-                factory.createMetricName("PendingTasks"), new Gauge<Integer>() {
-                    public Integer value() {
-                        return c.getIntValue("/compaction_manager/metrics/pending_tasks");
-                    }
-                });
-        completedTasks = APIMetrics.newGauge(
-                factory.createMetricName("CompletedTasks"), new Gauge<Long>() {
-                    public Long value() {
-                        return c.getLongValue("/compaction_manager/metrics/completed_tasks");
-                    }
-                });
-        totalCompactionsCompleted = APIMetrics.newMeter(
-                "/compaction_manager/metrics/total_compactions_completed",
-                factory.createMetricName("TotalCompactionsCompleted"),
-                "compaction completed", TimeUnit.SECONDS);
-        bytesCompacted = APIMetrics.newCounter(
-                "/compaction_manager/metrics/bytes_compacted",
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        MetricNameFactory factory = new DefaultNameFactory("Compaction");
+        /** Estimated number of compactions remaining to perform */
+        registry.register(() -> registry.gauge(Integer.class, "/compaction_manager/metrics/pending_tasks"),
+                factory.createMetricName("PendingTasks"));
+        /** Number of completed compactions since server [re]start */
+        registry.register(() -> registry.gauge("/compaction_manager/metrics/completed_tasks"),
+                factory.createMetricName("CompletedTasks"));
+        /** Total number of compactions since server [re]start */
+        registry.register(() -> registry.meter("/compaction_manager/metrics/total_compactions_completed"),
+                factory.createMetricName("TotalCompactionsCompleted"));
+        /** Total number of bytes compacted since server [re]start */
+        registry.register(() -> registry.meter("/compaction_manager/metrics/bytes_compacted"),
                 factory.createMetricName("BytesCompacted"));
     }
+
 }
