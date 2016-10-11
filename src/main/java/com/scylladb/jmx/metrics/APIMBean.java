@@ -134,6 +134,18 @@ public class APIMBean implements MBeanRegistration {
             }
         }
         if (mbeanName == null) {
+            for (Class<?> c : getClass().getInterfaces()) {
+                Field f;
+                try {
+                    f = c.getDeclaredField("OBJECT_NAME");
+                    f.setAccessible(true);
+                    mbeanName = (String) f.get(null);
+                    break;
+                } catch (Throwable t) {
+                }                
+            }
+        }
+        if (mbeanName == null) {
             String name = getClass().getName();
             int i = name.lastIndexOf('.');
             mbeanName = name.substring(0, i) + ":type=" + name.substring(i + 1);
