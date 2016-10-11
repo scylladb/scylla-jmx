@@ -17,16 +17,14 @@
  */
 package org.apache.cassandra.db.compaction;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -35,6 +33,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cassandra.metrics.CompactionMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
 /**
  * A singleton which manages a private executor of ongoing compactions.
@@ -49,30 +48,16 @@ import com.scylladb.jmx.api.APIClient;
  *
  * Modified by Cloudius Systems
  */
-public class CompactionManager implements CompactionManagerMBean {
+public class CompactionManager extends MetricsMBean implements CompactionManagerMBean {
     public static final String MBEAN_OBJECT_NAME = "org.apache.cassandra.db:type=CompactionManager";
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(CompactionManager.class.getName());
-    public static final CompactionManager instance;
-    private APIClient c = new APIClient();
-    CompactionMetrics metrics = new CompactionMetrics();
+    private static final Logger logger = Logger.getLogger(CompactionManager.class.getName());
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    static {
-        instance = new CompactionManager();
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(instance, new ObjectName(MBEAN_OBJECT_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static CompactionManager getInstance() {
-        return instance;
+    public CompactionManager(APIClient client) {
+        super(MBEAN_OBJECT_NAME, client, new CompactionMetrics());
     }
 
     /** List of running compaction objects. */
@@ -80,7 +65,7 @@ public class CompactionManager implements CompactionManagerMBean {
     public List<Map<String, String>> getCompactions() {
         log(" getCompactions()");
         List<Map<String, String>> results = new ArrayList<Map<String, String>>();
-        JsonArray compactions = c.getJsonArray("compaction_manager/compactions");
+        JsonArray compactions = client.getJsonArray("compaction_manager/compactions");
         for (int i = 0; i < compactions.size(); i++) {
             JsonObject compaction = compactions.getJsonObject(i);
             Map<String, String> result = new HashMap<String, String>();
@@ -99,7 +84,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Override
     public List<String> getCompactionSummary() {
         log(" getCompactionSummary()");
-        return c.getListStrValue("compaction_manager/compaction_summary");
+        return client.getListStrValue("compaction_manager/compaction_summary");
     }
 
     /** compaction history **/
@@ -107,7 +92,7 @@ public class CompactionManager implements CompactionManagerMBean {
     public TabularData getCompactionHistory() {
         log(" getCompactionHistory()");
         try {
-            return CompactionHistoryTabularData.from(c.getJsonArray("/compaction_manager/compaction_history"));
+            return CompactionHistoryTabularData.from(client.getJsonArray("/compaction_manager/compaction_history"));
         } catch (OpenDataException e) {
             return null;
         }
@@ -129,7 +114,7 @@ public class CompactionManager implements CompactionManagerMBean {
         log(" forceUserDefinedCompaction(String dataFiles)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dataFiles", dataFiles);
-        c.post("compaction_manager/force_user_defined_compaction", queryParams);
+        client.post("compaction_manager/force_user_defined_compaction", queryParams);
     }
 
     /**
@@ -144,7 +129,7 @@ public class CompactionManager implements CompactionManagerMBean {
         log(" stopCompaction(String type)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("type", type);
-        c.post("compaction_manager/stop_compaction", queryParams);
+        client.post("compaction_manager/stop_compaction", queryParams);
     }
 
     /**
@@ -153,7 +138,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Override
     public int getCoreCompactorThreads() {
         log(" getCoreCompactorThreads()");
-        return c.getIntValue("");
+        return client.getIntValue("");
     }
 
     /**
@@ -173,7 +158,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Override
     public int getMaximumCompactorThreads() {
         log(" getMaximumCompactorThreads()");
-        return c.getIntValue("");
+        return client.getIntValue("");
     }
 
     /**
@@ -193,7 +178,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Override
     public int getCoreValidationThreads() {
         log(" getCoreValidationThreads()");
-        return c.getIntValue("");
+        return client.getIntValue("");
     }
 
     /**
@@ -213,7 +198,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Override
     public int getMaximumValidatorThreads() {
         log(" getMaximumValidatorThreads()");
-        return c.getIntValue("");
+        return client.getIntValue("");
     }
 
     /**
@@ -229,9 +214,11 @@ public class CompactionManager implements CompactionManagerMBean {
 
     @Override
     public void stopCompactionById(String compactionId) {
-        // scylla does not have neither compaction ids nor the file described in:
-        // "Ids can be found in the transaction log files whose name starts with compaction_, located in the table transactions folder"
-        // (nodetool)        
+        // scylla does not have neither compaction ids nor the file described
+        // in:
+        // "Ids can be found in the transaction log files whose name starts with
+        // compaction_, located in the table transactions folder"
+        // (nodetool)
         // TODO: throw?
         log(" stopCompactionById");
     }
