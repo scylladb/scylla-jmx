@@ -23,13 +23,11 @@ package com.scylladb.jmx.api;
 
 import javax.json.JsonObject;
 
-import com.scylladb.jmx.utils.EstimatedHistogram;
+class CacheEntry {
+    private long time;
+    private Object value;
 
-public class CacheEntry {
-    long time;
-    Object value;
-
-    CacheEntry(Object res) {
+    public CacheEntry(Object res) {
         time = System.currentTimeMillis();
         this.value = res;
     }
@@ -40,10 +38,6 @@ public class CacheEntry {
 
     public String stringValue() {
         return (String) value;
-    }
-
-    public EstimatedHistogram getEstimatedHistogram() {
-        return (EstimatedHistogram)value;
     }
 
     public JsonObject jsonObject() {

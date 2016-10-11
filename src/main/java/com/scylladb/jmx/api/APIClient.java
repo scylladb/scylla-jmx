@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.logging.Logger;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -35,13 +37,12 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.ClientConfig;
 
-import com.scylladb.jmx.utils.EstimatedHistogram;
 import com.scylladb.jmx.utils.SnapshotDetailsTabularData;
-import com.yammer.metrics.core.HistogramValues;
 
 public class APIClient {
-    Map<String, CacheEntry> cache = new HashMap<String, CacheEntry>();
-    String getCacheKey(String key, MultivaluedMap<String, String> param, long duration) {
+    private Map<String, CacheEntry> cache = new HashMap<String, CacheEntry>();
+
+    private String getCacheKey(String key, MultivaluedMap<String, String> param, long duration) {
         if (duration <= 0) {
             return null;
         }
@@ -56,43 +57,40 @@ public class APIClient {
         return key;
     }
 
-    String getStringFromCache(String key, long duration) {
+    private String getStringFromCache(String key, long duration) {
         if (key == null) {
             return null;
         }
         CacheEntry value = cache.get(key);
-        return (value!= null && value.valid(duration))? value.stringValue() : null;
+        return (value != null && value.valid(duration)) ? value.stringValue() : null;
     }
 
-    JsonObject getJsonObjectFromCache(String key, long duration) {
+    private JsonObject getJsonObjectFromCache(String key, long duration) {
         if (key == null) {
             return null;
         }
         CacheEntry value = cache.get(key);
-        return (value!= null && value.valid(duration))? value.jsonObject() : null;
+        return (value != null && value.valid(duration)) ? value.jsonObject() : null;
     }
 
-    EstimatedHistogram getEstimatedHistogramFromCache(String key, long duration) {
-        if (key == null) {
-            return null;
-        }
-        CacheEntry value = cache.get(key);
-        return (value!= null && value.valid(duration))? value.getEstimatedHistogram() : null;
+    private JsonReaderFactory factory = Json.createReaderFactory(null);
+    private static final Logger logger = Logger.getLogger(APIClient.class.getName());
+
+    private final APIConfig config;
+
+    public APIClient(APIConfig config) {
+        this.config = config;
     }
 
-    JsonReaderFactory factory = Json.createReaderFactory(null);
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(APIClient.class.getName());
-
-    public static String getBaseUrl() {
-        return APIConfig.getBaseUrl();
+    private String getBaseUrl() {
+        return config.getBaseUrl();
     }
 
     public Invocation.Builder get(String path, MultivaluedMap<String, String> queryParams) {
-        Client client =  ClientBuilder.newClient( new ClientConfig());
+        Client client = ClientBuilder.newClient(new ClientConfig());
         WebTarget webTarget = client.target(getBaseUrl()).path(path);
         if (queryParams != null) {
-            for (Entry<String, List<String>> qp :  queryParams.entrySet()) {
+            for (Entry<String, List<String>> qp : queryParams.entrySet()) {
                 for (String e : qp.getValue()) {
                     webTarget = webTarget.queryParam(qp.getKey(), e);
                 }
@@ -112,8 +110,9 @@ public class APIClient {
     public Response post(String path, MultivaluedMap<String, String> queryParams, Object object, String type) {
         try {
             Response response = get(path, queryParams).post(Entity.entity(object, type));
-            if (response.getStatus() != Response.Status.OK.getStatusCode() ) {
-                throw getException("Scylla API server HTTP POST to URL '" + path + "' failed", response.readEntity(String.class));
+            if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                throw getException("Scylla API server HTTP POST to URL '" + path + "' failed",
+                        response.readEntity(String.class));
             }
             return response;
         } catch (ProcessingException e) {
@@ -124,7 +123,7 @@ public class APIClient {
     public Response post(String path, MultivaluedMap<String, String> queryParams, Object object) {
         return post(path, queryParams, object, MediaType.TEXT_PLAIN);
     }
-    
+
     public void post(String path) {
         post(path, null);
     }
@@ -159,8 +158,7 @@ public class APIClient {
         delete(path, null);
     }
 
-    public String getRawValue(String string,
-            MultivaluedMap<String, String> queryParams, long duration) {
+    public String getRawValue(String string, MultivaluedMap<String, String> queryParams, long duration) {
         try {
             if (string.equals("")) {
                 return "";
@@ -176,7 +174,8 @@ public class APIClient {
                 // TBD
                 // We are currently not caching errors,
                 // it should be reconsider.
-                throw getException("Scylla API server HTTP GET to URL '" + string + "' failed", response.readEntity(String.class));
+                throw getException("Scylla API server HTTP GET to URL '" + string + "' failed",
+                        response.readEntity(String.class));
             }
             res = response.readEntity(String.class);
             if (duration > 0) {
@@ -188,8 +187,7 @@ public class APIClient {
         }
     }
 
-    public String getRawValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public String getRawValue(String string, MultivaluedMap<String, String> queryParams) {
         return getRawValue(string, queryParams, 0);
     }
 
@@ -202,23 +200,19 @@ public class APIClient {
     }
 
     public String getStringValue(String string, MultivaluedMap<String, String> queryParams) {
-        return getRawValue(string,
-                queryParams).replaceAll("^\"|\"$", "");
+        return getRawValue(string, queryParams).replaceAll("^\"|\"$", "");
     }
 
     public String getStringValue(String string, MultivaluedMap<String, String> queryParams, long duration) {
-        return getRawValue(string,
-                queryParams, duration).replaceAll("^\"|\"$", "");
+        return getRawValue(string, queryParams, duration).replaceAll("^\"|\"$", "");
     }
 
     public String getStringValue(String string) {
         return getStringValue(string, null);
     }
 
-    public JsonReader getReader(String string,
-            MultivaluedMap<String, String> queryParams) {
-        return factory.createReader(new StringReader(getRawValue(string,
-                queryParams)));
+    public JsonReader getReader(String string, MultivaluedMap<String, String> queryParams) {
+        return factory.createReader(new StringReader(getRawValue(string, queryParams)));
     }
 
     public JsonReader getReader(String string) {
@@ -230,13 +224,25 @@ public class APIClient {
         return val.toArray(new String[val.size()]);
     }
 
-    public int getIntValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public int getIntValue(String string, MultivaluedMap<String, String> queryParams) {
         return Integer.parseInt(getRawValue(string, queryParams));
     }
 
     public int getIntValue(String string) {
         return getIntValue(string, null);
+    }
+
+    public static <T> BiFunction<APIClient, String, T> getReader(Class<T> type) {
+        if (type == String.class) {
+            return (c, s) -> type.cast(c.getRawValue(s));
+        } else if (type == Integer.class) {
+            return (c, s) -> type.cast(c.getIntValue(s));
+        } else if (type == Double.class) {
+            return (c, s) -> type.cast(c.getDoubleValue(s));
+        } else if (type == Long.class) {
+            return (c, s) -> type.cast(c.getLongValue(s));
+        }
+        throw new IllegalArgumentException(type.getName());
     }
 
     public boolean getBooleanValue(String string) {
@@ -247,8 +253,7 @@ public class APIClient {
         return Double.parseDouble(getRawValue(string));
     }
 
-    public List<String> getListStrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public List<String> getListStrValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
         List<String> res = new ArrayList<String>(arr.size());
@@ -303,8 +308,7 @@ public class APIClient {
         return join(arr, ",");
     }
 
-    public static String mapToString(Map<String, String> mp, String pairJoin,
-            String joiner) {
+    public static String mapToString(Map<String, String> mp, String pairJoin, String joiner) {
         String res = "";
         if (mp != null) {
             for (String name : mp.keySet()) {
@@ -321,19 +325,15 @@ public class APIClient {
         return mapToString(mp, "=", ",");
     }
 
-    public static boolean set_query_param(
-            MultivaluedMap<String, String> queryParams, String key, String value) {
-        if (queryParams != null && key != null && value != null
-                && !value.equals("")) {
+    public static boolean set_query_param(MultivaluedMap<String, String> queryParams, String key, String value) {
+        if (queryParams != null && key != null && value != null && !value.equals("")) {
             queryParams.add(key, value);
             return true;
         }
         return false;
     }
 
-    public static boolean set_bool_query_param(
-            MultivaluedMap<String, String> queryParams, String key,
-            boolean value) {
+    public static boolean set_bool_query_param(MultivaluedMap<String, String> queryParams, String key, boolean value) {
         if (queryParams != null && key != null && value) {
             queryParams.add(key, "true");
             return true;
@@ -352,8 +352,7 @@ public class APIClient {
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
             if (obj.containsKey("key") && obj.containsKey("value")) {
-                map.put(obj.getString("key"),
-                        listStrFromJArr(obj.getJsonArray("value")));
+                map.put(obj.getString("key"), listStrFromJArr(obj.getJsonArray("value")));
             }
         }
         reader.close();
@@ -375,8 +374,7 @@ public class APIClient {
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
             if (obj.containsKey("key") && obj.containsKey("value")) {
-                map.put(listStrFromJArr(obj.getJsonArray("key")),
-                        listStrFromJArr(obj.getJsonArray("value")));
+                map.put(listStrFromJArr(obj.getJsonArray("key")), listStrFromJArr(obj.getJsonArray("value")));
             }
         }
         reader.close();
@@ -387,8 +385,7 @@ public class APIClient {
         return getMapListStrValue(string, null);
     }
 
-    public Set<String> getSetStringValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Set<String> getSetStringValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
         Set<String> res = new HashSet<String>();
@@ -403,8 +400,7 @@ public class APIClient {
         return getSetStringValue(string, null);
     }
 
-    public Map<String, String> getMapStrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, String> getMapStrValue(String string, MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -425,8 +421,7 @@ public class APIClient {
         return getMapStrValue(string, null);
     }
 
-    public  Map<String, String> getReverseMapStrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, String> getReverseMapStrValue(String string, MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -443,12 +438,11 @@ public class APIClient {
         return map;
     }
 
-    public  Map<String, String> getReverseMapStrValue(String string) {
+    public Map<String, String> getReverseMapStrValue(String string) {
         return getReverseMapStrValue(string, null);
     }
 
-    public List<InetAddress> getListInetAddressValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public List<InetAddress> getListInetAddressValue(String string, MultivaluedMap<String, String> queryParams) {
         List<String> vals = getListStrValue(string, queryParams);
         List<InetAddress> res = new ArrayList<InetAddress>();
         for (String val : vals) {
@@ -472,22 +466,20 @@ public class APIClient {
     }
 
     private TabularDataSupport getSnapshotData(String key, JsonArray arr) {
-        TabularDataSupport data = new TabularDataSupport(
-                SnapshotDetailsTabularData.TABULAR_TYPE);
+        TabularDataSupport data = new TabularDataSupport(SnapshotDetailsTabularData.TABULAR_TYPE);
 
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
             if (obj.containsKey("ks") && obj.containsKey("cf")) {
-                SnapshotDetailsTabularData.from(key, obj.getString("ks"),
-                        obj.getString("cf"), obj.getInt("total"),
+                SnapshotDetailsTabularData.from(key, obj.getString("ks"), obj.getString("cf"), obj.getInt("total"),
                         obj.getInt("live"), data);
             }
         }
         return data;
     }
 
-    public Map<String, TabularData> getMapStringSnapshotTabularDataValue(
-            String string, MultivaluedMap<String, String> queryParams) {
+    public Map<String, TabularData> getMapStringSnapshotTabularDataValue(String string,
+            MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -521,8 +513,7 @@ public class APIClient {
         for (int i = 0; i < arr.size(); i++) {
             try {
                 obj = arr.getJsonObject(i);
-                res.put(InetAddress.getByName(obj.getString("key")),
-                        Float.parseFloat(obj.getString("value")));
+                res.put(InetAddress.getByName(obj.getString("key")), Float.parseFloat(obj.getString("value")));
             } catch (UnknownHostException e) {
                 logger.warning("Bad formatted address " + obj.getString("key"));
             }
@@ -534,8 +525,7 @@ public class APIClient {
         return getMapInetAddressFloatValue(string, null);
     }
 
-    public Map<String, Long> getMapStringLongValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, Long> getMapStringLongValue(String string, MultivaluedMap<String, String> queryParams) {
         Map<String, Long> res = new HashMap<String, Long>();
 
         JsonReader reader = getReader(string, queryParams);
@@ -553,8 +543,7 @@ public class APIClient {
         return getMapStringLongValue(string, null);
     }
 
-    public long[] getLongArrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public long[] getLongArrValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
         long[] res = new long[arr.size()];
@@ -569,8 +558,7 @@ public class APIClient {
         return getLongArrValue(string, null);
     }
 
-    public Map<String, Integer> getMapStringIntegerValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, Integer> getMapStringIntegerValue(String string, MultivaluedMap<String, String> queryParams) {
         Map<String, Integer> res = new HashMap<String, Integer>();
 
         JsonReader reader = getReader(string, queryParams);
@@ -588,8 +576,7 @@ public class APIClient {
         return getMapStringIntegerValue(string, null);
     }
 
-    public int[] getIntArrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public int[] getIntArrValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
         int[] res = new int[arr.size()];
@@ -604,8 +591,7 @@ public class APIClient {
         return getIntArrValue(string, null);
     }
 
-    public Map<String, Long> getListMapStringLongValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, Long> getListMapStringLongValue(String string, MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -638,8 +624,7 @@ public class APIClient {
         return getListMapStringLongValue(string, null);
     }
 
-    public JsonArray getJsonArray(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public JsonArray getJsonArray(String string, MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -653,8 +638,7 @@ public class APIClient {
         return getJsonArray(string, null);
     }
 
-    public List<Map<String, String>> getListMapStrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public List<Map<String, String>> getListMapStrValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonArray arr = getJsonArray(string, queryParams);
         List<Map<String, String>> res = new ArrayList<Map<String, String>>();
         for (int i = 0; i < arr.size(); i++) {
@@ -672,8 +656,7 @@ public class APIClient {
         return null;
     }
 
-    public JsonObject getJsonObj(String string,
-            MultivaluedMap<String, String> queryParams, long duration) {
+    public JsonObject getJsonObj(String string, MultivaluedMap<String, String> queryParams, long duration) {
         if (string.equals("")) {
             return null;
         }
@@ -690,61 +673,19 @@ public class APIClient {
         }
         return res;
     }
-    public JsonObject getJsonObj(String string,
-            MultivaluedMap<String, String> queryParams) {
+
+    public JsonObject getJsonObj(String string, MultivaluedMap<String, String> queryParams) {
         return getJsonObj(string, queryParams, 0);
     }
 
-    public static HistogramValues json2histogram(JsonObject obj) {
-        HistogramValues res = new HistogramValues();
-        res.count = obj.getJsonNumber("count").longValue();
-        res.max = obj.getJsonNumber("max").longValue();
-        res.min = obj.getJsonNumber("min").longValue();
-        res.sum = obj.getJsonNumber("sum").longValue();
-        res.variance = obj.getJsonNumber("variance").doubleValue();
-        res.mean = obj.getJsonNumber("mean").doubleValue();
-        JsonArray arr = obj.getJsonArray("sample");
-        if (arr != null) {
-            res.sample = new long[arr.size()];
-            for (int i = 0; i < arr.size(); i++) {
-                res.sample[i] = arr.getJsonNumber(i).longValue();
-            }
-        }
-        return res;
-    }
-
-    public HistogramValues getHistogramValue(String url,
-            MultivaluedMap<String, String> queryParams) {
-        return json2histogram(getJsonObj(url, queryParams));
-    }
-
-    public HistogramValues getHistogramValue(String url) {
-        return getHistogramValue(url, null);
-    }
-
-    public EstimatedHistogram getEstimatedHistogram(String string,
-            MultivaluedMap<String, String> queryParams, long duration) {
-        String key = getCacheKey(string, queryParams, duration);
-        EstimatedHistogram res = getEstimatedHistogramFromCache(key, duration);
-        if (res != null) {
-            return res;
-        }
-        res = new EstimatedHistogram(getEstimatedHistogramAsLongArrValue(string, queryParams));
-        if (duration > 0) {
-            cache.put(key, new CacheEntry(res));
-        }
-        return res;
-
-    }
-    public long[] getEstimatedHistogramAsLongArrValue(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public long[] getEstimatedHistogramAsLongArrValue(String string, MultivaluedMap<String, String> queryParams) {
         JsonObject obj = getJsonObj(string, queryParams);
         JsonArray arr = obj.getJsonArray("buckets");
         if (arr == null) {
             return new long[0];
         }
         long res[] = new long[arr.size()];
-        for (int i = 0; i< arr.size(); i++) {
+        for (int i = 0; i < arr.size(); i++) {
             res[i] = arr.getJsonNumber(i).longValue();
         }
         return res;
@@ -754,8 +695,7 @@ public class APIClient {
         return getEstimatedHistogramAsLongArrValue(string, null);
     }
 
-    public Map<String, Double> getMapStringDouble(String string,
-            MultivaluedMap<String, String> queryParams) {
+    public Map<String, Double> getMapStringDouble(String string, MultivaluedMap<String, String> queryParams) {
         if (string.equals("")) {
             return null;
         }
@@ -783,6 +723,7 @@ public class APIClient {
         reader.close();
         return map;
     }
+
     public Map<String, Double> getMapStringDouble(String string) {
         return getMapStringDouble(string, null);
     }

@@ -30,23 +30,22 @@ import org.yaml.snakeyaml.Yaml;
  */
 
 public class APIConfig {
-    static String address = "localhost";
-    static String port = "10000";
+    private String address = "localhost";
+    private String port = "10000";
 
-    public static String getAddress() {
+    public String getAddress() {
         return address;
     }
 
-    public static String getPort() {
+    public String getPort() {
         return port;
     }
 
-    public static String getBaseUrl() {
-        return "http://" + address + ":"
-                + port;
+    public String getBaseUrl() {
+        return "http://" + address + ":" + port;
     }
 
-    public static void readFile(String name) {
+    private void readFile(String name) {
         System.out.println("Using config file: " + name);
         InputStream input;
         try {
@@ -61,7 +60,7 @@ public class APIConfig {
                 address = (String) map.get("api_address");
             }
             if (map.containsKey("api_port")) {
-                port = (String) map.get("api_port").toString();
+                port = map.get("api_port").toString();
             }
         } catch (FileNotFoundException e) {
             System.err.println("fail reading from config file: " + name);
@@ -74,7 +73,7 @@ public class APIConfig {
         return varTmpDir.exists();
     }
 
-    public static boolean loadIfExists(String path, String name) {
+    private boolean loadIfExists(String path, String name) {
         if (path == null) {
             return false;
         }
@@ -84,24 +83,21 @@ public class APIConfig {
         readFile(path + name);
         return true;
     }
+
     /**
-     * setConfig load the JMX proxy configuration
-     * The configuration hierarchy is as follow:
-     * Command line argument takes precedence over everything
-     * Then configuration file in the command line (command line
-     * argument can replace specific values in it.
-     * Then SCYLLA_CONF/scylla.yaml
-     * Then SCYLLA_HOME/conf/scylla.yaml
-     * Then conf/scylla.yaml
-     * Then the default values
-     * With file configuration, to make it clearer what is been used, only
-     * one file will be chosen with the highest precedence
+     * setConfig load the JMX proxy configuration The configuration hierarchy is
+     * as follow: Command line argument takes precedence over everything Then
+     * configuration file in the command line (command line argument can replace
+     * specific values in it. Then SCYLLA_CONF/scylla.yaml Then
+     * SCYLLA_HOME/conf/scylla.yaml Then conf/scylla.yaml Then the default
+     * values With file configuration, to make it clearer what is been used,
+     * only one file will be chosen with the highest precedence
      */
-    public static void setConfig() {
-        if (!System.getProperty("apiconfig","").equals("")) {
+    public APIConfig() {
+        if (!System.getProperty("apiconfig", "").equals("")) {
             readFile(System.getProperty("apiconfig"));
-        } else if (!loadIfExists(System.getenv("SCYLLA_CONF"), "/scylla.yaml") &&
-            !loadIfExists(System.getenv("SCYLLA_HOME"), "/conf/scylla.yaml")) {
+        } else if (!loadIfExists(System.getenv("SCYLLA_CONF"), "/scylla.yaml")
+                && !loadIfExists(System.getenv("SCYLLA_HOME"), "/conf/scylla.yaml")) {
             loadIfExists("", "conf/scylla.yaml");
         }
 
