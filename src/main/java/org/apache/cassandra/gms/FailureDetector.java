@@ -24,7 +24,6 @@
 
 package org.apache.cassandra.gms;
 
-import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +31,6 @@ import java.util.Map;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
@@ -45,32 +42,19 @@ import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.APIMBean;
 
-public class FailureDetector implements FailureDetectorMBean {
+public class FailureDetector extends APIMBean implements FailureDetectorMBean {
     public static final String MBEAN_NAME = "org.apache.cassandra.net:type=FailureDetector";
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(FailureDetector.class.getName());
 
-    private APIClient c = new APIClient();
+    public FailureDetector(APIClient c) {
+        super(c);
+    }
 
     public void log(String str) {
         logger.finest(str);
-    }
-
-    private static final FailureDetector instance = new FailureDetector();
-
-    public static FailureDetector getInstance() {
-        return instance;
-    }
-
-    private FailureDetector() {
-        // Register this instance with JMX
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            mbs.registerMBean(this, new ObjectName(MBEAN_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -86,7 +70,7 @@ public class FailureDetector implements FailureDetectorMBean {
     @Override
     public double getPhiConvictThreshold() {
         log(" getPhiConvictThreshold()");
-        return c.getDoubleValue("/failure_detector/phi");
+        return client.getDoubleValue("/failure_detector/phi");
     }
 
     @Override
@@ -94,29 +78,27 @@ public class FailureDetector implements FailureDetectorMBean {
         log(" getAllEndpointStates()");
 
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, EndpointState> entry : getEndpointStateMap().entrySet())
-        {
+        for (Map.Entry<String, EndpointState> entry : getEndpointStateMap().entrySet()) {
             sb.append('/').append(entry.getKey()).append("\n");
             appendEndpointState(sb, entry.getValue());
         }
         return sb.toString();
     }
 
-    private void appendEndpointState(StringBuilder sb, EndpointState endpointState)
-    {
+    private void appendEndpointState(StringBuilder sb, EndpointState endpointState) {
         sb.append("  generation:").append(endpointState.getHeartBeatState().getGeneration()).append("\n");
         sb.append("  heartbeat:").append(endpointState.getHeartBeatState().getHeartBeatVersion()).append("\n");
-        for (Map.Entry<ApplicationState, String> state : endpointState.applicationState.entrySet())
-        {
-            if (state.getKey() == ApplicationState.TOKENS)
+        for (Map.Entry<ApplicationState, String> state : endpointState.applicationState.entrySet()) {
+            if (state.getKey() == ApplicationState.TOKENS) {
                 continue;
+            }
             sb.append("  ").append(state.getKey()).append(":").append(state.getValue()).append("\n");
         }
     }
 
     public Map<String, EndpointState> getEndpointStateMap() {
         Map<String, EndpointState> res = new HashMap<String, EndpointState>();
-        JsonArray arr = c.getJsonArray("/failure_detector/endpoints");
+        JsonArray arr = client.getJsonArray("/failure_detector/endpoints");
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
             EndpointState ep = new EndpointState(new HeartBeatState(obj.getInt("generation"), obj.getInt("version")));
@@ -135,31 +117,34 @@ public class FailureDetector implements FailureDetectorMBean {
     @Override
     public String getEndpointState(String address) throws UnknownHostException {
         log(" getEndpointState(String address) throws UnknownHostException");
-        return c.getStringValue("/failure_detector/endpoints/states/" +  address);
+        return client.getStringValue("/failure_detector/endpoints/states/" + address);
     }
 
     @Override
     public Map<String, String> getSimpleStates() {
         log(" getSimpleStates()");
-        return c.getMapStrValue("/failure_detector/simple_states");
+        return client.getMapStrValue("/failure_detector/simple_states");
     }
 
     @Override
     public int getDownEndpointCount() {
         log(" getDownEndpointCount()");
-        return c.getIntValue("/failure_detector/count/endpoint/down");
+        return client.getIntValue("/failure_detector/count/endpoint/down");
     }
 
     @Override
     public int getUpEndpointCount() {
         log(" getUpEndpointCount()");
-        return c.getIntValue("/failure_detector/count/endpoint/up");
+        return client.getIntValue("/failure_detector/count/endpoint/up");
     }
 
     // From origin:
-    // this is useless except to provide backwards compatibility in phi_convict_threshold,
-    // because everyone seems pretty accustomed to the default of 8, and users who have
-    // already tuned their phi_convict_threshold for their own environments won't need to
+    // this is useless except to provide backwards compatibility in
+    // phi_convict_threshold,
+    // because everyone seems pretty accustomed to the default of 8, and users
+    // who have
+    // already tuned their phi_convict_threshold for their own environments
+    // won't need to
     // change.
     private final double PHI_FACTOR = 1.0 / Math.log(10.0); // 0.434...
 
@@ -170,7 +155,7 @@ public class FailureDetector implements FailureDetectorMBean {
                 new OpenType[] { SimpleType.STRING, SimpleType.DOUBLE });
         final TabularDataSupport results = new TabularDataSupport(
                 new TabularType("PhiList", "PhiList", ct, new String[] { "Endpoint" }));
-        final JsonArray arr = c.getJsonArray("/failure_detector/endpoint_phi_values");
+        final JsonArray arr = client.getJsonArray("/failure_detector/endpoint_phi_values");
 
         for (JsonValue v : arr) {
             JsonObject o = (JsonObject) v;
@@ -187,5 +172,5 @@ public class FailureDetector implements FailureDetectorMBean {
         }
 
         return results;
-    }    
+    }
 }
