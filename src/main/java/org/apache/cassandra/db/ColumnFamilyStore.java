@@ -24,75 +24,61 @@
 package org.apache.cassandra.db;
 
 import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
 import static javax.json.Json.createObjectBuilder;
 import static javax.json.Json.createReader;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.io.StringReader;
-import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.cassandra.metrics.ColumnFamilyMetrics;
+import org.apache.cassandra.metrics.TableMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
-public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(ColumnFamilyStore.class.getName());
-    private APIClient c = new APIClient();
+public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStoreMBean {
+    private static final Logger logger = Logger.getLogger(ColumnFamilyStore.class.getName());
     @SuppressWarnings("unused")
-    private String type;
-    private String keyspace;
-    private String name;
-    private String mbeanName;
-    private static APIClient s_c = new APIClient();
-    static final int INTERVAL = 1000; // update every 1second
-    public final ColumnFamilyMetrics metric;
+    private final String type;
+    private final String keyspace;
+    private final String name;
 
-    private static Map<String, ColumnFamilyStore> cf = new HashMap<String, ColumnFamilyStore>();
-    private static Timer timer = new Timer("Column Family");
+    public static final Set<String> TYPE_NAMES = new HashSet<>(asList("ColumnFamilies", "IndexTables", "Tables"));
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    public static void register_mbeans() {
-        TimerTask taskToExecute = new CheckRegistration();
-        timer.schedule(taskToExecute, 100, INTERVAL);
-    }
-
-    public ColumnFamilyStore(String type, String keyspace, String name) {
+    public ColumnFamilyStore(APIClient client, String type, String keyspace, String name) {
+        super(client,
+                new TableMetrics(keyspace, name, false /* hardcoded for now */));
         this.type = type;
         this.keyspace = keyspace;
         this.name = name;
-        mbeanName = getName(type, keyspace, name);
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName nameObj = new ObjectName(mbeanName);
-            mbs.registerMBean(this, nameObj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        metric = new ColumnFamilyMetrics(this);
+    }
+
+    public ColumnFamilyStore(APIClient client, ObjectName name) {
+        this(client, name.getKeyProperty("type"), name.getKeyProperty("keyspace"), name.getKeyProperty("columnfamily"));
     }
 
     /** true if this CFS contains secondary index data */
@@ -112,59 +98,19 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         return keyspace + ":" + name;
     }
 
-    private static String getName(String type, String keyspace, String name) {
-        return "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace
-                + ",columnfamily=" + name;
+    private static ObjectName getName(String type, String keyspace, String name) throws MalformedObjectNameException {
+        return new ObjectName(
+                "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + name);
     }
 
-    public static boolean checkRegistration() {
-        try {
-            JsonArray mbeans = s_c.getJsonArray("/column_family/");
-            Set<String> all_cf = new HashSet<String>();
-            for (int i = 0; i < mbeans.size(); i++) {
-                JsonObject mbean = mbeans.getJsonObject(i);
-                String name = getName(mbean.getString("type"),
-                        mbean.getString("ks"), mbean.getString("cf"));
-                if (!cf.containsKey(name)) {
-                    ColumnFamilyStore cfs = new ColumnFamilyStore(
-                            mbean.getString("type"), mbean.getString("ks"),
-                            mbean.getString("cf"));
-                    cf.put(name, cfs);
-                }
-                all_cf.add(name);
-            }
-            // removing deleted column family
-            for (String n : cf.keySet()) {
-                if (!all_cf.contains(n)) {
-                    cf.remove(n);
-                }
-            }
-        } catch (IllegalStateException e) {
-            return false;
+    public static boolean checkRegistration(APIClient client, MBeanServer server) throws MalformedObjectNameException {
+        JsonArray mbeans = client.getJsonArray("/column_family/");
+        Set<ObjectName> all = new HashSet<ObjectName>();
+        for (int i = 0; i < mbeans.size(); i++) {
+            JsonObject mbean = mbeans.getJsonObject(i);
+            all.add(getName(mbean.getString("type"), mbean.getString("ks"), mbean.getString("cf")));
         }
-        return true;
-    }
-
-    private static final class CheckRegistration extends TimerTask {
-        private int missed_response = 0;
-        // After MAX_RETRY retry we assume the API is not available
-        // and the jmx will shutdown
-        private static final int MAX_RETRY = 30;
-        @Override
-        public void run() {
-            try {
-                if (checkRegistration()) {
-                    missed_response = 0;
-                } else {
-                    if (missed_response++ > MAX_RETRY) {
-                        System.err.println("API is not available, JMX is shuting down");
-                        System.exit(-1);
-                    }
-                }
-            } catch (Exception e) {
-                // ignoring exceptions, will retry on the next interval
-            }
-        }
+        return checkRegistration(server, all, n -> TYPE_NAMES.contains(n.getKeyProperty("type")), n -> new ColumnFamilyStore(client, n));
     }
 
     /**
@@ -177,315 +123,11 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     }
 
     /**
-     * Returns the total amount of data stored in the memtable, including column
-     * related overhead.
-     *
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#memtableOnHeapSize
-     * @return The size in bytes.
-     * @deprecated
-     */
-    @Deprecated
-    public long getMemtableDataSize() {
-        log(" getMemtableDataSize()");
-        return c.getLongValue("/column_family/metrics/memtable_on_heap_size/" + getCFName());
-    }
-
-    /**
-     * Returns the total number of columns present in the memtable.
-     *
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#memtableColumnsCount
-     * @return The number of columns.
-     */
-    @Deprecated
-    public long getMemtableColumnsCount() {
-        log(" getMemtableColumnsCount()");
-        return metric.memtableColumnsCount.value();
-    }
-
-    /**
-     * Returns the number of times that a flush has resulted in the memtable
-     * being switched out.
-     *
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#memtableSwitchCount
-     * @return the number of memtable switches
-     */
-    @Deprecated
-    public int getMemtableSwitchCount() {
-        log(" getMemtableSwitchCount()");
-        return c.getIntValue("/column_family/metrics/memtable_switch_count/"  + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#recentSSTablesPerRead
-     * @return a histogram of the number of sstable data files accessed per
-     *         read: reading this property resets it
-     */
-    @Deprecated
-    public long[] getRecentSSTablesPerReadHistogram() {
-        log(" getRecentSSTablesPerReadHistogram()");
-        return metric.getRecentSSTablesPerRead();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#sstablesPerReadHistogram
-     * @return a histogram of the number of sstable data files accessed per read
-     */
-    @Deprecated
-    public long[] getSSTablesPerReadHistogram() {
-        log(" getSSTablesPerReadHistogram()");
-        return metric.sstablesPerRead.getBuckets(false);
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#readLatency
-     * @return the number of read operations on this column family
-     */
-    @Deprecated
-    public long getReadCount() {
-        log(" getReadCount()");
-        return c.getIntValue("/column_family/metrics/read/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#readLatency
-     * @return total read latency (divide by getReadCount() for average)
-     */
-    @Deprecated
-    public long getTotalReadLatencyMicros() {
-        log(" getTotalReadLatencyMicros()");
-        return c.getLongValue("/column_family/metrics/read_latency/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#readLatency
-     * @return an array representing the latency histogram
-     */
-    @Deprecated
-    public long[] getLifetimeReadLatencyHistogramMicros() {
-        log(" getLifetimeReadLatencyHistogramMicros()");
-        return metric.readLatency.totalLatencyHistogram.getBuckets(false);
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#readLatency
-     * @return an array representing the latency histogram
-     */
-    @Deprecated
-    public long[] getRecentReadLatencyHistogramMicros() {
-        log(" getRecentReadLatencyHistogramMicros()");
-        return metric.readLatency.getRecentLatencyHistogram();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#readLatency
-     * @return average latency per read operation since the last call
-     */
-    @Deprecated
-    public double getRecentReadLatencyMicros() {
-        log(" getRecentReadLatencyMicros()");
-        return metric.readLatency.getRecentLatency();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#writeLatency
-     * @return the number of write operations on this column family
-     */
-    @Deprecated
-    public long getWriteCount() {
-        log(" getWriteCount()");
-        return c.getLongValue("/column_family/metrics/write/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#writeLatency
-     * @return total write latency (divide by getReadCount() for average)
-     */
-    @Deprecated
-    public long getTotalWriteLatencyMicros() {
-        log(" getTotalWriteLatencyMicros()");
-        return c.getLongValue("/column_family/metrics/write_latency/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#writeLatency
-     * @return an array representing the latency histogram
-     */
-    @Deprecated
-    public long[] getLifetimeWriteLatencyHistogramMicros() {
-        log(" getLifetimeWriteLatencyHistogramMicros()");
-        return metric.writeLatency.totalLatencyHistogram.getBuckets(false);
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#writeLatency
-     * @return an array representing the latency histogram
-     */
-    @Deprecated
-    public long[] getRecentWriteLatencyHistogramMicros() {
-        log(" getRecentWriteLatencyHistogramMicros()");
-        return metric.writeLatency.getRecentLatencyHistogram();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#writeLatency
-     * @return average latency per write operation since the last call
-     */
-    @Deprecated
-    public double getRecentWriteLatencyMicros() {
-        log(" getRecentWriteLatencyMicros()");
-        return metric.writeLatency.getRecentLatency();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#pendingFlushes
-     * @return the estimated number of tasks pending for this column family
-     */
-    @Deprecated
-    public int getPendingTasks() {
-        log(" getPendingTasks()");
-        return c.getIntValue("/column_family/metrics/pending_flushes/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#liveSSTableCount
-     * @return the number of SSTables on disk for this CF
-     */
-    @Deprecated
-    public int getLiveSSTableCount() {
-        log(" getLiveSSTableCount()");
-        return c.getIntValue("/column_family/metrics/live_ss_table_count/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#liveDiskSpaceUsed
-     * @return disk space used by SSTables belonging to this CF
-     */
-    @Deprecated
-    public long getLiveDiskSpaceUsed() {
-        log(" getLiveDiskSpaceUsed()");
-        return c.getLongValue("/column_family/metrics/live_disk_space_used/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#totalDiskSpaceUsed
-     * @return total disk space used by SSTables belonging to this CF, including
-     *         obsolete ones waiting to be GC'd
-     */
-    @Deprecated
-    public long getTotalDiskSpaceUsed() {
-        log(" getTotalDiskSpaceUsed()");
-        return c.getLongValue("/column_family/metrics/total_disk_space_used/" + getCFName());
-    }
-
-    /**
      * force a major compaction of this column family
      */
-    public void forceMajorCompaction()
-            throws ExecutionException, InterruptedException {
+    public void forceMajorCompaction() throws ExecutionException, InterruptedException {
         log(" forceMajorCompaction() throws ExecutionException, InterruptedException");
-        c.post("column_family/major_compaction/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#minRowSize
-     * @return the size of the smallest compacted row
-     */
-    @Deprecated
-    public long getMinRowSize() {
-        log(" getMinRowSize()");
-        return c.getLongValue("/column_family/metrics/min_row_size/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#maxRowSize
-     * @return the size of the largest compacted row
-     */
-    @Deprecated
-    public long getMaxRowSize() {
-        log(" getMaxRowSize()");
-        return c.getLongValue("/column_family/metrics/max_row_size/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#meanRowSize
-     * @return the average row size across all the sstables
-     */
-    @Deprecated
-    public long getMeanRowSize() {
-        log(" getMeanRowSize()");
-        return c.getLongValue("/column_family/metrics/mean_row_size/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#bloomFilterFalsePositives
-     */
-    @Deprecated
-    public long getBloomFilterFalsePositives() {
-        log(" getBloomFilterFalsePositives()");
-        return c.getLongValue("/column_family/metrics/bloom_filter_false_positives/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#recentBloomFilterFalsePositives
-     */
-    @Deprecated
-    public long getRecentBloomFilterFalsePositives() {
-        log(" getRecentBloomFilterFalsePositives()");
-        return c.getLongValue("/column_family/metrics/recent_bloom_filter_false_positives/" +getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#bloomFilterFalseRatio
-     */
-    @Deprecated
-    public double getBloomFilterFalseRatio() {
-        log(" getBloomFilterFalseRatio()");
-        return c.getDoubleValue("/column_family/metrics/bloom_filter_false_ratio/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#recentBloomFilterFalseRatio
-     */
-    @Deprecated
-    public double getRecentBloomFilterFalseRatio() {
-        log(" getRecentBloomFilterFalseRatio()");
-        return c.getDoubleValue("/column_family/metrics/recent_bloom_filter_false_ratio/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#bloomFilterDiskSpaceUsed
-     */
-    @Deprecated
-    public long getBloomFilterDiskSpaceUsed() {
-        log(" getBloomFilterDiskSpaceUsed()");
-        return c.getLongValue("/column_family/metrics/bloom_filter_disk_space_used/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#bloomFilterOffHeapMemoryUsed
-     */
-    @Deprecated
-    public long getBloomFilterOffHeapMemoryUsed() {
-        log(" getBloomFilterOffHeapMemoryUsed()");
-        return c.getLongValue("/column_family/metrics/bloom_filter_off_heap_memory_used/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#indexSummaryOffHeapMemoryUsed
-     */
-    @Deprecated
-    public long getIndexSummaryOffHeapMemoryUsed() {
-        log(" getIndexSummaryOffHeapMemoryUsed()");
-        return c.getLongValue("/column_family/metrics/index_summary_off_heap_memory_used/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#compressionMetadataOffHeapMemoryUsed
-     */
-    @Deprecated
-    public long getCompressionMetadataOffHeapMemoryUsed() {
-        log(" getCompressionMetadataOffHeapMemoryUsed()");
-        return c.getLongValue("/column_family/metrics/compression_metadata_off_heap_memory_used/" + getCFName());
+        client.post("column_family/major_compaction/" + getCFName());
     }
 
     /**
@@ -494,7 +136,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public int getMinimumCompactionThreshold() {
         log(" getMinimumCompactionThreshold()");
-        return c.getIntValue("column_family/minimum_compaction/" + getCFName());
+        return client.getIntValue("column_family/minimum_compaction/" + getCFName());
     }
 
     /**
@@ -505,7 +147,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" setMinimumCompactionThreshold(int threshold)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(threshold));
-        c.post("column_family/minimum_compaction/" + getCFName(), queryParams);
+        client.post("column_family/minimum_compaction/" + getCFName(), queryParams);
     }
 
     /**
@@ -514,7 +156,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public int getMaximumCompactionThreshold() {
         log(" getMaximumCompactionThreshold()");
-        return c.getIntValue("column_family/maximum_compaction/" + getCFName());
+        return client.getIntValue("column_family/maximum_compaction/" + getCFName());
     }
 
     /**
@@ -527,7 +169,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("minimum", Integer.toString(minThreshold));
         queryParams.add("maximum", Integer.toString(maxThreshold));
-        c.post("column_family/compaction" + getCFName(), queryParams);
+        client.post("column_family/compaction" + getCFName(), queryParams);
     }
 
     /**
@@ -538,7 +180,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" setMaximumCompactionThreshold(int threshold)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("value", Integer.toString(threshold));
-        c.post("column_family/maximum_compaction/" + getCFName(), queryParams);
+        client.post("column_family/maximum_compaction/" + getCFName(), queryParams);
     }
 
     /**
@@ -551,7 +193,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" setCompactionStrategyClass(String className)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("class_name", className);
-        c.post("column_family/compaction_strategy/" + getCFName(), queryParams);
+        client.post("column_family/compaction_strategy/" + getCFName(), queryParams);
     }
 
     /**
@@ -559,8 +201,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
      */
     public String getCompactionStrategyClass() {
         log(" getCompactionStrategyClass()");
-        return c.getStringValue(
-                "column_family/compaction_strategy/" + getCFName());
+        return client.getStringValue("column_family/compaction_strategy/" + getCFName());
     }
 
     /**
@@ -569,8 +210,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public Map<String, String> getCompressionParameters() {
         log(" getCompressionParameters()");
-        return c.getMapStrValue(
-                "column_family/compression_parameters/" + getCFName());
+        return client.getMapStrValue("column_family/compression_parameters/" + getCFName());
     }
 
     /**
@@ -584,8 +224,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" setCompressionParameters(Map<String,String> opts)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("opts", APIClient.mapToString(opts));
-        c.post("column_family/compression_parameters/" + getCFName(),
-                queryParams);
+        client.post("column_family/compression_parameters/" + getCFName(), queryParams);
     }
 
     /**
@@ -596,60 +235,33 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" setCrcCheckChance(double crcCheckChance)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("check_chance", Double.toString(crcCheckChance));
-        c.post("column_family/crc_check_chance/" + getCFName(), queryParams);
+        client.post("column_family/crc_check_chance/" + getCFName(), queryParams);
     }
 
     @Override
     public boolean isAutoCompactionDisabled() {
         log(" isAutoCompactionDisabled()");
-        return c.getBooleanValue("column_family/autocompaction/" + getCFName());
+        return client.getBooleanValue("column_family/autocompaction/" + getCFName());
     }
 
     /** Number of tombstoned cells retreived during the last slicequery */
     @Deprecated
     public double getTombstonesPerSlice() {
         log(" getTombstonesPerSlice()");
-        return c.getDoubleValue("");
+        return client.getDoubleValue("");
     }
 
     /** Number of live cells retreived during the last slicequery */
     @Deprecated
     public double getLiveCellsPerSlice() {
         log(" getLiveCellsPerSlice()");
-        return c.getDoubleValue("");
+        return client.getDoubleValue("");
     }
 
     @Override
     public long estimateKeys() {
         log(" estimateKeys()");
-        return c.getLongValue("column_family/estimate_keys/" + getCFName());
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#estimatedRowSizeHistogram
-     */
-    @Deprecated
-    public long[] getEstimatedRowSizeHistogram() {
-        log(" getEstimatedRowSizeHistogram()");
-        return metric.estimatedRowSizeHistogram.value();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#estimatedColumnCountHistogram
-     */
-    @Deprecated
-    public long[] getEstimatedColumnCountHistogram() {
-        log(" getEstimatedColumnCountHistogram()");
-        return metric.estimatedColumnCountHistogram.value();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.ColumnFamilyMetrics#compressionRatio
-     */
-    @Deprecated
-    public double getCompressionRatio() {
-        log(" getCompressionRatio()");
-        return c.getDoubleValue("/column_family/metrics/compression_ratio/" + getCFName());
+        return client.getLongValue("column_family/estimate_keys/" + getCFName());
     }
 
     /**
@@ -660,7 +272,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public List<String> getBuiltIndexes() {
         log(" getBuiltIndexes()");
-        return c.getListStrValue("column_family/built_indexes/" + getCFName());
+        return client.getListStrValue("column_family/built_indexes/" + getCFName());
     }
 
     /**
@@ -674,8 +286,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         log(" getSSTablesForKey(String key)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("key", key);
-        return c.getListStrValue("column_family/sstables/by_key/" + getCFName(),
-                queryParams);
+        return client.getListStrValue("column_family/sstables/by_key/" + getCFName(), queryParams);
     }
 
     /**
@@ -685,7 +296,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public void loadNewSSTables() {
         log(" loadNewSSTables()");
-        c.post("column_family/sstable/" + getCFName());
+        client.post("column_family/sstable/" + getCFName());
     }
 
     /**
@@ -695,7 +306,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public int getUnleveledSSTables() {
         log(" getUnleveledSSTables()");
-        return c.getIntValue("column_family/sstables/unleveled/" + getCFName());
+        return client.getIntValue("column_family/sstables/unleveled/" + getCFName());
     }
 
     /**
@@ -706,8 +317,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public int[] getSSTableCountPerLevel() {
         log(" getSSTableCountPerLevel()");
-        int[] res = c.getIntArrValue(
-                "column_family/sstables/per_level/" + getCFName());
+        int[] res = client.getIntArrValue("column_family/sstables/per_level/" + getCFName());
         if (res.length == 0) {
             // no sstable count
             // should return null
@@ -725,7 +335,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public double getDroppableTombstoneRatio() {
         log(" getDroppableTombstoneRatio()");
-        return c.getDoubleValue("column_family/droppable_ratio/" + getCFName());
+        return client.getDoubleValue("column_family/droppable_ratio/" + getCFName());
     }
 
     /**
@@ -735,13 +345,13 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     @Override
     public long trueSnapshotsSize() {
         log(" trueSnapshotsSize()");
-        return c.getLongValue("column_family/metrics/snapshots_size/" + getCFName());
+        return client.getLongValue("column_family/metrics/snapshots_size/" + getCFName());
     }
 
     public String getKeyspace() {
         return keyspace;
     }
-    
+
     @Override
     public String getTableName() {
         log(" getTableName()");
@@ -752,20 +362,20 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     public void forceMajorCompaction(boolean splitOutput) throws ExecutionException, InterruptedException {
         log(" forceMajorCompaction(boolean) throws ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        queryParams.putSingle("value", valueOf(splitOutput));        
-        c.post("column_family/major_compaction/" + getCFName(), queryParams);        
+        queryParams.putSingle("value", valueOf(splitOutput));
+        client.post("column_family/major_compaction/" + getCFName(), queryParams);
     }
 
     @Override
     public void setCompactionParametersJson(String options) {
         log(" setCompactionParametersJson");
-        c.post("column_family/compaction_parameters/" + getCFName(), null, options, APPLICATION_JSON);
+        client.post("column_family/compaction_parameters/" + getCFName(), null, options, APPLICATION_JSON);
     }
 
     @Override
     public String getCompactionParametersJson() {
         log(" getCompactionParametersJson");
-        return c.getStringValue("column_family/compaction_parameters/" + getCFName());
+        return client.getStringValue("column_family/compaction_parameters/" + getCFName());
     }
 
     @Override
@@ -782,7 +392,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         String s = getCompactionParametersJson();
         JsonObject o = createReader(new StringReader(s)).readObject();
         HashMap<String, String> res = new HashMap<>();
-        for (Entry<String, JsonValue> e :  o.entrySet()) {
+        for (Entry<String, JsonValue> e : o.entrySet()) {
             res.put(e.getKey(), e.getValue().toString());
         }
         return res;
@@ -797,7 +407,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
 
     @Override
     public void compactionDiskSpaceCheck(boolean enable) {
-        // TODO Auto-generated method stub        
+        // TODO Auto-generated method stub
         log(" compactionDiskSpaceCheck()");
     }
 
@@ -809,8 +419,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     }
 
     @Override
-    public CompositeData finishLocalSampling(String sampler, int count)
-            throws OpenDataException {
+    public CompositeData finishLocalSampling(String sampler, int count) throws OpenDataException {
         // TODO Auto-generated method stub
         log(" finishLocalSampling()");
         return null;
