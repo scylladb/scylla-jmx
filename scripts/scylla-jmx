@@ -18,6 +18,7 @@ PARAM_FILE="-cf"
 ALLOW_REMOTE="-r"
 ALLOW_DEBUG="-d"
 REMOTE=0
+HOSTNAME=`hostname`
 
 print_help() {
  cat <<HLPEND
@@ -90,7 +91,7 @@ done
 
 
 if [ $REMOTE -eq 1 ]; then
-  REMOTE="-Djavax.management.builder.initial=com.scylladb.jmx.utils.APIBuilder -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false"
+  REMOTE="-Djavax.management.builder.initial=com.scylladb.jmx.utils.APIBuilder -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Djava.rmi.server.hostname=$HOSTNAME"
 else
   REMOTE="-Dcassandra.jmx.local.port=$JMX_PORT"
 fi
