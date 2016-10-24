@@ -17,6 +17,8 @@
  */
 package org.apache.cassandra.locator;
 
+import static java.util.Collections.singletonMap;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
@@ -49,11 +51,8 @@ public class EndpointSnitchInfo extends APIMBean implements EndpointSnitchInfoMB
     @Override
     public String getRack(String host) throws UnknownHostException {
         log("getRack(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        if (host == null) {
-            host = InetAddress.getLoopbackAddress().getHostAddress();
-        }
-        queryParams.add("host", host);
+        MultivaluedMap<String, String> queryParams = host != null ? new MultivaluedHashMap<String, String>(
+                singletonMap("host", InetAddress.getByName(host).getHostAddress())) : null;
         return client.getStringValue("/snitch/rack", queryParams, 10000);
     }
 
@@ -67,11 +66,8 @@ public class EndpointSnitchInfo extends APIMBean implements EndpointSnitchInfoMB
     @Override
     public String getDatacenter(String host) throws UnknownHostException {
         log(" getDatacenter(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        if (host == null) {
-            host = InetAddress.getLoopbackAddress().getHostAddress();
-        }
-        queryParams.add("host", host);
+        MultivaluedMap<String, String> queryParams = host != null ? new MultivaluedHashMap<String, String>(
+                singletonMap("host", InetAddress.getByName(host).getHostAddress())) : null;
         return client.getStringValue("/snitch/datacenter", queryParams, 10000);
     }
 
