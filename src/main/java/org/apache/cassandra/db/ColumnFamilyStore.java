@@ -25,24 +25,23 @@ package org.apache.cassandra.db;
 
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toMap;
 import static javax.json.Json.createObjectBuilder;
-import static javax.json.Json.createReader;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.io.StringReader;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
+import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonValue;
+import javax.json.JsonReader;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
@@ -369,33 +368,37 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
     @Override
     public void setCompactionParametersJson(String options) {
         log(" setCompactionParametersJson");
-        client.post("column_family/compaction_parameters/" + getCFName(), null, options, APPLICATION_JSON);
+        JsonReader reader = Json.createReaderFactory(null).createReader(new StringReader(options));
+        setCompactionParameters(
+                reader.readObject().entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.toString())));
     }
 
     @Override
     public String getCompactionParametersJson() {
         log(" getCompactionParametersJson");
-        return client.getStringValue("column_family/compaction_parameters/" + getCFName());
+        JsonObjectBuilder b = createObjectBuilder();
+        getCompactionParameters().forEach(b::add);        
+        return b.build().toString();
     }
 
     @Override
     public void setCompactionParameters(Map<String, String> options) {
-        JsonObjectBuilder b = createObjectBuilder();
         for (Map.Entry<String, String> e : options.entrySet()) {
-            b.add(e.getKey(), e.getValue());
+            // See below
+            if ("class".equals(e.getKey())) {
+                setCompactionStrategyClass(e.getValue());
+            } else {
+                throw new IllegalArgumentException(e.getKey());
+            }
         }
-        setCompactionParametersJson(b.build().toString());
     }
 
     @Override
     public Map<String, String> getCompactionParameters() {
-        String s = getCompactionParametersJson();
-        JsonObject o = createReader(new StringReader(s)).readObject();
-        HashMap<String, String> res = new HashMap<>();
-        for (Entry<String, JsonValue> e : o.entrySet()) {
-            res.put(e.getKey(), e.getValue().toString());
-        }
-        return res;
+        // We only currently support class. Here could have been a call that can 
+        // be expanded only on the server side, but that raises controversy. 
+        // Lets add some technical debt instead. 
+        return Collections.singletonMap("class", getCompactionStrategyClass());
     }
 
     @Override
