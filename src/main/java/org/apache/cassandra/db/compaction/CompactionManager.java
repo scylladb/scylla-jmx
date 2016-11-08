@@ -137,7 +137,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Deprecated
     public long getTotalBytesCompacted() {
         log(" getTotalBytesCompacted()");
-        return c.getLongValue("");
+        return metrics.bytesCompacted.count();
     }
 
     /**
@@ -187,7 +187,11 @@ public class CompactionManager implements CompactionManagerMBean {
      */
     public int getCoreCompactorThreads() {
         log(" getCoreCompactorThreads()");
-        return c.getIntValue("");
+        /**
+         * Core size pool is meaningless, we still wants to return a valid reponse,
+         * just in case someone will try to call this method.
+         */
+        return 1;
     }
 
     /**
@@ -205,7 +209,11 @@ public class CompactionManager implements CompactionManagerMBean {
      */
     public int getMaximumCompactorThreads() {
         log(" getMaximumCompactorThreads()");
-        return c.getIntValue("");
+        /**
+         * Core size pool is meaningless, we still wants to return a valid reponse,
+         * just in case someone will try to call this method.
+         */
+        return 1;
     }
 
     /**
@@ -223,7 +231,11 @@ public class CompactionManager implements CompactionManagerMBean {
      */
     public int getCoreValidationThreads() {
         log(" getCoreValidationThreads()");
-        return c.getIntValue("");
+        /**
+         * Core validation size pool is meaningless, we still wants to return a valid reponse,
+         * just in case someone will try to call this method.
+         */
+        return 1;
     }
 
     /**
@@ -241,7 +253,11 @@ public class CompactionManager implements CompactionManagerMBean {
      */
     public int getMaximumValidatorThreads() {
         log(" getMaximumValidatorThreads()");
-        return c.getIntValue("");
+        /**
+         * Core validation size pool is meaningless, we still wants to return a valid reponse,
+         * just in case someone will try to call this method.
+         */
+        return 1;
     }
 
     /**

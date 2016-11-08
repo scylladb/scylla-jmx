@@ -1446,8 +1446,7 @@ public class StorageService extends NotificationBroadcasterSupport
 
     @Override
     public double getTracingProbability() {
-        // TODO Auto-generated method stub
         log(" getTracingProbability()");
-        return c.getDoubleValue("");
+        return c.getDoubleValue("/storage_service/trace_probability");
     }
 }
