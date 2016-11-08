@@ -117,7 +117,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Deprecated
     public int getPendingTasks() {
         log(" getPendingTasks()");
-        return c.getIntValue("");
+        return metrics.pendingTasks.value();
     }
 
     /**
@@ -127,7 +127,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Deprecated
     public long getCompletedTasks() {
         log(" getCompletedTasks()");
-        return c.getLongValue("");
+        return metrics.completedTasks.value();
     }
 
     /**
@@ -147,7 +147,7 @@ public class CompactionManager implements CompactionManagerMBean {
     @Deprecated
     public long getTotalCompactionsCompleted() {
         log(" getTotalCompactionsCompleted()");
-        return c.getLongValue("");
+        return metrics.totalCompactionsCompleted.count();
     }
 
     /**
