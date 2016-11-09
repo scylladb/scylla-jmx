@@ -23,15 +23,14 @@
  */
 package org.apache.cassandra.gms;
 
-import java.lang.management.ManagementFactory;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.APIMBean;
 
 /**
  * This module is responsible for Gossiping information for the local endpoint.
@@ -48,57 +47,43 @@ import com.scylladb.jmx.api.APIClient;
  * node as down in the Failure Detector.
  */
 
-public class Gossiper implements GossiperMBean {
+public class Gossiper extends APIMBean implements GossiperMBean {
     public static final String MBEAN_NAME = "org.apache.cassandra.net:type=Gossiper";
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(Gossiper.class.getName());
+    private static final Logger logger = Logger.getLogger(Gossiper.class.getName());
 
-    private APIClient c = new APIClient();
+    public Gossiper(APIClient c) {
+        super(c);
+    }
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    private static final Gossiper instance = new Gossiper();
-
-    public static Gossiper getInstance() {
-        return instance;
-    }
-
-    private Gossiper() {
-
-        // Register this instance with JMX
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            mbs.registerMBean(this, new ObjectName(MBEAN_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Override
     public long getEndpointDowntime(String address) throws UnknownHostException {
         log(" getEndpointDowntime(String address) throws UnknownHostException");
-        return c.getLongValue("gossiper/downtime/" + address);
+        return client.getLongValue("gossiper/downtime/" + address);
     }
 
-    public int getCurrentGenerationNumber(String address)
-            throws UnknownHostException {
+    @Override
+    public int getCurrentGenerationNumber(String address) throws UnknownHostException {
         log(" getCurrentGenerationNumber(String address) throws UnknownHostException");
-        return c.getIntValue("gossiper/generation_number/" + address);
+        return client.getIntValue("gossiper/generation_number/" + address);
     }
 
-    public void unsafeAssassinateEndpoint(String address)
-            throws UnknownHostException {
+    @Override
+    public void unsafeAssassinateEndpoint(String address) throws UnknownHostException {
         log(" unsafeAssassinateEndpoint(String address) throws UnknownHostException");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("unsafe", "True");
-        c.post("gossiper/assassinate/" + address, queryParams);
+        client.post("gossiper/assassinate/" + address, queryParams);
     }
 
+    @Override
     public void assassinateEndpoint(String address) throws UnknownHostException {
         log(" assassinateEndpoint(String address) throws UnknownHostException");
-        c.post("gossiper/assassinate/" + address, null);
+        client.post("gossiper/assassinate/" + address, null);
     }
 
 }

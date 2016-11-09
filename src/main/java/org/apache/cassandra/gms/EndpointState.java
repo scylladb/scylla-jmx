@@ -42,6 +42,7 @@ public class EndpointState {
     ApplicationState[] applicationValues;
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(EndpointState.class.getName());
+
     EndpointState(HeartBeatState initialHbState) {
         applicationValues = ApplicationState.values();
         hbState = initialHbState;
@@ -101,8 +102,8 @@ public class EndpointState {
         isAlive = alive;
     }
 
+    @Override
     public String toString() {
-        return "EndpointState: HeartBeatState = " + hbState + ", AppStateMap = "
-                + applicationState;
+        return "EndpointState: HeartBeatState = " + hbState + ", AppStateMap = " + applicationState;
     }
 }

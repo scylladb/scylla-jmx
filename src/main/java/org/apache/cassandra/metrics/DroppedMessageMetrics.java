@@ -24,42 +24,27 @@
 
 package org.apache.cassandra.metrics;
 
-import java.util.concurrent.TimeUnit;
+import javax.management.MalformedObjectNameException;
 
 import org.apache.cassandra.net.MessagingService;
-
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.scylladb.jmx.metrics.DefaultNameFactory;
-import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.yammer.metrics.core.APIMeter;
 
 /**
  * Metrics for dropped messages by verb.
  */
-public class DroppedMessageMetrics {
-    /** Number of dropped messages */
-    public final APIMeter dropped;
-
-    private long lastDropped = 0;
+public class DroppedMessageMetrics implements Metrics {
+    private final MessagingService.Verb verb;
 
     public DroppedMessageMetrics(MessagingService.Verb verb) {
-        MetricNameFactory factory = new DefaultNameFactory("DroppedMessage",
-                verb.toString());
-        dropped = (APIMeter) APIMetrics.newMeter(null,
-                factory.createMetricName("Dropped"), "dropped",
-                TimeUnit.SECONDS);
-        dropped.stop();
+        this.verb = verb;
     }
 
-    @Deprecated
-    public int getRecentlyDropped() {
-        long currentDropped = dropped.count();
-        long recentlyDropped = currentDropped - lastDropped;
-        lastDropped = currentDropped;
-        return (int) recentlyDropped;
-    }
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        MetricNameFactory factory = new DefaultNameFactory("DroppedMessage", verb.toString());
+        /** Number of dropped messages */
+        // TODO: this API url does not exist. Add meter calls for verbs.
+        registry.register(() -> registry.meter("/messaging_service/messages/dropped/" + verb),
+                factory.createMetricName("Dropped"));
 
-    public APIMeter getMeter() {
-        return dropped;
     }
 }

@@ -58,8 +58,8 @@ class HeartBeatState {
         version = Integer.MAX_VALUE;
     }
 
+    @Override
     public String toString() {
-        return String.format("HeartBeat: generation = %d, version = %d",
-                generation, version);
+        return String.format("HeartBeat: generation = %d, version = %d", generation, version);
     }
 }

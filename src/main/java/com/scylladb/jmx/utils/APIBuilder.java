@@ -3,6 +3,8 @@ package com.scylladb.jmx.utils;
  * Copyright 2016 ScyllaDB
  */
 
+import static com.scylladb.jmx.main.Main.client;
+
 /*
 * This file is part of Scylla.
 *
@@ -21,21 +23,13 @@ package com.scylladb.jmx.utils;
 */
 
 import javax.management.MBeanServer;
+import javax.management.MBeanServerBuilder;
 import javax.management.MBeanServerDelegate;
 
-import mx4j.server.ChainedMBeanServerBuilder;
-
-public class APIBuilder extends ChainedMBeanServerBuilder {
-    public APIBuilder() {
-        super(new mx4j.server.MX4JMBeanServerBuilder());
-    }
-
-    public MBeanServer newMBeanServer(String defaultDomain, MBeanServer outer,
-            MBeanServerDelegate delegate) {
-        APIMBeanServer extern = new APIMBeanServer();
-        MBeanServer nested = getMBeanServerBuilder().newMBeanServer(
-                defaultDomain, outer == null ? extern : outer, delegate);
-        extern.setMBeanServer(nested);
-        return extern;
+public class APIBuilder extends MBeanServerBuilder {
+    @Override
+    public MBeanServer newMBeanServer(String defaultDomain, MBeanServer outer, MBeanServerDelegate delegate) {
+        MBeanServer nested = super.newMBeanServer(defaultDomain, outer, delegate);
+        return new APIMBeanServer(client, nested);
     }
 }

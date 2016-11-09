@@ -15,23 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright 2015 Cloudius Systems
+package org.apache.cassandra.metrics;
+
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
+/**
+ * Simplified version of {@link Metrics} naming factory paradigm, simply
+ * generating {@link ObjectName} and nothing more.
+ * 
+ * @author calle
  *
- * Modified by Cloudius Systems
  */
-
-package com.scylladb.jmx.metrics;
-
-import com.yammer.metrics.core.MetricName;
-
-public interface MetricNameFactory
-{
+public interface MetricNameFactory {
     /**
      * Create a qualified name from given metric name.
      *
-     * @param metricName part of qualified name.
+     * @param metricName
+     *            part of qualified name.
      * @return new String with given metric name.
+     * @throws MalformedObjectNameException
      */
-    MetricName createMetricName(String metricName);
+    ObjectName createMetricName(String metricName) throws MalformedObjectNameException;
 }
