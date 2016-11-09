@@ -73,7 +73,7 @@ public class CommitLog implements CommitLogMBean {
     @Deprecated
     public long getCompletedTasks() {
         log(" getCompletedTasks()");
-        return metrics.completedTasks.value();
+        return c.getLongValue("");
     }
 
     /**
@@ -84,7 +84,7 @@ public class CommitLog implements CommitLogMBean {
     @Deprecated
     public long getPendingTasks() {
         log(" getPendingTasks()");
-        return metrics.pendingTasks.value();
+        return c.getLongValue("");
     }
 
     /**
@@ -95,7 +95,7 @@ public class CommitLog implements CommitLogMBean {
     @Deprecated
     public long getTotalCommitlogSize() {
         log(" getTotalCommitlogSize()");
-        return metrics.totalCommitLogSize.value();
+        return c.getLongValue("");
     }
 
     /**
