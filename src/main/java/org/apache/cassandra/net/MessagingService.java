@@ -31,8 +31,6 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.DroppedMessageMetrics;
 
@@ -242,9 +240,7 @@ public final class MessagingService implements MessagingServiceMBean {
 
     public int getVersion(String address) throws UnknownHostException {
         log(" getVersion(String address) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        queryParams.add("addr", address);
-        return c.getIntValue("/messaging_service/version", queryParams);
+        return c.getIntValue("");
     }
 
 }
