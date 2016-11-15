@@ -78,6 +78,8 @@ public class APIMBeanServer extends ChainedMBeanServer {
     @Override
     public Set<ObjectName> queryNames(ObjectName name, QueryExp query) {
         if (name == null) {
+            ColumnFamilyStore.checkRegistration();
+            StreamingMetrics.checkRegistration();
             return super.queryNames(name, query);
         }
         if (name.getCanonicalKeyPropertyListString()
