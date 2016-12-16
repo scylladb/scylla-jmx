@@ -17,41 +17,28 @@
  */
 package org.apache.cassandra.locator;
 
-import java.lang.management.ManagementFactory;
+import static java.util.Collections.singletonMap;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.APIMBean;
 
-public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(EndpointSnitchInfo.class.getName());
+public class EndpointSnitchInfo extends APIMBean implements EndpointSnitchInfoMBean {
+    public static final String MBEAN_NAME = "org.apache.cassandra.db:type=EndpointSnitchInfo";
+    private static final Logger logger = Logger.getLogger(EndpointSnitchInfo.class.getName());
 
-    private APIClient c = new APIClient();
+    public EndpointSnitchInfo(APIClient c) {
+        super(c);
+    }
 
     public void log(String str) {
         logger.finest(str);
-    }
-
-    private static final EndpointSnitchInfo instance = new EndpointSnitchInfo();
-
-    public static EndpointSnitchInfo getInstance() {
-        return instance;
-    }
-
-    private EndpointSnitchInfo() {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(this, new ObjectName(
-                    "org.apache.cassandra.db:type=EndpointSnitchInfo"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -64,12 +51,9 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getRack(String host) throws UnknownHostException {
         log("getRack(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        if (host == null) {
-            host = InetAddress.getLoopbackAddress().getHostAddress();
-        }
-        queryParams.add("host", host);
-        return c.getStringValue("/snitch/rack", queryParams, 10000);
+        MultivaluedMap<String, String> queryParams = host != null ? new MultivaluedHashMap<String, String>(
+                singletonMap("host", InetAddress.getByName(host).getHostAddress())) : null;
+        return client.getStringValue("/snitch/rack", queryParams, 10000);
     }
 
     /**
@@ -82,12 +66,9 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getDatacenter(String host) throws UnknownHostException {
         log(" getDatacenter(String host) throws UnknownHostException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
-        if (host == null) {
-            host = InetAddress.getLoopbackAddress().getHostAddress();
-        }
-        queryParams.add("host", host);
-        return c.getStringValue("/snitch/datacenter", queryParams, 10000);
+        MultivaluedMap<String, String> queryParams = host != null ? new MultivaluedHashMap<String, String>(
+                singletonMap("host", InetAddress.getByName(host).getHostAddress())) : null;
+        return client.getStringValue("/snitch/datacenter", queryParams, 10000);
     }
 
     /**
@@ -98,7 +79,16 @@ public class EndpointSnitchInfo implements EndpointSnitchInfoMBean {
     @Override
     public String getSnitchName() {
         log(" getSnitchName()");
-        return c.getStringValue("/snitch/name");
+        return client.getStringValue("/snitch/name");
     }
 
+    @Override
+    public String getRack() {
+        return client.getStringValue("/snitch/rack", null, 10000);
+    }
+
+    @Override
+    public String getDatacenter() {
+        return client.getStringValue("/snitch/datacenter", null, 10000);
+    }
 }

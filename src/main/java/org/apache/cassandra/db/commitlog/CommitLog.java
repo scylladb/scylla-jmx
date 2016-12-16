@@ -22,85 +22,39 @@
  */
 package org.apache.cassandra.db.commitlog;
 
-import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.util.*;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.cassandra.metrics.CommitLogMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
 /*
  * Commit Log tracks every write operation into the system. The aim of the commit log is to be able to
  * successfully recover data that was not stored to disk via the Memtable.
  */
-public class CommitLog implements CommitLogMBean {
-
-    CommitLogMetrics metrics = new CommitLogMetrics();
+public class CommitLog extends MetricsMBean implements CommitLogMBean {
     private static final java.util.logging.Logger logger = java.util.logging.Logger
             .getLogger(CommitLog.class.getName());
-
-    private APIClient c = new APIClient();
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    private static final CommitLog instance = new CommitLog();
-
-    public static CommitLog getInstance() {
-        return instance;
-    }
-
-    private CommitLog() {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(this,
-                    new ObjectName("org.apache.cassandra.db:type=Commitlog"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Get the number of completed tasks
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#completedTasks
-     */
-    @Deprecated
-    public long getCompletedTasks() {
-        log(" getCompletedTasks()");
-        return metrics.completedTasks.value();
-    }
-
-    /**
-     * Get the number of tasks waiting to be executed
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#pendingTasks
-     */
-    @Deprecated
-    public long getPendingTasks() {
-        log(" getPendingTasks()");
-        return metrics.pendingTasks.value();
-    }
-
-    /**
-     * Get the current size used by all the commitlog segments.
-     *
-     * @see org.apache.cassandra.metrics.CommitLogMetrics#totalCommitLogSize
-     */
-    @Deprecated
-    public long getTotalCommitlogSize() {
-        log(" getTotalCommitlogSize()");
-        return metrics.totalCommitLogSize.value();
+    public CommitLog(APIClient client) {
+        super("org.apache.cassandra.db:type=Commitlog", client, new CommitLogMetrics());
     }
 
     /**
      * Recover a single file.
      */
+    @Override
     public void recover(String path) throws IOException {
         log(" recover(String path) throws IOException");
     }
@@ -109,9 +63,10 @@ public class CommitLog implements CommitLogMBean {
      * @return file names (not full paths) of active commit log segments
      *         (segments containing unflushed data)
      */
+    @Override
     public List<String> getActiveSegmentNames() {
         log(" getActiveSegmentNames()");
-        List<String> lst = c.getListStrValue("/commitlog/segments/active");
+        List<String> lst = client.getListStrValue("/commitlog/segments/active");
         Set<String> set = new HashSet<String>();
         for (String l : lst) {
             String name = l.substring(l.lastIndexOf("/") + 1, l.length());
@@ -124,9 +79,10 @@ public class CommitLog implements CommitLogMBean {
      * @return Files which are pending for archival attempt. Does NOT include
      *         failed archive attempts.
      */
+    @Override
     public List<String> getArchivingSegmentNames() {
         log(" getArchivingSegmentNames()");
-        List<String> lst = c.getListStrValue("/commitlog/segments/archiving");
+        List<String> lst = client.getListStrValue("/commitlog/segments/archiving");
         Set<String> set = new HashSet<String>();
         for (String l : lst) {
             String name = l.substring(l.lastIndexOf("/") + 1, l.length());
@@ -139,35 +95,54 @@ public class CommitLog implements CommitLogMBean {
     public String getArchiveCommand() {
         // TODO Auto-generated method stub
         log(" getArchiveCommand()");
-        return c.getStringValue("");
+        return client.getStringValue("");
     }
 
     @Override
     public String getRestoreCommand() {
         // TODO Auto-generated method stub
         log(" getRestoreCommand()");
-        return c.getStringValue("");
+        return client.getStringValue("");
     }
 
     @Override
     public String getRestoreDirectories() {
         // TODO Auto-generated method stub
         log(" getRestoreDirectories()");
-        return c.getStringValue("");
+        return client.getStringValue("");
     }
 
     @Override
     public long getRestorePointInTime() {
         // TODO Auto-generated method stub
         log(" getRestorePointInTime()");
-        return c.getLongValue("");
+        return client.getLongValue("");
     }
 
     @Override
     public String getRestorePrecision() {
         // TODO Auto-generated method stub
         log(" getRestorePrecision()");
-        return c.getStringValue("");
+        return client.getStringValue("");
     }
 
+    @Override
+    public long getActiveContentSize() {
+        // scylla does not compress commit log, so this is equivalent
+        return getActiveOnDiskSize();
+    }
+
+    @Override
+    public long getActiveOnDiskSize() {
+        return client.getLongValue("/commitlog/metrics/total_commit_log_size");
+    }
+
+    @Override
+    public Map<String, Double> getActiveSegmentCompressionRatios() {
+        HashMap<String, Double> res = new HashMap<>();
+        for (String name : getActiveSegmentNames()) {
+            res.put(name, 1.0);
+        }
+        return res;
+    }
 }

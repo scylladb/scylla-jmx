@@ -28,14 +28,12 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 /**
  * Current snapshot of streaming progress.
  */
-public class StreamState implements Serializable
-{
+public class StreamState implements Serializable {
     /**
      *
      */
@@ -49,19 +47,12 @@ public class StreamState implements Serializable
         this.description = description;
         this.sessions = sessions;
     }
-    public StreamState(String planId, String description, Set<SessionInfo> sessions)
-    {
+
+    public StreamState(String planId, String description, Set<SessionInfo> sessions) {
         this(UUID.fromString(planId), description, sessions);
     }
 
-    public boolean hasFailedSession()
-    {
-        return Iterables.any(sessions, new Predicate<SessionInfo>()
-        {
-            public boolean apply(SessionInfo session)
-            {
-                return session.isFailed();
-            }
-        });
+    public boolean hasFailedSession() {
+        return Iterables.any(sessions, session -> session.isFailed());
     }
 }

@@ -23,340 +23,239 @@
  */
 package org.apache.cassandra.service;
 
-import java.lang.management.ManagementFactory;
-import java.util.*;
+import static java.util.Collections.emptySet;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.cassandra.metrics.CASClientRequestMetrics;
+import org.apache.cassandra.metrics.ClientRequestMetrics;
+
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
-import org.apache.cassandra.metrics.*;
-
-public class StorageProxy implements StorageProxyMBean {
+public class StorageProxy extends MetricsMBean implements StorageProxyMBean {
     public static final String MBEAN_NAME = "org.apache.cassandra.db:type=StorageProxy";
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(StorageProxy.class.getName());
-
-    private APIClient c = new APIClient();
+    private static final Logger logger = Logger.getLogger(StorageProxy.class.getName());
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    private static final StorageProxy instance = new StorageProxy();
-
-    public static StorageProxy getInstance() {
-        return instance;
-    }
-
     public static final String UNREACHABLE = "UNREACHABLE";
 
-    private static final ClientRequestMetrics readMetrics = new ClientRequestMetrics(
-            "storage_proxy/metrics/read", "Read");
-    private static final ClientRequestMetrics rangeMetrics = new ClientRequestMetrics(
-            "storage_proxy/metrics/range", "RangeSlice");
-    private static final ClientRequestMetrics writeMetrics = new ClientRequestMetrics(
-            "storage_proxy/metrics/write", "Write");
-    private static final CASClientRequestMetrics casWriteMetrics = new CASClientRequestMetrics(
-            "storage_proxy/metrics/cas_write", "CASWrite");
-    private static final CASClientRequestMetrics casReadMetrics = new CASClientRequestMetrics(
-            "storage_proxy/metrics/cas_read", "CASRead");
-
-    private static final double CONCURRENT_SUBREQUESTS_MARGIN = 0.10;
-
-    private StorageProxy() {
+    public StorageProxy(APIClient client) {
+        super(MBEAN_NAME, client, new ClientRequestMetrics("Read", "storage_proxy/metrics/read"),
+                new ClientRequestMetrics("RangeSlice", "/storage_proxy/metrics/range"),
+                new ClientRequestMetrics("Write", "storage_proxy/metrics/write"),
+                new CASClientRequestMetrics("CASWrite", "storage_proxy/metrics/cas_write"),
+                new CASClientRequestMetrics("CASRead", "storage_proxy/metrics/cas_read"));
     }
 
-    static {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(instance, new ObjectName(MBEAN_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.LatencyMetrics#lastOpCount
-     */
-    @Deprecated
-    public long getReadOperations() {
-        log(" getReadOperations()");
-        return readMetrics.latency.count();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.LatencyMetrics#totalLatencyHistogram
-     */
-    @Deprecated
-    public long getTotalReadLatencyMicros() {
-        log(" getTotalReadLatencyMicros()");
-        return readMetrics.totalLatency.count();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.LatencyMetrics#recentLatencyHistogram
-     */
-    @Deprecated
-    public double getRecentReadLatencyMicros() {
-        log(" getRecentReadLatencyMicros()");
-        return readMetrics.getRecentLatency();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.LatencyMetrics#totalLatencyHistogram
-     */
-    @Deprecated
-    public long[] getTotalReadLatencyHistogramMicros() {
-        log(" getTotalReadLatencyHistogramMicros()");
-        return readMetrics.totalLatencyHistogram.getBuckets(false);
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.LatencyMetrics#recentLatencyHistogram
-     */
-    @Deprecated
-    public long[] getRecentReadLatencyHistogramMicros() {
-        log(" getRecentReadLatencyHistogramMicros()");
-        return readMetrics.getRecentLatencyHistogram();
-    }
-
-    @Deprecated
-    public long getRangeOperations() {
-        log(" getRangeOperations()");
-        return rangeMetrics.latency.count();
-    }
-
-    @Deprecated
-    public long getTotalRangeLatencyMicros() {
-        log(" getTotalRangeLatencyMicros()");
-        return rangeMetrics.totalLatency.count();
-    }
-
-    @Deprecated
-    public double getRecentRangeLatencyMicros() {
-        log(" getRecentRangeLatencyMicros()");
-        return rangeMetrics.getRecentLatency();
-    }
-
-    @Deprecated
-    public long[] getTotalRangeLatencyHistogramMicros() {
-        log(" getTotalRangeLatencyHistogramMicros()");
-        return rangeMetrics.totalLatencyHistogram.getBuckets(false);
-    }
-
-    @Deprecated
-    public long[] getRecentRangeLatencyHistogramMicros() {
-        log(" getRecentRangeLatencyHistogramMicros()");
-        return rangeMetrics.getRecentLatencyHistogram();
-    }
-
-    @Deprecated
-    public long getWriteOperations() {
-        log(" getWriteOperations()");
-        return writeMetrics.latency.count();
-    }
-
-    @Deprecated
-    public long getTotalWriteLatencyMicros() {
-        log(" getTotalWriteLatencyMicros()");
-        return writeMetrics.totalLatency.count();
-    }
-
-    @Deprecated
-    public double getRecentWriteLatencyMicros() {
-        log(" getRecentWriteLatencyMicros()");
-        return writeMetrics.getRecentLatency();
-    }
-
-    @Deprecated
-    public long[] getTotalWriteLatencyHistogramMicros() {
-        log(" getTotalWriteLatencyHistogramMicros()");
-        return writeMetrics.totalLatencyHistogram.getBuckets(false);
-    }
-
-    @Deprecated
-    public long[] getRecentWriteLatencyHistogramMicros() {
-        log(" getRecentWriteLatencyHistogramMicros()");
-        return writeMetrics.getRecentLatencyHistogram();
-    }
-
+    @Override
     public long getTotalHints() {
         log(" getTotalHints()");
-        return c.getLongValue("storage_proxy/total_hints");
+        return client.getLongValue("storage_proxy/total_hints");
     }
 
+    @Override
     public boolean getHintedHandoffEnabled() {
         log(" getHintedHandoffEnabled()");
-        return c.getBooleanValue("storage_proxy/hinted_handoff_enabled");
+        return client.getBooleanValue("storage_proxy/hinted_handoff_enabled");
     }
 
+    @Override
     public Set<String> getHintedHandoffEnabledByDC() {
         log(" getHintedHandoffEnabledByDC()");
-        return c.getSetStringValue(
-                "storage_proxy/hinted_handoff_enabled_by_dc");
+        return client.getSetStringValue("storage_proxy/hinted_handoff_enabled_by_dc");
     }
 
+    @Override
     public void setHintedHandoffEnabled(boolean b) {
         log(" setHintedHandoffEnabled(boolean b)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("enable", Boolean.toString(b));
-        c.post("storage_proxy/hinted_handoff_enabled", queryParams);
+        client.post("storage_proxy/hinted_handoff_enabled", queryParams);
     }
 
+    @Override
     public void setHintedHandoffEnabledByDCList(String dcs) {
         log(" setHintedHandoffEnabledByDCList(String dcs)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dcs", dcs);
-        c.post("storage_proxy/hinted_handoff_enabled_by_dc_list");
+        client.post("storage_proxy/hinted_handoff_enabled_by_dc_list");
     }
 
+    @Override
     public int getMaxHintWindow() {
         log(" getMaxHintWindow()");
-        return c.getIntValue("storage_proxy/max_hint_window");
+        return client.getIntValue("storage_proxy/max_hint_window");
     }
 
+    @Override
     public void setMaxHintWindow(int ms) {
         log(" setMaxHintWindow(int ms)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("ms", Integer.toString(ms));
-        c.post("storage_proxy/max_hint_window", queryParams);
+        client.post("storage_proxy/max_hint_window", queryParams);
     }
 
+    @Override
     public int getMaxHintsInProgress() {
         log(" getMaxHintsInProgress()");
-        return c.getIntValue("storage_proxy/max_hints_in_progress");
+        return client.getIntValue("storage_proxy/max_hints_in_progress");
     }
 
+    @Override
     public void setMaxHintsInProgress(int qs) {
         log(" setMaxHintsInProgress(int qs)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("qs", Integer.toString(qs));
-        c.post("storage_proxy/max_hints_in_progress", queryParams);
+        client.post("storage_proxy/max_hints_in_progress", queryParams);
     }
 
+    @Override
     public int getHintsInProgress() {
         log(" getHintsInProgress()");
-        return c.getIntValue("storage_proxy/hints_in_progress");
+        return client.getIntValue("storage_proxy/hints_in_progress");
     }
 
+    @Override
     public Long getRpcTimeout() {
         log(" getRpcTimeout()");
-        return c.getLongValue("storage_proxy/rpc_timeout");
+        return client.getLongValue("storage_proxy/rpc_timeout");
     }
 
+    @Override
     public void setRpcTimeout(Long timeoutInMillis) {
         log(" setRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/rpc_timeout", queryParams);
+        client.post("storage_proxy/rpc_timeout", queryParams);
     }
 
+    @Override
     public Long getReadRpcTimeout() {
         log(" getReadRpcTimeout()");
-        return c.getLongValue("storage_proxy/read_rpc_timeout");
+        return client.getLongValue("storage_proxy/read_rpc_timeout");
     }
 
+    @Override
     public void setReadRpcTimeout(Long timeoutInMillis) {
         log(" setReadRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/read_rpc_timeout", queryParams);
+        client.post("storage_proxy/read_rpc_timeout", queryParams);
     }
 
+    @Override
     public Long getWriteRpcTimeout() {
         log(" getWriteRpcTimeout()");
-        return c.getLongValue("storage_proxy/write_rpc_timeout");
+        return client.getLongValue("storage_proxy/write_rpc_timeout");
     }
 
+    @Override
     public void setWriteRpcTimeout(Long timeoutInMillis) {
         log(" setWriteRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/write_rpc_timeout", queryParams);
+        client.post("storage_proxy/write_rpc_timeout", queryParams);
     }
 
+    @Override
     public Long getCounterWriteRpcTimeout() {
         log(" getCounterWriteRpcTimeout()");
-        return c.getLongValue("storage_proxy/counter_write_rpc_timeout");
+        return client.getLongValue("storage_proxy/counter_write_rpc_timeout");
     }
 
+    @Override
     public void setCounterWriteRpcTimeout(Long timeoutInMillis) {
         log(" setCounterWriteRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/counter_write_rpc_timeout", queryParams);
+        client.post("storage_proxy/counter_write_rpc_timeout", queryParams);
     }
 
+    @Override
     public Long getCasContentionTimeout() {
         log(" getCasContentionTimeout()");
-        return c.getLongValue("storage_proxy/cas_contention_timeout");
+        return client.getLongValue("storage_proxy/cas_contention_timeout");
     }
 
+    @Override
     public void setCasContentionTimeout(Long timeoutInMillis) {
         log(" setCasContentionTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/cas_contention_timeout", queryParams);
+        client.post("storage_proxy/cas_contention_timeout", queryParams);
     }
 
+    @Override
     public Long getRangeRpcTimeout() {
         log(" getRangeRpcTimeout()");
-        return c.getLongValue("storage_proxy/range_rpc_timeout");
+        return client.getLongValue("storage_proxy/range_rpc_timeout");
     }
 
+    @Override
     public void setRangeRpcTimeout(Long timeoutInMillis) {
         log(" setRangeRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/range_rpc_timeout", queryParams);
+        client.post("storage_proxy/range_rpc_timeout", queryParams);
     }
 
+    @Override
     public Long getTruncateRpcTimeout() {
         log(" getTruncateRpcTimeout()");
-        return c.getLongValue("storage_proxy/truncate_rpc_timeout");
+        return client.getLongValue("storage_proxy/truncate_rpc_timeout");
     }
 
+    @Override
     public void setTruncateRpcTimeout(Long timeoutInMillis) {
         log(" setTruncateRpcTimeout(Long timeoutInMillis)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("timeout", Long.toString(timeoutInMillis));
-        c.post("storage_proxy/truncate_rpc_timeout", queryParams);
-    }
-
-    public void reloadTriggerClasses() {
-        log(" reloadTriggerClasses()");
-        c.post("storage_proxy/reload_trigger_classes");
-    }
-
-    public long getReadRepairAttempted() {
-        log(" getReadRepairAttempted()");
-        return c.getLongValue("storage_proxy/read_repair_attempted");
-    }
-
-    public long getReadRepairRepairedBlocking() {
-        log(" getReadRepairRepairedBlocking()");
-        return c.getLongValue("storage_proxy/read_repair_repaired_blocking");
-    }
-
-    public long getReadRepairRepairedBackground() {
-        log(" getReadRepairRepairedBackground()");
-        return c.getLongValue("storage_proxy/read_repair_repaired_background");
-    }
-
-    /** Returns each live node's schema version */
-    public Map<String, List<String>> getSchemaVersions() {
-        log(" getSchemaVersions()");
-        return c.getMapStringListStrValue("storage_proxy/schema_versions");
+        client.post("storage_proxy/truncate_rpc_timeout", queryParams);
     }
 
     @Override
-    public void setNativeTransportMaxConcurrentConnections(
-            Long nativeTransportMaxConcurrentConnections) {
+    public void reloadTriggerClasses() {
+        log(" reloadTriggerClasses()");
+        client.post("storage_proxy/reload_trigger_classes");
+    }
+
+    @Override
+    public long getReadRepairAttempted() {
+        log(" getReadRepairAttempted()");
+        return client.getLongValue("storage_proxy/read_repair_attempted");
+    }
+
+    @Override
+    public long getReadRepairRepairedBlocking() {
+        log(" getReadRepairRepairedBlocking()");
+        return client.getLongValue("storage_proxy/read_repair_repaired_blocking");
+    }
+
+    @Override
+    public long getReadRepairRepairedBackground() {
+        log(" getReadRepairRepairedBackground()");
+        return client.getLongValue("storage_proxy/read_repair_repaired_background");
+    }
+
+    /** Returns each live node's schema version */
+    @Override
+    public Map<String, List<String>> getSchemaVersions() {
+        log(" getSchemaVersions()");
+        return client.getMapStringListStrValue("storage_proxy/schema_versions");
+    }
+
+    @Override
+    public void setNativeTransportMaxConcurrentConnections(Long nativeTransportMaxConcurrentConnections) {
         // TODO Auto-generated method stub
         log(" setNativeTransportMaxConcurrentConnections()");
 
@@ -366,7 +265,25 @@ public class StorageProxy implements StorageProxyMBean {
     public Long getNativeTransportMaxConcurrentConnections() {
         // TODO Auto-generated method stub
         log(" getNativeTransportMaxConcurrentConnections()");
-        return c.getLongValue("");
+        return client.getLongValue("");
     }
 
+    @Override
+    public void enableHintsForDC(String dc) {
+        // TODO if/when scylla uses hints
+        log(" enableHintsForDC()");
+    }
+
+    @Override
+    public void disableHintsForDC(String dc) {
+        // TODO if/when scylla uses hints
+        log(" disableHintsForDC()");
+    }
+
+    @Override
+    public Set<String> getHintedHandoffDisabledDCs() {
+        // TODO if/when scylla uses hints
+        log(" getHintedHandoffDisabledDCs()");
+        return emptySet();
+    }
 }

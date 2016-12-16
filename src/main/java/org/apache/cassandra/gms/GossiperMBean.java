@@ -19,12 +19,13 @@ package org.apache.cassandra.gms;
 
 import java.net.UnknownHostException;
 
-public interface GossiperMBean
-{
+public interface GossiperMBean {
     public long getEndpointDowntime(String address) throws UnknownHostException;
 
     public int getCurrentGenerationNumber(String address) throws UnknownHostException;
 
     public void unsafeAssassinateEndpoint(String address) throws UnknownHostException;
+
+    public void assassinateEndpoint(String address) throws UnknownHostException;
 
 }

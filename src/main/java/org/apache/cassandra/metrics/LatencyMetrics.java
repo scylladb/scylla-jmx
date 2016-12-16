@@ -23,41 +23,19 @@
  */
 package org.apache.cassandra.metrics;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.scylladb.jmx.metrics.DefaultNameFactory;
-import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.scylladb.jmx.utils.RecentEstimatedHistogram;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Timer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 /**
  * Metrics about latencies
  */
-public class LatencyMetrics {
-    /** Latency */
-    public final Timer latency;
-    /** Total latency in micro sec */
-    public final Counter totalLatency;
-
-    /** parent metrics to replicate any updates to **/
-    private List<LatencyMetrics> parents = Lists.newArrayList();
-
-    protected final MetricNameFactory factory;
+public class LatencyMetrics implements Metrics {
+    protected final MetricNameFactory[] factories;
     protected final String namePrefix;
-
-    @Deprecated public EstimatedHistogramWrapper totalLatencyHistogram;
-    /*
-     * It should not be called directly, use the getRecentLatencyHistogram
-     */
-    @Deprecated protected final RecentEstimatedHistogram recentLatencyHistogram = new RecentEstimatedHistogram();
-
-    protected long lastLatency;
-    protected long lastOpCount;
+    protected final String uri;
+    protected final String param;
 
     /**
      * Create LatencyMetrics with given group, type, and scope. Name prefix for
@@ -68,8 +46,8 @@ public class LatencyMetrics {
      * @param scope
      *            Scope
      */
-    public LatencyMetrics(String url, String type, String scope) {
-        this(url, type, "", scope);
+    public LatencyMetrics(String type, String scope, String uri) {
+        this(type, "", scope, uri, null);
     }
 
     /**
@@ -83,83 +61,35 @@ public class LatencyMetrics {
      * @param scope
      *            Scope of metrics
      */
-    public LatencyMetrics(String url, String type, String namePrefix,
-            String scope) {
-        this(url, new DefaultNameFactory(type, scope), namePrefix);
+    public LatencyMetrics(String type, String namePrefix, String scope, String uri, String param) {
+        this(namePrefix, uri, param, new DefaultNameFactory(type, scope));
     }
 
-    /**
-     * Create LatencyMetrics with given group, type, prefix to append to each
-     * metric name, and scope.
-     *
-     * @param factory
-     *            MetricName factory to use
-     * @param namePrefix
-     *            Prefix to append to each metric name
-     */
-    public LatencyMetrics(String url, MetricNameFactory factory,
-            String namePrefix) {
-        this(url, null, factory, namePrefix);
+    public LatencyMetrics(String namePrefix, String uri, MetricNameFactory... factories) {
+        this(namePrefix, uri, null, factories);
     }
 
-    public LatencyMetrics(String url, String paramName,
-            MetricNameFactory factory, String namePrefix) {
-        this.factory = factory;
+    public LatencyMetrics(String namePrefix, String uri, String param, MetricNameFactory... factories) {
+        this.factories = factories;
         this.namePrefix = namePrefix;
-
-        paramName = (paramName == null)? "" : "/" + paramName;
-        latency = APIMetrics.newTimer(url + "/moving_average_histogram" + paramName,
-                factory.createMetricName(namePrefix + "Latency"),
-                TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
-        totalLatency = APIMetrics.newCounter(url +  paramName,
-                factory.createMetricName(namePrefix + "TotalLatency"));
-        totalLatencyHistogram = new EstimatedHistogramWrapper(url + "/estimated_histogram" + paramName);
+        this.uri = uri;
+        this.param = param;
     }
 
-    /**
-     * Create LatencyMetrics with given group, type, prefix to append to each
-     * metric name, and scope. Any updates to this will also run on parent
-     *
-     * @param factory
-     *            MetricName factory to use
-     * @param namePrefix
-     *            Prefix to append to each metric name
-     * @param parents
-     *            any amount of parents to replicate updates to
-     */
-    public LatencyMetrics(String url, MetricNameFactory factory,
-            String namePrefix, LatencyMetrics... parents) {
-        this(url, factory, namePrefix);
-        this.parents.addAll(ImmutableList.copyOf(parents));
+    protected ObjectName[] names(String suffix) throws MalformedObjectNameException {
+        return Arrays.stream(factories).map(f -> {
+            try {
+                return f.createMetricName(namePrefix + suffix);
+            } catch (MalformedObjectNameException e) {
+                throw new RuntimeException(e); // dung...
+            }
+        }).toArray(size -> new ObjectName[size]);
     }
 
-    /** takes nanoseconds **/
-    public void addNano(long nanos) {
-        // the object is only updated from the API
-    }
-
-    public void release() {
-        APIMetrics.defaultRegistry()
-                .removeMetric(factory.createMetricName(namePrefix + "Latency"));
-        APIMetrics.defaultRegistry().removeMetric(
-                factory.createMetricName(namePrefix + "TotalLatency"));
-    }
-
-    @Deprecated
-    public synchronized double getRecentLatency() {
-        long ops = latency.count();
-        long n = totalLatency.count();
-        if (ops == lastOpCount)
-            return 0;
-        try {
-            return ((double) n - lastLatency) / (ops - lastOpCount);
-        } finally {
-            lastLatency = n;
-            lastOpCount = ops;
-        }
-    }
-
-    public long[] getRecentLatencyHistogram() {
-        return recentLatencyHistogram.getBuckets(totalLatencyHistogram.getBuckets(false));
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        String paramName = (param == null) ? "" : "/" + param;
+        registry.register(() -> registry.timer(uri + "/moving_average_histogram" + paramName), names("Latency"));
+        registry.register(() -> registry.counter(uri + paramName), names("TotalLatency"));
     }
 }

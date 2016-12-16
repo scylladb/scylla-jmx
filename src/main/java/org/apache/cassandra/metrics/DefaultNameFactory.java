@@ -15,15 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.cassandra.metrics;
 
-/*
- * Copyright 2015 Cloudius Systems
- *
- * Modified by Cloudius Systems
- */
-package com.scylladb.jmx.metrics;
-
-import com.yammer.metrics.core.MetricName;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 
 /**
  * MetricNameFactory that generates default MetricName of metrics.
@@ -43,19 +38,14 @@ public class DefaultNameFactory implements MetricNameFactory {
         this.scope = scope;
     }
 
-    public MetricName createMetricName(String metricName) {
+    @Override
+    public ObjectName createMetricName(String metricName) throws MalformedObjectNameException {
         return createMetricName(type, metricName, scope);
     }
 
-    public static MetricName createMetricName(String type, String metricName,
-            String scope) {
-        return new MetricName(GROUP_NAME, type, metricName, scope,
-                createDefaultMBeanName(type, metricName, scope));
-    }
-
-    protected static String createDefaultMBeanName(String type, String name,
-            String scope) {
-        final StringBuilder nameBuilder = new StringBuilder();
+    public static ObjectName createMetricName(String type, String name, String scope)
+            throws MalformedObjectNameException {
+        StringBuilder nameBuilder = new StringBuilder();
         nameBuilder.append(GROUP_NAME);
         nameBuilder.append(":type=");
         nameBuilder.append(type);
@@ -67,6 +57,6 @@ public class DefaultNameFactory implements MetricNameFactory {
             nameBuilder.append(",name=");
             nameBuilder.append(name);
         }
-        return nameBuilder.toString();
+        return new ObjectName(nameBuilder.toString());
     }
 }

@@ -17,16 +17,14 @@
  */
 package org.apache.cassandra.db.compaction;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -35,6 +33,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cassandra.metrics.CompactionMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.MetricsMBean;
 
 /**
  * A singleton which manages a private executor of ongoing compactions.
@@ -49,37 +48,24 @@ import com.scylladb.jmx.api.APIClient;
  *
  * Modified by Cloudius Systems
  */
-public class CompactionManager implements CompactionManagerMBean {
+public class CompactionManager extends MetricsMBean implements CompactionManagerMBean {
     public static final String MBEAN_OBJECT_NAME = "org.apache.cassandra.db:type=CompactionManager";
-    private static final java.util.logging.Logger logger = java.util.logging.Logger
-            .getLogger(CompactionManager.class.getName());
-    public static final CompactionManager instance;
-    private APIClient c = new APIClient();
-    CompactionMetrics metrics = new CompactionMetrics();
+    private static final Logger logger = Logger.getLogger(CompactionManager.class.getName());
 
     public void log(String str) {
         logger.finest(str);
     }
 
-    static {
-        instance = new CompactionManager();
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            mbs.registerMBean(instance, new ObjectName(MBEAN_OBJECT_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static CompactionManager getInstance() {
-        return instance;
+    public CompactionManager(APIClient client) {
+        super(MBEAN_OBJECT_NAME, client, new CompactionMetrics());
     }
 
     /** List of running compaction objects. */
+    @Override
     public List<Map<String, String>> getCompactions() {
         log(" getCompactions()");
         List<Map<String, String>> results = new ArrayList<Map<String, String>>();
-        JsonArray compactions = c.getJsonArray("compaction_manager/compactions");
+        JsonArray compactions = client.getJsonArray("compaction_manager/compactions");
         for (int i = 0; i < compactions.size(); i++) {
             JsonObject compaction = compactions.getJsonObject(i);
             Map<String, String> result = new HashMap<String, String>();
@@ -95,59 +81,21 @@ public class CompactionManager implements CompactionManagerMBean {
     }
 
     /** List of running compaction summary strings. */
+    @Override
     public List<String> getCompactionSummary() {
         log(" getCompactionSummary()");
-        return c.getListStrValue("compaction_manager/compaction_summary");
+        return client.getListStrValue("compaction_manager/compaction_summary");
     }
 
     /** compaction history **/
+    @Override
     public TabularData getCompactionHistory() {
         log(" getCompactionHistory()");
         try {
-            return CompactionHistoryTabularData.from(c.getJsonArray("/compaction_manager/compaction_history"));
+            return CompactionHistoryTabularData.from(client.getJsonArray("/compaction_manager/compaction_history"));
         } catch (OpenDataException e) {
             return null;
         }
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#pendingTasks
-     * @return estimated number of compactions remaining to perform
-     */
-    @Deprecated
-    public int getPendingTasks() {
-        log(" getPendingTasks()");
-        return metrics.pendingTasks.value();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#completedTasks
-     * @return number of completed compactions since server [re]start
-     */
-    @Deprecated
-    public long getCompletedTasks() {
-        log(" getCompletedTasks()");
-        return metrics.completedTasks.value();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#bytesCompacted
-     * @return total number of bytes compacted since server [re]start
-     */
-    @Deprecated
-    public long getTotalBytesCompacted() {
-        log(" getTotalBytesCompacted()");
-        return metrics.bytesCompacted.count();
-    }
-
-    /**
-     * @see org.apache.cassandra.metrics.CompactionMetrics#totalCompactionsCompleted
-     * @return total number of compactions since server [re]start
-     */
-    @Deprecated
-    public long getTotalCompactionsCompleted() {
-        log(" getTotalCompactionsCompleted()");
-        return metrics.totalCompactionsCompleted.count();
     }
 
     /**
@@ -161,11 +109,12 @@ public class CompactionManager implements CompactionManagerMBean {
      *            contain keyspace and columnfamily name in path(for 2.1+) or
      *            file name itself.
      */
+    @Override
     public void forceUserDefinedCompaction(String dataFiles) {
         log(" forceUserDefinedCompaction(String dataFiles)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("dataFiles", dataFiles);
-        c.post("compaction_manager/force_user_defined_compaction", queryParams);
+        client.post("compaction_manager/force_user_defined_compaction", queryParams);
     }
 
     /**
@@ -175,23 +124,21 @@ public class CompactionManager implements CompactionManagerMBean {
      *            the type of compaction to stop. Can be one of: - COMPACTION -
      *            VALIDATION - CLEANUP - SCRUB - INDEX_BUILD
      */
+    @Override
     public void stopCompaction(String type) {
         log(" stopCompaction(String type)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("type", type);
-        c.post("compaction_manager/stop_compaction", queryParams);
+        client.post("compaction_manager/stop_compaction", queryParams);
     }
 
     /**
      * Returns core size of compaction thread pool
      */
+    @Override
     public int getCoreCompactorThreads() {
         log(" getCoreCompactorThreads()");
-        /**
-         * Core size pool is meaningless, we still wants to return a valid reponse,
-         * just in case someone will try to call this method.
-         */
-        return 1;
+        return client.getIntValue("");
     }
 
     /**
@@ -200,6 +147,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setCoreCompactorThreads(int number) {
         log(" setCoreCompactorThreads(int number)");
     }
@@ -207,13 +155,10 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns maximum size of compaction thread pool
      */
+    @Override
     public int getMaximumCompactorThreads() {
         log(" getMaximumCompactorThreads()");
-        /**
-         * Core size pool is meaningless, we still wants to return a valid reponse,
-         * just in case someone will try to call this method.
-         */
-        return 1;
+        return client.getIntValue("");
     }
 
     /**
@@ -222,6 +167,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setMaximumCompactorThreads(int number) {
         log(" setMaximumCompactorThreads(int number)");
     }
@@ -229,13 +175,10 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns core size of validation thread pool
      */
+    @Override
     public int getCoreValidationThreads() {
         log(" getCoreValidationThreads()");
-        /**
-         * Core validation size pool is meaningless, we still wants to return a valid reponse,
-         * just in case someone will try to call this method.
-         */
-        return 1;
+        return client.getIntValue("");
     }
 
     /**
@@ -244,6 +187,7 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of compaction threads
      */
+    @Override
     public void setCoreValidationThreads(int number) {
         log(" setCoreValidationThreads(int number)");
     }
@@ -251,13 +195,10 @@ public class CompactionManager implements CompactionManagerMBean {
     /**
      * Returns size of validator thread pool
      */
+    @Override
     public int getMaximumValidatorThreads() {
         log(" getMaximumValidatorThreads()");
-        /**
-         * Core validation size pool is meaningless, we still wants to return a valid reponse,
-         * just in case someone will try to call this method.
-         */
-        return 1;
+        return client.getIntValue("");
     }
 
     /**
@@ -266,8 +207,19 @@ public class CompactionManager implements CompactionManagerMBean {
      * @param number
      *            New maximum of validator threads
      */
+    @Override
     public void setMaximumValidatorThreads(int number) {
         log(" setMaximumValidatorThreads(int number)");
     }
 
+    @Override
+    public void stopCompactionById(String compactionId) {
+        // scylla does not have neither compaction ids nor the file described
+        // in:
+        // "Ids can be found in the transaction log files whose name starts with
+        // compaction_, located in the table transactions folder"
+        // (nodetool)
+        // TODO: throw?
+        log(" stopCompactionById");
+    }
 }

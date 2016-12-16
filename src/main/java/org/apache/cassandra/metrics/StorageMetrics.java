@@ -23,27 +23,21 @@
  */
 package org.apache.cassandra.metrics;
 
-import com.scylladb.jmx.metrics.APIMetrics;
-import com.scylladb.jmx.metrics.DefaultNameFactory;
-import com.scylladb.jmx.metrics.MetricNameFactory;
-import com.yammer.metrics.core.Counter;
+import javax.management.MalformedObjectNameException;
 
 /**
  * Metrics related to Storage.
  */
-public class StorageMetrics {
-    private static final MetricNameFactory factory = new DefaultNameFactory(
-            "Storage");
-
-    public static final Counter load = APIMetrics.newCounter(
-            "/storage_service/metrics/load", factory.createMetricName("Load"));
-    public static final Counter exceptions = APIMetrics.newCounter(
-            "/storage_service/metrics/exceptions",
-            factory.createMetricName("Exceptions"));
-    public static final Counter totalHintsInProgress = APIMetrics.newCounter(
-            "/storage_service/metrics/hints_in_progress",
-            factory.createMetricName("TotalHintsInProgress"));
-    public static final Counter totalHints = APIMetrics.newCounter(
-            "/storage_service/metrics/total_hints",
-            factory.createMetricName("TotalHints"));
+public class StorageMetrics implements Metrics {
+    @Override
+    public void register(MetricsRegistry registry) throws MalformedObjectNameException {
+        MetricNameFactory factory = new DefaultNameFactory("Storage");
+        registry.register(() -> registry.counter("/storage_service/metrics/load"), factory.createMetricName("Load"));
+        registry.register(() -> registry.counter("/storage_service/metrics/exceptions"),
+                factory.createMetricName("Exceptions"));
+        registry.register(() -> registry.counter("/storage_service/metrics/hints_in_progress"),
+                factory.createMetricName("TotalHintsInProgress"));
+        registry.register(() -> registry.counter("/storage_service/metrics/total_hints"),
+                factory.createMetricName("TotalHints"));
+    }
 }
