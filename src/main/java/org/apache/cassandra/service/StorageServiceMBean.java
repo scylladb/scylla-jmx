@@ -598,6 +598,7 @@ public interface StorageServiceMBean extends NotificationEmitter {
 
     public int getInterDCStreamThroughputMbPerSec();
 
+    public int getCompactionThroughputMbPerSec();
     public void setCompactionThroughputMbPerSec(int value);
 
     public boolean isIncrementalBackupsEnabled();
