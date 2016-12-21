@@ -75,6 +75,7 @@ public class CompactionManager extends MetricsMBean implements CompactionManager
             result.put("keyspace", compaction.getString("ks"));
             result.put("columnfamily", compaction.getString("cf"));
             result.put("unit", compaction.getString("unit"));
+            result.put("compactionId", "<none>");
             results.add(result);
         }
         return results;
