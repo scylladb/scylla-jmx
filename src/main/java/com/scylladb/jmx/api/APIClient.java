@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -406,7 +407,7 @@ public class APIClient {
         }
         JsonReader reader = getReader(string, queryParams);
         JsonArray arr = reader.readArray();
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new LinkedHashMap<String, String>();
         for (int i = 0; i < arr.size(); i++) {
             JsonObject obj = arr.getJsonObject(i);
             if (obj.containsKey("key") && obj.containsKey("value")) {
