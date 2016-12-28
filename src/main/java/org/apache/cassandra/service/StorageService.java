@@ -371,16 +371,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<String, String> getTokenToEndpointMap() {
         log(" getTokenToEndpointMap()");
-        Map<String, String> mapInetAddress = client.getMapStrValue("/storage_service/tokens_endpoint");
-        // in order to preserve tokens in ascending order, we use LinkedHashMap
-        // here
-        Map<String, String> mapString = new LinkedHashMap<>(mapInetAddress.size());
-        List<String> tokens = new ArrayList<>(mapInetAddress.keySet());
-        Collections.sort(tokens);
-        for (String token : tokens) {
-            mapString.put(token, mapInetAddress.get(token));
-        }
-        return mapString;
+        return client.getMapStrValue("/storage_service/tokens_endpoint");
     }
 
     /** Retrieve this hosts unique ID */
