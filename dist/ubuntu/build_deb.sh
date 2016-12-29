@@ -8,6 +8,19 @@ fi
 if [ -e debian ] || [ -e build ] || [ -e target ] || [ -e m2 ] || [ -e dependency-reduced-pom.xml ]; then
     rm -rf debian build target m2 dependency-reduced-pom.xml
 fi
+sudo apt-get -y update
+if [ ! -f /usr/bin/git ]; then
+    sudo apt-get -y install git
+fi
+if [ ! -f /usr/bin/mk-build-deps ]; then
+    sudo apt-get -y install devscripts
+fi
+if [ ! -f /usr/bin/equivs-build ]; then
+    sudo apt-get -y install equivs
+fi
+if [ ! -f /usr/bin/lsb_release ]; then
+    sudo apt-get -y install lsb-release
+fi
 
 DISTRIBUTION=`lsb_release -i|awk '{print $3}'`
 RELEASE=`lsb_release -r|awk '{print $2}'`
