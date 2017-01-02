@@ -12,19 +12,23 @@ sudo apt-get -y update
 if [ ! -f /usr/bin/git ]; then
     sudo apt-get -y install git
 fi
-if [ ! -f /usr/bin/mk-build-deps ]; then
-    sudo apt-get -y install devscripts
-fi
-if [ ! -f /usr/bin/equivs-build ]; then
-    sudo apt-get -y install equivs
-fi
 if [ ! -f /usr/bin/lsb_release ]; then
     sudo apt-get -y install lsb-release
 fi
-
 DISTRIBUTION=`lsb_release -i|awk '{print $3}'`
 RELEASE=`lsb_release -r|awk '{print $2}'`
 CODENAME=`lsb_release -c|awk '{print $2}'`
+
+if [ "$RELEASE" = "14.04" ]; then
+    sudo apt-get -y install software-properties-common
+    sudo add-apt-repository -y ppa:openjdk-r/ppa
+    sudo apt-get -y update
+fi
+
+if [ "$CODENAME" = "jessie" ]; then
+    sudo sh -c 'echo deb "http://httpredir.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list'
+    sudo apt-get -y update
+fi
 
 VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
@@ -49,5 +53,5 @@ fi
 cp dist/common/systemd/scylla-jmx.service.in debian/scylla-jmx.service
 sed -i -e "s#@@SYSCONFDIR@@#/etc/default#g" debian/scylla-jmx.service
 
-echo Y | sudo mk-build-deps -i -r
+sudo apt-get install -y debhelper maven openjdk-8-jdk-headless devscripts
 debuild -r fakeroot -us -uc
