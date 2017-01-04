@@ -45,6 +45,11 @@ cp dist/ubuntu/rules.in debian/rules
 sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
 sed -i -e "s/@@CODENAME@@/$CODENAME/g" debian/changelog
+if [ "$DISTRIBUTION" = "Ubuntu" ]; then
+    sed -i -e "s/@@REVISION@@/0ubuntu1/g" debian/changelog
+else
+    sed -i -e "s/@@REVISION@@/1/g" debian/changelog
+fi
 if [ "$RELEASE" = "14.04" ]; then
     sed -i -e "s/@@DH_INSTALLINIT@@/--upstart-only/g" debian/rules
 else

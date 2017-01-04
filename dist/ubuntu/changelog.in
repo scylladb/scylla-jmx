@@ -1,4 +1,4 @@
-scylla-jmx (@@VERSION@@-@@RELEASE@@-ubuntu1) @@CODENAME@@; urgency=medium
+scylla-jmx (@@VERSION@@-@@RELEASE@@-@@REVISION@@) @@CODENAME@@; urgency=medium
 
   * Initial release.
 
