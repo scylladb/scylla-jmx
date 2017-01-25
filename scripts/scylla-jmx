@@ -3,12 +3,16 @@
 #  Copyright (C) 2015 Cloudius Systems, Ltd.
 
 JMX_PORT="7199"
-API_ADDR=""
-API_PORT=""
+JMX_ADDR=
+
+API_ADDR=
+API_PORT=
+
 CONF_FILE=""
 DEBUG=""
 PARAM_HELP="-h"
 PARAM_JMX_PORT="-jp"
+PARAM_JMX_ADDR="-ja"
 PARAM_API_PORT="-p"
 PARAM_ADDR="-a"
 PARAM_LOCATION="-l"
@@ -19,6 +23,11 @@ ALLOW_REMOTE="-r"
 ALLOW_DEBUG="-d"
 REMOTE=0
 HOSTNAME=`hostname`
+
+
+PROPERTIES=
+JMX_AUTH=-Dcom.sun.management.jmxremote.authenticate=false
+JMX_SSL=-Dcom.sun.management.jmxremote.ssl=false
 
 print_help() {
  cat <<HLPEND
@@ -35,6 +44,7 @@ This script receives the following command line arguments:
     $PARAM_JMX_PORT <port> - The jmx port to open
     $PARAM_API_PORT <port> - The API port to connect to
     $PARAM_ADDR <address> - The API address to connect to
+    $PARAM_JMX_ADDR <address> - JMX bind address
     $PARAM_FILE <file> - A configuration file to use
     $PARAM_LOCATION <location> - The location of the jmx proxy jar file
     $ALLOW_REMOTE - When set allow remote jmx connectivity
@@ -61,6 +71,10 @@ do
       JMX_PORT=$2
       shift 2
       ;;
+    "$PARAM_JMX_ADDR")
+      JMX_ADDR=-Dcom.sun.management.jmxremote.host=$2
+      shift 2
+      ;;
     "$PARAM_LOCATION")
       LOCATION=$2
       LOCATION_SCRIPTS="$2"
@@ -82,6 +96,26 @@ do
       DEBUG="-agentlib:jdwp=transport=dt_socket,address=127.0.0.1:7690,server=y,suspend=n"
       shift 1
       ;;
+    -Dcom.sun.management.jmxremote.host=*)
+      JMX_ADDR=$1
+      shift
+      ;;
+    -Dcom.sun.management.jmxremote.authenticate=*)
+      JMX_AUTH=$1
+      shift 1
+      ;;
+    -Dcom.sun.management.jmxremote.ssl=*)
+      JMX_SSL=$1
+      shift 1
+      ;;
+    -Dcom.sun.management.jmxremote.local.only=*)
+      JMX_LOCAL=$1
+      shift 1
+      ;;
+    -D*)
+      PROPERTIES="$PROPERTIES $1"
+      shift 1
+      ;;
     *)
       echo "Unknown parameter: $1"
       print_help
@@ -89,11 +123,20 @@ do
     esac
 done
 
-
-if [ $REMOTE -eq 1 ]; then
-  REMOTE="-Djavax.management.builder.initial=com.scylladb.jmx.utils.APIBuilder -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.local.only=false -Djava.rmi.server.hostname=$HOSTNAME"
+if [ $REMOTE -eq 0 ]; then
+    if [ -z $JMX_ADDR ]; then
+        JMX_ADDR=-Dcom.sun.management.jmxremote.host=localhost
+    fi
 else
-  REMOTE="-Dcassandra.jmx.local.port=$JMX_PORT"
+    if [ -z $JMX_LOCAL ]; then
+        JMX_LOCAL=-Dcom.sun.management.jmxremote.local.only=false
+    fi
 fi
 
-exec "$LOCATION_SCRIPTS"/symlinks/scylla-jmx $API_ADDR $API_PORT $DEBUG $CONF_FILE $REMOTE -Xmx256m -XX:+UseSerialGC -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar $LOCATION/scylla-jmx-1.0.jar
+exec "$LOCATION_SCRIPTS"/symlinks/scylla-jmx $DEBUG \
+    $API_PORT $API_ADDR $CONF_FILE -Xmx256m -XX:+UseSerialGC \
+    $JMX_AUTH $JMX_SSL $JMX_ADDR $JMX_LOCAL \
+    -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT \
+    -Djava.rmi.server.hostname=$HOSTNAME -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT \
+    -Djavax.management.builder.initial=com.scylladb.jmx.utils.APIBuilder \
+    $PROPERTIES -jar $LOCATION/scylla-jmx-1.0.jar
