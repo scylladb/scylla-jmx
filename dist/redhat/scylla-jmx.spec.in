@@ -9,8 +9,8 @@ URL:            http://www.scylladb.com/
 Source0:        %{name}-@@VERSION@@-@@RELEASE@@.tar
 
 BuildArch:      noarch
-BuildRequires:  maven systemd-units java-devel
-Requires:       scylla-server java-headless
+BuildRequires:  maven systemd-units java-1.8.0-openjdk-devel
+Requires:       scylla-server java-1.8.0-openjdk-headless
 
 %description
 
