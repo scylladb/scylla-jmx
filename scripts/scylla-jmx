@@ -98,6 +98,7 @@ do
       ;;
     -Dcom.sun.management.jmxremote.host=*)
       JMX_ADDR=$1
+      HOSTNAME=${1:36}
       shift
       ;;
     -Dcom.sun.management.jmxremote.authenticate=*)
@@ -127,6 +128,7 @@ if [ $REMOTE -eq 0 ]; then
     if [ -z $JMX_ADDR ]; then
         JMX_ADDR=-Dcom.sun.management.jmxremote.host=localhost
     fi
+    HOSTNAME=localhost
 else
     if [ -z $JMX_LOCAL ]; then
         JMX_LOCAL=-Dcom.sun.management.jmxremote.local.only=false
