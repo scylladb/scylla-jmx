@@ -31,6 +31,7 @@ fi
 if [ "$CODENAME" = "jessie" ]; then
     sudo sh -c 'echo deb "http://httpredir.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list'
     sudo apt-get -y update
+    sudo apt-get install -t jessie-backports -y ca-certificates-java
 fi
 
 VERSION=$(./SCYLLA-VERSION-GEN)
