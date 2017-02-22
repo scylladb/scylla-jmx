@@ -471,7 +471,7 @@ public class APIClient {
             JsonObject obj = arr.getJsonObject(i);
             if (obj.containsKey("ks") && obj.containsKey("cf")) {
                 SnapshotDetailsTabularData.from(key, obj.getString("ks"),
-                        obj.getString("cf"), obj.getInt("total"),
+                        obj.getString("cf"), obj.getJsonNumber("total").longValue(),
                         obj.getInt("live"), data);
             }
         }
