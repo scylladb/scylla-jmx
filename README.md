@@ -1,22 +1,25 @@
-# Urchin JMX Interface
-This is the JMX interface for Scylla
-## Compile
-To compile do:
-```
-mvn install
-```
+# Scylla JMX Server
 
-## Run
-The maven will create an uber-jar with all dependency under the target directory. You should run it with the remote jmx enable so the nodetool will be able to connect to it.
+Scylla JMX server implements the Apache Cassandra JMX interface for compatibility with tooling such as `nodetool`. The JMX server uses Scylla's REST API to communicate with a Scylla server.
 
-```
-java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=7199 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar target/scylla-jmx-1.0.jar
+## Compiling
+
+To compile JMX server, run:
+
+```console
+$ mvn package
 ```
 
-## Setting IP and Port
-By default the the JMX would connect to a node on the localhost
-on port 10000.
+## Running
 
-The jmx API uses the system properties to set the IP address and Port.
-To change the ip address use the apiaddress property (e.g. -Dapiaddress=1.1.1.1)
-To change the port use the apiport (e.g. -Dapiport=10001)
+To start the JMX server, run:
+
+```console
+$ ./scripts/scylla-jmx
+```
+
+To get help on supported options:
+
+```console
+$ ./scripts/scylla-jmx --help
+```
