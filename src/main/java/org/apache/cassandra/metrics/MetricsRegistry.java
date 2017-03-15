@@ -196,11 +196,11 @@ public class MetricsRegistry {
 
     private static final TimeUnit RATE_UNIT = TimeUnit.SECONDS;
     private static final TimeUnit DURATION_UNIT = TimeUnit.MICROSECONDS;
-    private static final TimeUnit API_DURATION_UNIT = TimeUnit.NANOSECONDS;
+    private static final TimeUnit API_DURATION_UNIT = TimeUnit.MICROSECONDS;
     private static final double DURATION_FACTOR = 1.0 / API_DURATION_UNIT.convert(1, DURATION_UNIT);
 
-    private static double toDuration(double nanos) {
-        return nanos * DURATION_FACTOR;
+    private static double toDuration(double micro) {
+        return micro * DURATION_FACTOR;
     }
 
     private static String unitString(TimeUnit u) {
@@ -650,61 +650,73 @@ public class MetricsRegistry {
 
         @Override
         public double getMin() {
+            update();
             return toDuration(histogram.getMin());
         }
 
         @Override
         public double getMax() {
+            update();
             return toDuration(histogram.getMax());
         }
 
         @Override
         public double getMean() {
+            update();
             return toDuration(histogram.getMean());
         }
 
         @Override
         public double getStdDev() {
+            update();
             return toDuration(histogram.getStdDev());
         }
 
         @Override
         public double get50thPercentile() {
+            update();
             return toDuration(histogram.getValue(.5));
         }
 
         @Override
         public double get75thPercentile() {
+            update();
             return toDuration(histogram.getValue(.75));
         }
 
         @Override
         public double get95thPercentile() {
+            update();
             return toDuration(histogram.getValue(.95));
         }
 
         @Override
         public double get98thPercentile() {
+            update();
             return toDuration(histogram.getValue(.98));
         }
 
         @Override
         public double get99thPercentile() {
+            update();
             return toDuration(histogram.getValue(.99));
         }
 
         @Override
         public double get999thPercentile() {
+            update();
             return toDuration(histogram.getValue(.999));
         }
 
         @Override
         public long[] values() {
+            update();
             return histogram.getValues();
         }
 
         @Override
         public String getDurationUnit() {
+            update();
             return DURATION_UNIT.toString().toLowerCase(Locale.US);
         }
     }
