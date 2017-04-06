@@ -582,6 +582,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     /**
      * Forces major compaction of a single keyspace
      */
+    @Override
     public void forceKeyspaceCompaction(String keyspaceName, String... columnFamilies)
             throws IOException, ExecutionException, InterruptedException {
         log(" forceKeyspaceCompaction(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
