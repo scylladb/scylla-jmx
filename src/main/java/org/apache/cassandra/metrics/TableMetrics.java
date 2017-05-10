@@ -21,11 +21,13 @@ import static com.scylladb.jmx.api.APIClient.getReader;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
+import org.apache.cassandra.metrics.MetricsRegistry.MetricMBean;
 
 import com.scylladb.jmx.api.APIClient;
 
@@ -110,13 +112,20 @@ public class TableMetrics implements Metrics {
         final MetricNameFactory factory;
         final MetricNameFactory aliasFactory;
         final String cfName;
+        final MetricsRegistry other;
 
         public Registry(MetricsRegistry other, MetricNameFactory factory, MetricNameFactory aliasFactory,
                 String cfName) {
             super(other);
+            this.other = other;
             this.cfName = cfName;
             this.factory = factory;
             this.aliasFactory = aliasFactory;
+        }
+
+        @Override
+        public void register(Supplier<MetricMBean> f, ObjectName... objectNames) {
+            other.register(f, objectNames);
         }
 
         public void createTableGauge(String name, String uri) throws MalformedObjectNameException {
