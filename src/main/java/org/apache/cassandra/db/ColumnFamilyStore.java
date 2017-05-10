@@ -50,9 +50,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
     private String keyspace;
     private String name;
     private String mbeanName;
+    private ObjectName nameObj;
     private static APIClient s_c = new APIClient();
     static final int INTERVAL = 1000; // update every 1second
-    public final ColumnFamilyMetrics metric;
+    public ColumnFamilyMetrics metric;
 
     private static Map<String, ColumnFamilyStore> cf = new HashMap<String, ColumnFamilyStore>();
     private static Timer timer = new Timer("Column Family");
@@ -73,7 +74,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
         mbeanName = getName(type, keyspace, name);
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName nameObj = new ObjectName(mbeanName);
+            nameObj = new ObjectName(mbeanName);
             mbs.registerMBean(this, nameObj);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -120,15 +121,32 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean {
                 all_cf.add(name);
             }
             // removing deleted column family
-            for (String n : cf.keySet()) {
+            Iterator<String> i = cf.keySet().iterator();
+            while (i.hasNext()) {
+                String n = i.next();
                 if (!all_cf.contains(n)) {
-                    cf.remove(n);
+                    cf.get(n).unregister();
+                    i.remove();
                 }
             }
         } catch (IllegalStateException e) {
             return false;
         }
         return true;
+    }
+    /**
+     * Instead of waiting for the object to be removed by the mbean server,
+     * do it explicitly
+     */
+    private void unregister() {
+        mbeanName = getName(type, keyspace, name);
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            mbs.unregisterMBean(nameObj);
+            metric = null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static final class CheckRegistration extends TimerTask {
