@@ -121,11 +121,7 @@ sudo rm -fv /var/cache/pbuilder/$TARGET-base.tgz
 sudo -E DIST=$TARGET /usr/sbin/pbuilder clean
 sudo -E DIST=$TARGET /usr/sbin/pbuilder create
 sudo -E DIST=$TARGET /usr/sbin/pbuilder update
-if [ "$TARGET" = "trusty" ]; then
-    true
-elif [ "$TARGET" = "xenial" ]; then
-    true
-elif [ "$TARGET" = "jessie" ]; then
+if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
     chmod a+rx build/jessie-pkginst.sh
     sudo -E DIST=$TARGET /usr/sbin/pbuilder execute build/jessie-pkginst.sh
