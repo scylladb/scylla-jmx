@@ -114,7 +114,7 @@ cp dist/common/systemd/scylla-jmx.service.in debian/scylla-jmx.service
 sed -i -e "s#@@SYSCONFDIR@@#/etc/default#g" debian/scylla-jmx.service
 
 cp ./dist/debian/pbuilderrc ~/.pbuilderrc
-sudo rm -fv /var/cache/pbuilder/$TARGET-base.tgz
+sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz
 sudo -E DIST=$TARGET /usr/sbin/pbuilder clean
 sudo -E DIST=$TARGET /usr/sbin/pbuilder create
 sudo -E DIST=$TARGET /usr/sbin/pbuilder update
