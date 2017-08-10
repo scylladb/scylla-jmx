@@ -101,9 +101,9 @@ sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
 sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
 sed -i -e "s/@@CODENAME@@/$TARGET/g" debian/changelog
 if [ "$TARGET" = "trusty" ] || [ "$TARGET" = "xenial" ] || [ "$TARGET" = "yakkety" ] || [ "$TARGET" = "zesty" ] || [ "$TARGET" = "artful" ]; then
-    sed -i -e "s/@@REVISION@@/0ubuntu1/g" debian/changelog
+    sed -i -e "s/@@REVISION@@/0ubuntu1~$TARGET/g" debian/changelog
 else
-    sed -i -e "s/@@REVISION@@/1/g" debian/changelog
+    sed -i -e "s/@@REVISION@@/1~$TARGET/g" debian/changelog
 fi
 if [ "$TARGET" = "trusty" ]; then
     sed -i -e "s/@@DH_INSTALLINIT@@/--upstart-only/g" debian/rules
