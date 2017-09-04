@@ -1381,7 +1381,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         log("disableAutoCompaction(String ks, String... columnFamilies)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
-        client.delete("/storage_service/auto_compaction/", queryParams);
+        client.delete("/storage_service/auto_compaction/" + ks, queryParams);
     }
 
     @Override
@@ -1390,7 +1390,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
         try {
-            client.post("/storage_service/auto_compaction/", queryParams);
+            client.post("/storage_service/auto_compaction/" + ks, queryParams);
         } catch (RuntimeException e) {
             // FIXME should throw the right exception
             throw new IOException(e.getMessage());
