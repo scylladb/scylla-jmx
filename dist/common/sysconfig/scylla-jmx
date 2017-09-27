@@ -3,3 +3,29 @@ SCYLLA_HOME=/var/lib/scylla
 
 # scylla config dir
 SCYLLA_CONF=/etc/scylla
+
+SCYLLA_PARAMS=""
+
+# The jmx port to open
+# SCYLLA_PARAMS="${SCYLLA_PARAMS } -jp 7199"
+
+# The API port to connect to
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -p 12345"
+
+# API address to connect to
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -a `hostname`"
+
+# use alternate jmx address
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -ja `hostname`"
+
+# A configuration file to use
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -cf /etc/scylla.d/scylla-user.cfg"
+
+# The location of the jmx proxy jar file
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} target /some/scripts"
+
+# allow to run remotely
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -r"
+
+# allow debug
+# SCYLLA_PARAMS="${SCYLLA_PARAMS} -d"
