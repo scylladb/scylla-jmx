@@ -63,10 +63,6 @@ do
       API_ADDR="-Dapiaddress="$2
       shift 2
       ;;
-    "$PARAM_PORT")
-      API_ADDR=$2
-      shift 2
-      ;;
     "$PARAM_JMX_PORT")
       JMX_PORT=$2
       shift 2
