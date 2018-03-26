@@ -1,4 +1,4 @@
-scylla-jmx (@@VERSION@@-@@RELEASE@@-@@REVISION@@) @@CODENAME@@; urgency=medium
+scylla-enterprise-jmx (@@VERSION@@-@@RELEASE@@-@@REVISION@@) @@CODENAME@@; urgency=medium
 
   * Initial release.
 

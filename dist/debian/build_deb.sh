@@ -92,7 +92,7 @@ VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
 echo $VERSION > version
-./scripts/git-archive-all --extra version --force-submodules --prefix scylla-jmx ../scylla-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
+./scripts/git-archive-all --extra version --force-submodules --prefix scylla-enterprise-jmx ../scylla-enterprise-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz
 
 cp -a dist/debian/debian debian
 cp dist/debian/changelog.in debian/changelog
