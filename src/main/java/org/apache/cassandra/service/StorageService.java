@@ -1095,6 +1095,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         return client.getListStrValue("/storage_service/keyspaces", queryParams);
     }
 
+    @Override
+    public Map<String, String> getViewBuildStatuses(String keyspace, String view) {
+        log(" getViewBuildStatuses()");
+        return client.getMapStrValue("storage_service/view_build_statuses/" + keyspace + "/" + view);
+    }
+
     /**
      * Change endpointsnitch class and dynamic-ness (and dynamic attributes) at
      * runtime
