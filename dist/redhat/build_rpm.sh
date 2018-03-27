@@ -62,10 +62,10 @@ fi
 VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
-git archive --format=tar --prefix=scylla-enterprise-jmx-$SCYLLA_VERSION/ HEAD -o build/scylla-enterprise-jmx-$VERSION.tar
-cp dist/redhat/scylla-jmx.spec.in build/scylla-enterprise-jmx.spec
-sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" build/scylla-enterprise-jmx.spec
-sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" build/scylla-enterprise-jmx.spec
+git archive --format=tar --prefix=scylla-jmx-$SCYLLA_VERSION/ HEAD -o build/scylla-jmx-$VERSION.tar
+cp dist/redhat/scylla-jmx.spec.in build/scylla-jmx.spec
+sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" build/scylla-jmx.spec
+sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" build/scylla-jmx.spec
 
-sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-enterprise-jmx.spec --sources=build/scylla-enterprise-jmx-$VERSION.tar
-sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/scylla-enterprise-jmx-$VERSION*.src.rpm
+sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-jmx.spec --sources=build/scylla-jmx-$VERSION.tar
+sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/scylla-jmx-$VERSION*.src.rpm

@@ -1,4 +1,4 @@
-Name:           scylla-enterprise-jmx
+Name:           scylla-jmx
 Version:        @@VERSION@@
 Release:        @@RELEASE@@%{?dist}
 Summary:        Scylla JMX
@@ -10,8 +10,7 @@ Source0:        %{name}-@@VERSION@@-@@RELEASE@@.tar
 
 BuildArch:      noarch
 BuildRequires:  maven systemd-units java-1.8.0-openjdk-devel
-Requires:       scylla-enterprise-server java-1.8.0-openjdk-headless
-Obsoletes:      scylla-jmx < 2.2
+Requires:       scylla-server java-1.8.0-openjdk-headless
 
 %description
 
