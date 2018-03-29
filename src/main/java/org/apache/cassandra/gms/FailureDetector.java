@@ -105,9 +105,11 @@ public class FailureDetector extends APIMBean implements FailureDetectorMBean {
             ep.setAliave(obj.getBoolean("is_alive"));
             ep.setUpdateTimestamp(obj.getJsonNumber("update_time").longValue());
             JsonArray states = obj.getJsonArray("application_state");
-            for (int j = 0; j < states.size(); j++) {
-                JsonObject state = states.getJsonObject(j);
-                ep.addApplicationState(state.getInt("application_state"), state.getString("value"));
+            if (states != null) {
+                for (int j = 0; j < states.size(); j++) {
+                    JsonObject state = states.getJsonObject(j);
+                    ep.addApplicationState(state.getInt("application_state"), state.getString("value"));
+                }
             }
             res.put(obj.getString("addrs"), ep);
         }
