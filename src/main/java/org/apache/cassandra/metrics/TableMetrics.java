@@ -19,6 +19,7 @@ package org.apache.cassandra.metrics;
 
 import static com.scylladb.jmx.api.APIClient.getReader;
 
+import java.util.Hashtable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -27,7 +28,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.apache.cassandra.db.ColumnFamilyStore;
-import org.apache.cassandra.metrics.MetricsRegistry.MetricMBean;
 
 import com.scylladb.jmx.api.APIClient;
 
@@ -266,7 +266,93 @@ public class TableMetrics implements Metrics {
         registry.createTableCounter("RowCacheMiss", "row_cache_miss");
     }
 
-    static class TableMetricNameFactory implements MetricNameFactory {
+    static class TableMetricObjectName extends javax.management.ObjectName {
+        private static final String FAKE_NAME = "a:a=a";
+
+        private final TableMetricStringNameFactory factory;
+        private final String metricName;
+
+        public TableMetricObjectName(TableMetricStringNameFactory factory, String metricName) throws MalformedObjectNameException {
+            super(FAKE_NAME);
+            this.factory = factory;
+            this.metricName = metricName;
+        }
+
+        @Override
+        public boolean isPropertyValuePattern(String property) {
+            return false;
+        }
+
+        @Override
+        public String getCanonicalName() {
+            return factory.createMetricStringName(metricName);
+        }
+
+        @Override
+        public String getDomain() {
+            return factory.getDomain();
+        }
+
+        @Override
+        public String getKeyProperty(String property) {
+            if (property == "name") {
+                return metricName;
+            }
+            return factory.getKeyProperty(property);
+        }
+
+        @Override
+        public Hashtable<String,String> getKeyPropertyList() {
+            Hashtable<String, String> res = factory.getKeyPropertyList();
+            res.put("name", metricName);
+            return res;
+        }
+
+        @Override
+        public String getKeyPropertyListString() {
+            return factory.getKeyPropertyListString(metricName);
+        }
+
+        @Override
+        public String getCanonicalKeyPropertyListString() {
+            return getKeyPropertyListString();
+        }
+
+        @Override
+        public String toString() {
+            return getCanonicalName();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TableMetricObjectName)) return false;
+            return getCanonicalName().equals(((TableMetricObjectName) o).getCanonicalName());
+        }
+
+        @Override
+        public int hashCode() {
+            return getCanonicalName().hashCode();
+        }
+
+        @Override
+        public boolean apply(ObjectName name) {
+            if (name.isDomainPattern() || name.isPropertyListPattern() || name.isPropertyValuePattern()) {
+                return false;
+            }
+            return getCanonicalName().equals(name.getCanonicalName());
+        }
+    }
+
+    static interface TableMetricStringNameFactory {
+        String createMetricStringName(String metricName);
+        String getDomain();
+        String getKeyProperty(String property);
+        Hashtable<String,String> getKeyPropertyList();
+        String getKeyPropertyListString(String metricName);
+    }
+
+    static class TableMetricNameFactory implements MetricNameFactory, TableMetricStringNameFactory {
         private final String keyspaceName;
         private final String tableName;
         private final boolean isIndex;
@@ -279,37 +365,114 @@ public class TableMetrics implements Metrics {
             this.type = type;
         }
 
-        @Override
-        public ObjectName createMetricName(String metricName) throws MalformedObjectNameException {
-            String groupName = TableMetrics.class.getPackage().getName();
+        private void appendKeyPropertyListString(final StringBuilder sb, final String metricName) {
             String type = isIndex ? "Index" + this.type : this.type;
+            // Order matters here - keys have to be sorted
+            sb.append("keyspace=").append(keyspaceName);
+            sb.append(",name=").append(metricName);
+            sb.append(",scope=").append(tableName);
+            sb.append(",type=").append(type);
+        }
+
+        @Override
+        public String createMetricStringName(String metricName) {
+            String groupName = TableMetrics.class.getPackage().getName();
 
             StringBuilder mbeanName = new StringBuilder();
             mbeanName.append(groupName).append(":");
-            mbeanName.append("type=").append(type);
-            mbeanName.append(",keyspace=").append(keyspaceName);
-            mbeanName.append(",scope=").append(tableName);
-            mbeanName.append(",name=").append(metricName);
+            appendKeyPropertyListString(mbeanName, metricName);
+            return mbeanName.toString();
+        }
 
-            return new ObjectName(mbeanName.toString());
+        @Override
+        public String getDomain() {
+            return TableMetrics.class.getPackage().getName();
+        }
+
+        @Override
+        public String getKeyProperty(String property) {
+            switch (property) {
+                case "keyspace": return keyspaceName;
+                case "scope": return tableName;
+                case "type": return type;
+                default: return null;
+            }
+        }
+
+        @Override
+        public Hashtable<String,String> getKeyPropertyList() {
+            Hashtable<String, String> res = new Hashtable<>();
+            res.put("keyspace", keyspaceName);
+            res.put("scope", tableName);
+            res.put("type", type);
+            return res;
+        }
+
+        @Override
+        public String getKeyPropertyListString(String metricName) {
+            final StringBuilder sb = new StringBuilder();
+            appendKeyPropertyListString(sb, metricName);
+            return sb.toString();
+        }
+
+        @Override
+        public ObjectName createMetricName(String metricName) throws MalformedObjectNameException {
+            return new TableMetricObjectName(this, metricName);
         }
     }
 
-    static class AllTableMetricNameFactory implements MetricNameFactory {
+    static class AllTableMetricNameFactory implements MetricNameFactory, TableMetricStringNameFactory {
         private final String type;
 
         public AllTableMetricNameFactory(String type) {
             this.type = type;
         }
 
+        private void appendKeyPropertyListString(final StringBuilder sb, final String metricName) {
+            // Order matters here - keys have to be sorted
+            sb.append("name=").append(metricName);
+            sb.append(",type=" + type);
+        }
+
         @Override
-        public ObjectName createMetricName(String metricName) throws MalformedObjectNameException {
+        public String createMetricStringName(String metricName) {
             String groupName = TableMetrics.class.getPackage().getName();
             StringBuilder mbeanName = new StringBuilder();
             mbeanName.append(groupName).append(":");
-            mbeanName.append("type=" + type);
-            mbeanName.append(",name=").append(metricName);
-            return new ObjectName(mbeanName.toString());
+            appendKeyPropertyListString(mbeanName, metricName);
+            return mbeanName.toString();
+        }
+
+        @Override
+        public String getDomain() {
+            return TableMetrics.class.getPackage().getName();
+        }
+
+        @Override
+        public String getKeyProperty(String property) {
+            switch (property) {
+                case "type": return type;
+                default: return null;
+            }
+        }
+
+        @Override
+        public Hashtable<String,String> getKeyPropertyList() {
+            Hashtable<String, String> res = new Hashtable<>();
+            res.put("type", type);
+            return res;
+        }
+
+        @Override
+        public String getKeyPropertyListString(String metricName) {
+            final StringBuilder sb = new StringBuilder();
+            appendKeyPropertyListString(sb, metricName);
+            return sb.toString();
+        }
+
+        @Override
+        public ObjectName createMetricName(String metricName) throws MalformedObjectNameException {
+            return new TableMetricObjectName(this, metricName);
         }
     }
 
