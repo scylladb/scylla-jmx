@@ -20,6 +20,7 @@ import javax.management.ObjectName;
 import javax.management.QueryExp;
 
 import com.scylladb.jmx.api.APIClient;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 /**
  * Base type for MBeans in scylla-jmx. Wraps auto naming and {@link APIClient}
@@ -58,14 +59,14 @@ public class APIMBean implements MBeanRegistration {
      * @return
      * @throws MalformedObjectNameException
      */
-    public static boolean checkRegistration(MBeanServer server, Set<ObjectName> all,
+    public static boolean checkRegistration(JmxMBeanServer server, Set<ObjectName> all,
             final Predicate<ObjectName> predicate, Function<ObjectName, Object> generator)
             throws MalformedObjectNameException {
         Set<ObjectName> registered = queryNames(server, predicate);
         for (ObjectName name : registered) {
             if (!all.contains(name)) {
                 try {
-                    server.unregisterMBean(name);
+                    server.getMBeanServerInterceptor().unregisterMBean(name);
                 } catch (MBeanRegistrationException | InstanceNotFoundException e) {
                 }
             }
@@ -75,7 +76,7 @@ public class APIMBean implements MBeanRegistration {
         for (ObjectName name : all) {
             if (!registered.contains(name)) {
                 try {
-                    server.registerMBean(generator.apply(name), name);
+                    server.getMBeanServerInterceptor().registerMBean(generator.apply(name), name);
                     added++;
                 } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
                 }
@@ -92,7 +93,7 @@ public class APIMBean implements MBeanRegistration {
      * @param predicate
      * @return
      */
-    public static Set<ObjectName> queryNames(MBeanServer server, final Predicate<ObjectName> predicate) {
+    public static Set<ObjectName> queryNames(JmxMBeanServer server, final Predicate<ObjectName> predicate) {
         @SuppressWarnings("serial")
         Set<ObjectName> registered = server.queryNames(null, new QueryExp() {
             @Override
@@ -108,7 +109,7 @@ public class APIMBean implements MBeanRegistration {
         return registered;
     }
 
-    MBeanServer server;
+    JmxMBeanServer server;
     ObjectName name;
 
     protected final ObjectName getBoundName() {
@@ -162,7 +163,7 @@ public class APIMBean implements MBeanRegistration {
         if (this.server != null) {
             throw new IllegalStateException("Can only exist in a single MBeanServer");
         }
-        this.server = server;
+        this.server = (JmxMBeanServer) server;
         if (name == null) {
             name = generateName();
         }

@@ -33,12 +33,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.json.JsonArray;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.metrics.APIMBean;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 /**
  * Metrics for streaming.
@@ -65,11 +65,11 @@ public class StreamingMetrics {
         return TYPE_NAME.equals(n.getKeyProperty("type"));
     }
 
-    public static void unregister(APIClient client, MBeanServer server) throws MalformedObjectNameException {
+    public static void unregister(APIClient client, JmxMBeanServer server) throws MalformedObjectNameException {
         APIMBean.checkRegistration(server, emptySet(), StreamingMetrics::isStreamingName, (n) -> null);
     }
 
-    public static boolean checkRegistration(APIClient client, MBeanServer server)
+    public static boolean checkRegistration(APIClient client, JmxMBeanServer server)
             throws MalformedObjectNameException, UnknownHostException {
 
         Set<ObjectName> all = new HashSet<ObjectName>(globalNames);

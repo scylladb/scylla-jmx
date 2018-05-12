@@ -33,15 +33,16 @@ import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.metrics.StreamingMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 public class APIMBeanServer implements MBeanServer {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(APIMBeanServer.class.getName());
 
     private final APIClient client;
-    private final MBeanServer server;
+    private final JmxMBeanServer server;
 
-    public APIMBeanServer(APIClient client, MBeanServer server) {
+    public APIMBeanServer(APIClient client, JmxMBeanServer server) {
         this.client = client;
         this.server = server;
     }
