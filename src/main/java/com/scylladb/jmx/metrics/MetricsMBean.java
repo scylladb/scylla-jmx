@@ -3,6 +3,11 @@ package com.scylladb.jmx.metrics;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -25,6 +30,9 @@ import com.sun.jmx.mbeanserver.JmxMBeanServer;
  *
  */
 public abstract class MetricsMBean extends APIMBean {
+    private static final Map<JmxMBeanServer, Map<String, Integer>> registered = new HashMap<>();
+    private static final Object registrationLock = new Object();
+
     private final Collection<Metrics> metrics;
 
     public MetricsMBean(APIClient client, Metrics... metrics) {
@@ -48,13 +56,50 @@ public abstract class MetricsMBean extends APIMBean {
         };
     }
 
-    private void register(MetricsRegistry registry, JmxMBeanServer server) throws MalformedObjectNameException {
-        // Check if we're the first/last of our type bound/removed. 
-        boolean empty = queryNames(server, getTypePredicate()).isEmpty();
-        for (Metrics m : metrics) {
-            if (empty) {
-                m.registerGlobals(registry);
+    // Has to be called with registrationLock hold
+    private static boolean shouldRegisterGlobals(JmxMBeanServer server, String domainAndType, boolean reversed) {
+        Map<String, Integer> serverMap = registered.get(server);
+        if (serverMap == null) {
+            assert !reversed;
+            serverMap = new HashMap<>();
+            serverMap.put(domainAndType, 1);
+            registered.put(server, serverMap);
+            return true;
+        }
+        Integer count = serverMap.get(domainAndType);
+        if (count == null) {
+            assert !reversed;
+            serverMap.put(domainAndType, 1);
+            return true;
+        }
+        if (reversed) {
+            --count;
+            if (count == 0) {
+                serverMap.remove(domainAndType);
+                if (serverMap.isEmpty()) {
+                    registered.remove(server);
+                }
+                return true;
             }
+            serverMap.put(domainAndType, count);
+            return false;
+        } else {
+            serverMap.put(domainAndType, count + 1);
+        }
+        return false;
+    }
+
+    private void register(MetricsRegistry registry, JmxMBeanServer server, boolean reversed) throws MalformedObjectNameException {
+        // Check if we're the first/last of our type bound/removed. 
+        synchronized (registrationLock) {
+            boolean registerGlobals = shouldRegisterGlobals(server, name.getDomain() + ":" + name.getKeyProperty("type"), reversed);
+            if (registerGlobals) {
+                for (Metrics m : metrics) {
+                    m.registerGlobals(registry);
+                }
+            }
+        }
+        for (Metrics m : metrics) {
             m.register(registry);
         }
     }
@@ -64,7 +109,7 @@ public abstract class MetricsMBean extends APIMBean {
         // Get name etc. 
         name = super.preRegister(server, name);
         // Register all metrics in server
-        register(new MetricsRegistry(client, (JmxMBeanServer) server), (JmxMBeanServer) server);
+        register(new MetricsRegistry(client, (JmxMBeanServer) server), (JmxMBeanServer) server, false);
         return name;
     }
 
@@ -83,7 +128,7 @@ public abstract class MetricsMBean extends APIMBean {
                         }
                     }
                 }
-            }, server);
+            }, server, true);
         } catch (MalformedObjectNameException e) {
             // TODO : log?
         }
