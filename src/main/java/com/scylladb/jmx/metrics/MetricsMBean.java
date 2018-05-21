@@ -16,6 +16,7 @@ import org.apache.cassandra.metrics.Metrics;
 import org.apache.cassandra.metrics.MetricsRegistry;
 
 import com.scylladb.jmx.api.APIClient;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 /**
  * Base type for MBeans containing {@link Metrics}. 
@@ -47,7 +48,7 @@ public abstract class MetricsMBean extends APIMBean {
         };
     }
 
-    private void register(MetricsRegistry registry, MBeanServer server) throws MalformedObjectNameException {
+    private void register(MetricsRegistry registry, JmxMBeanServer server) throws MalformedObjectNameException {
         // Check if we're the first/last of our type bound/removed. 
         boolean empty = queryNames(server, getTypePredicate()).isEmpty();
         for (Metrics m : metrics) {
@@ -63,7 +64,7 @@ public abstract class MetricsMBean extends APIMBean {
         // Get name etc. 
         name = super.preRegister(server, name);
         // Register all metrics in server
-        register(new MetricsRegistry(client, server), server);
+        register(new MetricsRegistry(client, (JmxMBeanServer) server), (JmxMBeanServer) server);
         return name;
     }
 
@@ -77,7 +78,7 @@ public abstract class MetricsMBean extends APIMBean {
                 public void register(Supplier<MetricMBean> s, ObjectName... objectNames) {
                     for (ObjectName name : objectNames) {
                         try {
-                            server.unregisterMBean(name);
+                            server.getMBeanServerInterceptor().unregisterMBean(name);
                         } catch (MBeanRegistrationException | InstanceNotFoundException e) {
                         }
                     }

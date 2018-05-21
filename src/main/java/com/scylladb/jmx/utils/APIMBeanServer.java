@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -33,50 +34,59 @@ import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.metrics.StreamingMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 public class APIMBeanServer implements MBeanServer {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(APIMBeanServer.class.getName());
 
     private final APIClient client;
-    private final MBeanServer server;
+    private final JmxMBeanServer server;
 
-    public APIMBeanServer(APIClient client, MBeanServer server) {
+    public APIMBeanServer(APIClient client, JmxMBeanServer server) {
         this.client = client;
         this.server = server;
+    }
+
+    private static ObjectInstance prepareForRemote(final ObjectInstance i) {
+        return new ObjectInstance(prepareForRemote(i.getObjectName()), i.getClassName());
+    }
+
+    private static ObjectName prepareForRemote(final ObjectName n) {
+        return ObjectName.getInstance(n);
     }
 
     @Override
     public ObjectInstance createMBean(String className, ObjectName name) throws ReflectionException,
             InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException {
-        return server.createMBean(className, name);
+        return prepareForRemote(server.createMBean(className, name));
     }
 
     @Override
     public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName)
             throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException,
             NotCompliantMBeanException, InstanceNotFoundException {
-        return server.createMBean(className, name, loaderName);
+        return prepareForRemote(server.createMBean(className, name, loaderName));
     }
 
     @Override
     public ObjectInstance createMBean(String className, ObjectName name, Object[] params, String[] signature)
             throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException,
             NotCompliantMBeanException {
-        return server.createMBean(className, name, params, signature);
+        return prepareForRemote(server.createMBean(className, name, params, signature));
     }
 
     @Override
     public ObjectInstance createMBean(String className, ObjectName name, ObjectName loaderName, Object[] params,
             String[] signature) throws ReflectionException, InstanceAlreadyExistsException, MBeanRegistrationException,
                     MBeanException, NotCompliantMBeanException, InstanceNotFoundException {
-        return server.createMBean(className, name, loaderName, params, signature);
+        return prepareForRemote(server.createMBean(className, name, loaderName, params, signature));
     }
 
     @Override
     public ObjectInstance registerMBean(Object object, ObjectName name)
             throws InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
-        return server.registerMBean(object, name);
+        return prepareForRemote(server.registerMBean(object, name));
     }
 
     @Override
@@ -87,19 +97,19 @@ public class APIMBeanServer implements MBeanServer {
     @Override
     public ObjectInstance getObjectInstance(ObjectName name) throws InstanceNotFoundException {
         checkRegistrations(name);
-        return server.getObjectInstance(name);
+        return prepareForRemote(server.getObjectInstance(name));
     }
 
     @Override
     public Set<ObjectName> queryNames(ObjectName name, QueryExp query) {
         checkRegistrations(name);
-        return server.queryNames(name, query);
+        return server.queryNames(name, query).stream().map(n -> prepareForRemote(n)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query) {
         checkRegistrations(name);
-        return server.queryMBeans(name, query);
+        return server.queryMBeans(name, query).stream().map(i -> prepareForRemote(i)).collect(Collectors.toSet());
     }
 
     @Override

@@ -54,6 +54,7 @@ import org.apache.cassandra.metrics.TableMetrics;
 
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.metrics.MetricsMBean;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStoreMBean {
     private static final Logger logger = Logger.getLogger(ColumnFamilyStore.class.getName());
@@ -102,7 +103,7 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
                 "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + name);
     }
 
-    public static boolean checkRegistration(APIClient client, MBeanServer server) throws MalformedObjectNameException {
+    public static boolean checkRegistration(APIClient client, JmxMBeanServer server) throws MalformedObjectNameException {
         JsonArray mbeans = client.getJsonArray("/column_family/");
         Set<ObjectName> all = new HashSet<ObjectName>();
         for (int i = 0; i < mbeans.size(); i++) {

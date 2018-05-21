@@ -39,6 +39,7 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import com.scylladb.jmx.api.APIClient;
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 /**
  * Makes integrating 3.0 metrics API with 2.0.
@@ -53,9 +54,9 @@ public class MetricsRegistry {
     private static final Logger logger = Logger.getLogger(MetricsRegistry.class.getName());
 
     private final APIClient client;
-    private final MBeanServer mBeanServer;
+    private final JmxMBeanServer mBeanServer;
 
-    public MetricsRegistry(APIClient client, MBeanServer mBeanServer) {
+    public MetricsRegistry(APIClient client, JmxMBeanServer mBeanServer) {
         this.client = client;
         this.mBeanServer = mBeanServer;
     }
@@ -108,7 +109,7 @@ public class MetricsRegistry {
         MetricMBean bean = f.get();
         for (ObjectName name : objectNames) {
             try {
-                mBeanServer.registerMBean(bean, name);
+                mBeanServer.getMBeanServerInterceptor().registerMBean(bean, name);
             } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
                 logger.log(SEVERE, "Could not register mbean", e);
             }

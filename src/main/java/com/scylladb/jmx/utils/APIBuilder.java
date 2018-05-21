@@ -26,10 +26,14 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerBuilder;
 import javax.management.MBeanServerDelegate;
 
+import com.sun.jmx.mbeanserver.JmxMBeanServer;
+
 public class APIBuilder extends MBeanServerBuilder {
     @Override
     public MBeanServer newMBeanServer(String defaultDomain, MBeanServer outer, MBeanServerDelegate delegate) {
-        MBeanServer nested = super.newMBeanServer(defaultDomain, outer, delegate);
+        // It is important to set |interceptors| to true while creating the JmxMBeanSearver.
+        // It is required for calls to JmxMBeanServer.getMBeanServerInterceptor() to be allowed.
+        JmxMBeanServer nested = (JmxMBeanServer) JmxMBeanServer.newMBeanServer(defaultDomain, outer, delegate, true);
         return new APIMBeanServer(client, nested);
     }
 }
