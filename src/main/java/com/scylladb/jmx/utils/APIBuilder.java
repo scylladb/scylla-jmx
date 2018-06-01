@@ -53,32 +53,35 @@ public class APIBuilder extends MBeanServerBuilder {
 
     private static class TableRepository extends Repository {
         private static final Logger logger = Logger.getLogger(TableRepository.class.getName());
-        
-        private final ReentrantReadWriteLock lock= new ReentrantReadWriteLock();
+
+        private final Repository wrapped;
+
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
         private final Map<TableMetricParams, DynamicMBean> tableMBeans = new HashMap<>();
-        
+
         private static boolean isTableMetricName(ObjectName name) {
             return isTableMetricDomain(name.getDomain());
         }
-        
+
         private static boolean isTableMetricDomain(String domain) {
             return TableMetricParams.TABLE_METRICS_DOMAIN.equals(domain);
         }
 
-        public TableRepository(String defaultDomain) {
+        public TableRepository(String defaultDomain, final Repository repository) {
             super(defaultDomain);
+            wrapped = repository;
         }
 
         @Override
         public String getDefaultDomain() {
-            return super.getDefaultDomain();
+            return wrapped.getDefaultDomain();
         }
 
         @Override
         public boolean contains(final ObjectName name) {
             if (!isTableMetricName(name)) {
-                return super.contains(name);
+                return wrapped.contains(name);
             } else {
                 lock.readLock().lock();
                 try {
@@ -91,7 +94,7 @@ public class APIBuilder extends MBeanServerBuilder {
 
         @Override
         public String[] getDomains() {
-            final String[] domains = super.getDomains();
+            final String[] domains = wrapped.getDomains();
             if (tableMBeans.isEmpty()) {
                 return domains;
             }
@@ -105,7 +108,7 @@ public class APIBuilder extends MBeanServerBuilder {
         public Integer getCount() {
             lock.readLock().lock();
             try {
-                return super.getCount() + tableMBeans.size();
+                return wrapped.getCount() + tableMBeans.size();
             } finally {
                 lock.readLock().unlock();
             }
@@ -115,7 +118,7 @@ public class APIBuilder extends MBeanServerBuilder {
         public void addMBean(final DynamicMBean bean, final ObjectName name, final RegistrationContext ctx)
                 throws InstanceAlreadyExistsException {
             if (!isTableMetricName(name)) {
-                super.addMBean(bean, name, ctx);
+                wrapped.addMBean(bean, name, ctx);
             } else {
                 final TableMetricParams key = new TableMetricParams(name);
                 lock.writeLock().lock();
@@ -141,7 +144,7 @@ public class APIBuilder extends MBeanServerBuilder {
         @Override
         public void remove(final ObjectName name, final RegistrationContext ctx) throws InstanceNotFoundException {
             if (!isTableMetricName(name)) {
-                super.remove(name, ctx);
+                wrapped.remove(name, ctx);
             } else {
                 final TableMetricParams key = new TableMetricParams(name);
                 lock.writeLock().lock();
@@ -167,7 +170,7 @@ public class APIBuilder extends MBeanServerBuilder {
         @Override
         public DynamicMBean retrieve(final ObjectName name) {
             if (!isTableMetricName(name)) {
-                return super.retrieve(name);
+                return wrapped.retrieve(name);
             } else {
                 lock.readLock().lock();
                 try {
@@ -206,7 +209,7 @@ public class APIBuilder extends MBeanServerBuilder {
 
         @Override
         public Set<NamedObject> query(final ObjectName pattern, final QueryExp query) {
-            Set<NamedObject> res = super.query(pattern, query);
+            Set<NamedObject> res = wrapped.query(pattern, query);
             ObjectName name;
             if (pattern == null ||
                 pattern.getCanonicalName().length() == 0 ||
@@ -461,7 +464,8 @@ public class APIBuilder extends MBeanServerBuilder {
         }
         repoField.setAccessible(true);
         try {
-            repoField.set(interceptor, new TableRepository(defaultDomain));
+            final Repository repository = (Repository)repoField.get(interceptor);
+            repoField.set(interceptor, new TableRepository(defaultDomain, repository));
         } catch (IllegalArgumentException | IllegalAccessException e) {
             logger.log(SEVERE, "Unexpected error.", e);
             new RuntimeException(e);
