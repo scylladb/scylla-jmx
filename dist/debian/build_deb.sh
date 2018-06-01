@@ -122,5 +122,10 @@ if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
     chmod a+rx build/jessie-pkginst.sh
     sudo -E DIST=$TARGET /usr/sbin/pbuilder execute build/jessie-pkginst.sh
+elif [ "$TARGET" = "bionic" ]; then
+    echo "apt-get install -y ca-certificates-java openjdk-8-jdk-headless" > build/bionic-workaround.sh
+    echo "update-ca-certificates -f" >> build/bionic-workaround.sh
+    chmod a+rx build/bionic-workaround.sh
+    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute --save-after-exec build/bionic-workaround.sh
 fi
 sudo -E DIST=$TARGET pdebuild --buildresult build/debs
