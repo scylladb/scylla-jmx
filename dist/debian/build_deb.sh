@@ -74,6 +74,13 @@ fi
 if [ ! -f /usr/bin/dh_testdir ]; then
     pkg_install debhelper
 fi
+if [ ! -f /usr/bin/pystache ]; then
+    if is_redhat_variant; then
+        sudo yum install -y python2-pystache || sudo yum install -y pystache
+    elif is_debian_variant; then
+        sudo apt-get install -y python-pystache
+    fi
+fi
 
 
 if [ -z "$TARGET" ]; then
@@ -95,23 +102,22 @@ echo $VERSION > version
 ./scripts/git-archive-all --extra version --force-submodules --prefix scylla-jmx ../scylla-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
 
 cp -a dist/debian/debian debian
-cp dist/debian/changelog.in debian/changelog
-cp dist/debian/rules.in debian/rules
-sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" debian/changelog
-sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" debian/changelog
-sed -i -e "s/@@CODENAME@@/$TARGET/g" debian/changelog
-if [ "$TARGET" = "trusty" ] || [ "$TARGET" = "xenial" ] || [ "$TARGET" = "yakkety" ] || [ "$TARGET" = "zesty" ] || [ "$TARGET" = "artful" ] || [ "$TARGET" = "bionic" ]; then
-    sed -i -e "s/@@REVISION@@/0ubuntu1~$TARGET/g" debian/changelog
+if  [ "$TARGET" = "jessie" ] || [ "$TARGET" = "stretch" ]; then
+    REVISION="1~$TARGET"
+elif [ "$TARGET" = "trusty" ] || [ "$TARGET" = "xenial" ] || [ "$TARGET" = "bionic" ]; then
+    REVISION="0ubuntu1~$TARGET"
 else
-    sed -i -e "s/@@REVISION@@/1~$TARGET/g" debian/changelog
+   echo "Unknown distribution: $TARGET"
 fi
-if [ "$TARGET" = "trusty" ]; then
-    sed -i -e "s/@@DH_INSTALLINIT@@/--upstart-only/g" debian/rules
-else
-    sed -i -e "s/@@DH_INSTALLINIT@@//g" debian/rules
+
+MUSTACHE_DIST="\"debian\": true, \"$TARGET\": true"
+pystache dist/debian/changelog.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"revision\": \"$REVISION\", \"codename\": \"$TARGET\" }" > debian/changelog
+pystache dist/debian/rules.mustache "{ $MUSTACHE_DIST }" > debian/rules
+chmod a+rx debian/rules
+
+if [ "$TARGET" != "trusty" ]; then
+    pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
 fi
-cp dist/common/systemd/scylla-jmx.service.in debian/scylla-jmx.service
-sed -i -e "s#@@SYSCONFDIR@@#/etc/default#g" debian/scylla-jmx.service
 
 cp ./dist/debian/pbuilderrc ~/.pbuilderrc
 sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz

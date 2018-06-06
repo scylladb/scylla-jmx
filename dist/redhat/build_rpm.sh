@@ -62,14 +62,19 @@ fi
 if [ ! -f /usr/bin/git ]; then
     pkg_install git
 fi
+if [ ! -f /usr/bin/pystache ]; then
+    if is_redhat_variant; then
+        sudo yum install -y python2-pystache || sudo yum install -y pystache
+    elif is_debian_variant; then
+        sudo apt-get install -y python-pystache
+    fi
+fi
 
 VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
 git archive --format=tar --prefix=scylla-jmx-$SCYLLA_VERSION/ HEAD -o build/scylla-jmx-$VERSION.tar
-cp dist/redhat/scylla-jmx.spec.in build/scylla-jmx.spec
-sed -i -e "s/@@VERSION@@/$SCYLLA_VERSION/g" build/scylla-jmx.spec
-sed -i -e "s/@@RELEASE@@/$SCYLLA_RELEASE/g" build/scylla-jmx.spec
+pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\" }" > build/scylla-jmx.spec
 
 sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-jmx.spec --sources=build/scylla-jmx-$VERSION.tar
 sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/scylla-jmx-$VERSION*.src.rpm

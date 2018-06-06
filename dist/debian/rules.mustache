@@ -26,7 +26,12 @@ override_dh_auto_install:
 	ln -sf /usr/bin/java $(DEST)/symlinks/scylla-jmx
 
 override_dh_installinit:
-	dh_installinit --no-start @@DH_INSTALLINIT@@
+{{#trusty}}
+	dh_installinit --no-start --upstart-only
+{{/trusty}}
+{{^trusty}}
+	dh_installinit --no-start
+{{/trusty}}
 
 %:
 	dh $@
