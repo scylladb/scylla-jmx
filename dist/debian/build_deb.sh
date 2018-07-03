@@ -25,6 +25,18 @@ is_redhat_variant() {
 is_debian_variant() {
     [ -f /etc/debian_version ]
 }
+is_debian() {
+    case "$1" in
+        jessie|stretch) return 0;;
+        *) return 1;;
+    esac
+}
+is_ubuntu() {
+    case "$1" in
+        trusty|xenial|bionic) return 0;;
+        *) return 1;;
+    esac
+}
 
 
 pkg_install() {
@@ -76,7 +88,7 @@ if [ ! -f /usr/bin/dh_testdir ]; then
 fi
 if [ ! -f /usr/bin/pystache ]; then
     if is_redhat_variant; then
-        sudo yum install -y python2-pystache || sudo yum install -y pystache
+        sudo yum install -y /usr/bin/pystache
     elif is_debian_variant; then
         sudo apt-get install -y python-pystache
     fi
@@ -102,9 +114,9 @@ echo $VERSION > version
 ./scripts/git-archive-all --extra version --force-submodules --prefix scylla-jmx ../scylla-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
 
 cp -a dist/debian/debian debian
-if  [ "$TARGET" = "jessie" ] || [ "$TARGET" = "stretch" ]; then
+if is_debian $TARGET; then
     REVISION="1~$TARGET"
-elif [ "$TARGET" = "trusty" ] || [ "$TARGET" = "xenial" ] || [ "$TARGET" = "bionic" ]; then
+elif is_ubuntu $TARGET; then
     REVISION="0ubuntu1~$TARGET"
 else
    echo "Unknown distribution: $TARGET"
