@@ -95,6 +95,15 @@ public interface StorageProxyMBean {
 
     public long getReadRepairRepairedBackground();
 
+    default public int getOtcBacklogExpirationInterval() {
+        throw new UnsupportedOperationException();
+    }
+    default void setOtcBacklogExpirationInterval(int intervalInMillis) {
+        throw new UnsupportedOperationException();
+    }
+
     /** Returns each live node's schema version */
     public Map<String, List<String>> getSchemaVersions();
+
+    public int getNumberOfTables();
 }

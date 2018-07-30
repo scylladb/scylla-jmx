@@ -155,6 +155,24 @@ public class TableMetrics implements Metrics {
                     aliasFactory.createMetricName(alias));
         }
 
+        private static <T> BiFunction<APIClient, String, T> getDummy(Class<T> type) {
+            if (type == String.class) {
+                return (c, s) -> type.cast("");
+            } else if (type == Integer.class) {
+                return (c, s) -> type.cast(0);
+            } else if (type == Double.class) {
+                return (c, s) -> type.cast(0.0);
+            } else if (type == Long.class) {
+                return (c, s) -> type.cast(0L);
+            }
+            throw new IllegalArgumentException(type.getName());
+        }
+
+        public <T> void createDummyTableGauge(Class<T> c, String name) throws MalformedObjectNameException {
+            register(() -> gauge(newGauge(getDummy(c), null)), factory.createMetricName(name),
+                    aliasFactory.createMetricName(name));
+        }
+
         public <L, G> void createTableGauge(Class<L> c1, Class<G> c2, String name, String alias, String uri)
                 throws MalformedObjectNameException {
             if (cfName != null) { 
@@ -171,6 +189,11 @@ public class TableMetrics implements Metrics {
         public void createTableCounter(String name, String alias, String uri) throws MalformedObjectNameException {
             register(() -> counter(compose(uri, cfName)), factory.createMetricName(name),
                     aliasFactory.createMetricName(alias));
+        }
+
+        public void createDummyTableCounter(String name) throws MalformedObjectNameException {
+            register(() -> counter(null), factory.createMetricName(name),
+                    aliasFactory.createMetricName(name));
         }
 
         public void createTableHistogram(String name, String uri, boolean considerZeros)
@@ -205,6 +228,9 @@ public class TableMetrics implements Metrics {
         for (LatencyMetrics l : latencyMetrics) {
             l.register(registry);
         }
+
+        // TODO: implement
+        registry.createDummyTableCounter("DroppedMutations");
     }
 
     private static void registerCommon(Registry registry) throws MalformedObjectNameException {
@@ -264,8 +290,12 @@ public class TableMetrics implements Metrics {
         registry.createTableCounter("RowCacheHitOutOfRange", "row_cache_hit_out_of_range");
         registry.createTableCounter("RowCacheHit", "row_cache_hit");
         registry.createTableCounter("RowCacheMiss", "row_cache_miss");
+
+        // TODO: implement
+        registry.createDummyTableGauge(Double.class, "PercentRepaired");
     }
 
+    @SuppressWarnings("serial")
     static class TableMetricObjectName extends javax.management.ObjectName {
         private static final String FAKE_NAME = "a:a=a";
 

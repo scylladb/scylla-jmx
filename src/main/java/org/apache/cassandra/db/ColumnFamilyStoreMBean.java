@@ -17,6 +17,7 @@
  */
 package org.apache.cassandra.db;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +45,11 @@ public interface ColumnFamilyStoreMBean {
      *            several sstables
      */
     public void forceMajorCompaction(boolean splitOutput) throws ExecutionException, InterruptedException;
+
+    // NOT even default-throw implementing
+    // forceCompactionForTokenRange
+    // as this is clearly a misplaced method that should not be in the mbean interface
+    // (uses internal cassandra types)
 
     /**
      * Gets the minimum number of sstables in queue before compaction kicks off
@@ -153,6 +159,14 @@ public interface ColumnFamilyStoreMBean {
      *         ...).
      */
     public int[] getSSTableCountPerLevel();
+
+    /**
+     * @return sstable fanout size for level compaction strategy.
+     */
+    default public int getLevelFanoutSize() {
+        // TODO: implement for real. This is sort of default. 
+        return 10;
+    }
 
     /**
      * Get the ratio of droppable tombstones to real columns (and non-droppable

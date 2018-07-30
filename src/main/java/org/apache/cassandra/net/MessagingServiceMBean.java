@@ -123,6 +123,20 @@ public interface MessagingServiceMBean {
     public Map<String, Long> getTimeoutsPerHost();
 
     /**
+     * Back-pressure rate limiting per host
+     */
+    default public Map<String, Double> getBackPressurePerHost() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Enable/Disable back-pressure
+     */
+    default public void setBackPressureEnabled(boolean enabled) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Number of timeouts since last check.
      */
     public long getRecentTotalTimouts();

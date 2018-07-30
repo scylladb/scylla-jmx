@@ -30,10 +30,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,6 +58,8 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 
 import com.google.common.base.Joiner;
 import com.scylladb.jmx.api.APIClient;
@@ -486,10 +486,22 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      */
     @Override
     public void takeSnapshot(String tag, String... keyspaceNames) throws IOException {
+        takeSnapshot(tag, null, keyspaceNames);
+    }
+
+    @Override
+    public void takeSnapshot(String tag, Map<String, String> options, String... keyspaceNames) throws IOException {
         log(" takeSnapshot(String tag, String... keyspaceNames) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();        
         APIClient.set_query_param(queryParams, "tag", tag);
+        
+        if (keyspaceNames.length == 1 && keyspaceNames[0].indexOf('.') != -1) {
+            String[] parts = keyspaceNames[0].split("\\.");
+            keyspaceNames = new String[] { parts[0] };            
+            APIClient.set_query_param(queryParams, "cf", parts[1]);
+        }
         APIClient.set_query_param(queryParams, "kn", APIClient.join(keyspaceNames));
+        // TODO: origin has one recognized option: skip flush. We don't.
         client.post("/storage_service/snapshots", queryParams);
     }
 
@@ -589,6 +601,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
         client.post("/storage_service/keyspace_compaction/" + keyspaceName, queryParams);
+    }
+
+    @Override 
+    public void forceKeyspaceCompactionForTokenRange(String keyspaceName, String startToken, String endToken, String... tableNames) throws IOException, ExecutionException, InterruptedException {
+        // TODO: actually handle token ranges.
+        forceKeyspaceCompaction(keyspaceName, tableNames);
     }
 
     /**
@@ -1276,7 +1294,29 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      */
     @Override
     public void rebuild(String sourceDc) {
-        log(" rebuild(String sourceDc)");
+        rebuild(sourceDc, null, null, null);
+    }
+
+    /**
+     * Same as {@link #rebuild(String)}, but only for specified keyspace and ranges.
+     *
+     * @param sourceDc Name of DC from which to select sources for streaming or null to pick any node
+     * @param keyspace Name of the keyspace which to rebuild or null to rebuild all keyspaces.
+     * @param tokens Range of tokens to rebuild or null to rebuild all token ranges. In the format of:
+     *               "(start_token_1,end_token_1],(start_token_2,end_token_2],...(start_token_n,end_token_n]"
+     */
+    @Override
+    public void rebuild(String sourceDc, String keyspace, String tokens, String specificSources) {
+        log(" rebuild(String sourceDc, String keyspace, String tokens, String specificSources)");
+        if (keyspace != null) {
+            throw new UnsupportedOperationException("Rebuild: 'keyspace' not yet supported");
+        }
+        if (tokens != null) {
+            throw new UnsupportedOperationException("Rebuild: 'token range' not yet supported");
+        }
+        if (specificSources != null) {
+            throw new UnsupportedOperationException("Rebuild: 'specific sources' not yet supported");
+        }
         if (sourceDc != null) {
             MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
             APIClient.set_query_param(queryParams, "source_dc", sourceDc);

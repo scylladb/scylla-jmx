@@ -248,6 +248,14 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public void takeColumnFamilySnapshot(String keyspaceName, String columnFamilyName, String tag) throws IOException;
 
     /**
+     * @deprecated use {@link #takeSnapshot(String tag, Map options, String... entities)} instead.
+     */
+    @Deprecated
+    default public void takeMultipleTableSnapshot(String tag, String... tableList) throws IOException {
+        takeMultipleColumnFamilySnapshot(tag, tableList);
+    }
+
+    /**
      * Takes the snapshot of a multiple column family from different keyspaces.
      * A snapshot name must be specified.
      *
@@ -258,6 +266,18 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *            ks1.cf1 ks2.cf2
      */
     public void takeMultipleColumnFamilySnapshot(String tag, String... columnFamilyList) throws IOException;
+
+    /**
+     * Takes the snapshot of a multiple column family from different keyspaces. A snapshot name must be specified.
+     *
+     * @param tag
+     *            the tag given to the snapshot; may not be null or empty
+     * @param options
+     *            Map of options (skipFlush is the only supported option for now)
+     * @param entities
+     *            list of keyspaces / tables in the form of empty | ks1 ks2 ... | ks1.cf1,ks2.cf2,...
+     */
+    public void takeSnapshot(String tag, Map<String, String> options, String... entities) throws IOException;
 
     /**
      * Remove the snapshot with the given name from the given keyspaces. If no
@@ -296,6 +316,20 @@ public interface StorageServiceMBean extends NotificationEmitter {
      */
     public void forceKeyspaceCompaction(String keyspaceName, String... tableNames)
             throws IOException, ExecutionException, InterruptedException;
+
+    @Deprecated
+    default public int relocateSSTables(String keyspace, String ... cfnames) throws IOException, ExecutionException, InterruptedException {
+        return relocateSSTables(0, keyspace, cfnames);
+    }
+    default public int relocateSSTables(int jobs, String keyspace, String ... cfnames) throws IOException, ExecutionException, InterruptedException {
+        // Node tool op disabled in scylla
+        throw new UnsupportedOperationException("relocateSSTables");
+    }
+
+    /**
+     * Forces major compaction of specified token range in a single keyspace
+     */
+    public void forceKeyspaceCompactionForTokenRange(String keyspaceName, String startToken, String endToken, String... tableNames) throws IOException, ExecutionException, InterruptedException;
 
     /**
      * Trigger a cleanup of keys on a single keyspace
@@ -345,6 +379,15 @@ public interface StorageServiceMBean extends NotificationEmitter {
 
     public int upgradeSSTables(String keyspaceName, boolean excludeCurrentVersion, int jobs, String... tableNames)
             throws IOException, ExecutionException, InterruptedException;
+
+    /**
+     * Rewrites all sstables from the given tables to remove deleted data.
+     * The tombstone option defines the granularity of the procedure: ROW removes deleted partitions and rows, CELL also removes overwritten or deleted cells.
+     */
+    default public int garbageCollect(String tombstoneOption, int jobs, String keyspaceName, String... tableNames) throws IOException, ExecutionException, InterruptedException {
+        // Node tool op disabled in scylla
+        throw new UnsupportedOperationException("garbageCollect");
+    }
 
     /**
      * Flush all memtables for the given column families, or all columnfamilies
@@ -563,6 +606,21 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public void updateSnitch(String epSnitchClassName, Boolean dynamic, Integer dynamicUpdateInterval,
             Integer dynamicResetInterval, Double dynamicBadnessThreshold) throws ClassNotFoundException;
 
+    /*
+     * Update dynamic_snitch_update_interval_in_ms
+     */
+    default public void setDynamicUpdateInterval(int dynamicUpdateInterval) {
+        // afaict not used by nodetool.
+        throw new UnsupportedOperationException("setDynamicUpdateInterval");
+    }
+
+    /*
+     * Get dynamic_snitch_update_interval_in_ms
+     */
+    default public int getDynamicUpdateInterval() {
+        throw new UnsupportedOperationException("getDynamicUpdateInterval");
+    }
+
     // allows a user to forcibly 'kill' a sick node
     public void stopGossiping();
 
@@ -598,6 +656,78 @@ public interface StorageServiceMBean extends NotificationEmitter {
 
     public boolean isJoined();
 
+    default public boolean isDrained() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public boolean isDraining() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setReadRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getReadRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setRangeRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getRangeRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setWriteRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getWriteRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setCounterWriteRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getCounterWriteRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setCasContentionTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getCasContentionTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setTruncateRpcTimeout(long value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public long getTruncateRpcTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    default public void setStreamingSocketTimeout(int value) {
+        throw new UnsupportedOperationException();
+    }
+
+    default public int getStreamingSocketTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
     public void setStreamThroughputMbPerSec(int value);
 
     public int getStreamThroughputMbPerSec();
@@ -608,6 +738,13 @@ public interface StorageServiceMBean extends NotificationEmitter {
 
     public int getCompactionThroughputMbPerSec();
     public void setCompactionThroughputMbPerSec(int value);
+
+    default public int getConcurrentCompactors() {
+        throw new UnsupportedOperationException();
+    }
+    default public void setConcurrentCompactors(int value) {
+        throw new UnsupportedOperationException();
+    }
 
     public boolean isIncrementalBackupsEnabled();
 
@@ -624,6 +761,16 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *            to pick any node
      */
     public void rebuild(String sourceDc);
+
+    /**
+     * Same as {@link #rebuild(String)}, but only for specified keyspace and ranges.
+     *
+     * @param sourceDc Name of DC from which to select sources for streaming or null to pick any node
+     * @param keyspace Name of the keyspace which to rebuild or null to rebuild all keyspaces.
+     * @param tokens Range of tokens to rebuild or null to rebuild all token ranges. In the format of:
+     *               "(start_token_1,end_token_1],(start_token_2,end_token_2],...(start_token_n,end_token_n]"
+     */
+    public void rebuild(String sourceDc, String keyspace, String tokens, String specificSources);
 
     /** Starts a bulk load and blocks until it completes. */
     public void bulkLoad(String directory);
@@ -664,6 +811,10 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public void rebuildSecondaryIndex(String ksName, String cfName, String... idxNames);
 
     public void resetLocalSchema() throws IOException;
+
+    default public void reloadLocalSchema() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Enables/Disables tracing for the whole system. Only thrift requests can

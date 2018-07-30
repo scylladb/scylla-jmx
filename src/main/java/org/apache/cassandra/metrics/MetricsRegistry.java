@@ -131,7 +131,15 @@ public class MetricsRegistry {
     }
 
     public MetricMBean counter(final String url) {
-        return new JmxCounter(url);
+        if (url != null) {
+            return new JmxCounter(url);
+        }
+        return new JmxCounter(url) {
+            @Override
+            public long getCount() {
+                return 0;
+            }
+        };
     }
 
     private abstract class IntermediatelyUpdated {

@@ -25,14 +25,19 @@ package org.apache.cassandra.service;
 
 import static java.util.Collections.emptySet;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.management.ObjectName;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.metrics.CASClientRequestMetrics;
 import org.apache.cassandra.metrics.ClientRequestMetrics;
 
@@ -285,5 +290,12 @@ public class StorageProxy extends MetricsMBean implements StorageProxyMBean {
         // TODO if/when scylla uses hints
         log(" getHintedHandoffDisabledDCs()");
         return emptySet();
+    }
+
+    @Override
+    public int getNumberOfTables() {
+        // TODO: could be like 1000% more efficient
+        JsonArray mbeans = client.getJsonArray("/column_family/");
+        return mbeans.size();
     }
 }
