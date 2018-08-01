@@ -23,6 +23,11 @@
  */
 package org.apache.cassandra.metrics;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.management.MalformedObjectNameException;
 
 /**
@@ -47,6 +52,25 @@ public class CompactionMetrics implements Metrics {
         /** Total number of bytes compacted since server [re]start */
         registry.register(() -> registry.meter("/compaction_manager/metrics/bytes_compacted"),
                 factory.createMetricName("BytesCompacted"));
-    }
 
+        registry.register(() -> registry.gauge((client) -> {
+            Map<String, Map<String, Integer>> result = new HashMap<>();
+            JsonArray compactions = client.getJsonArray("compaction_manager/compactions");
+
+            for (int i = 0; i < compactions.size(); i++) {
+                JsonObject c = compactions.getJsonObject(i);
+
+                String ks = c.getString("ks");
+                String cf = c.getString("cf");
+
+                if (!result.containsKey(ks)) {
+                    result.put(ks, new HashMap<>());
+                }
+
+                Map<String, Integer> map = result.get(ks);
+                map.put(cf, (int)(c.getJsonNumber("total").longValue() - c.getJsonNumber("completed").longValue()));
+            }
+            return result;
+        }), factory.createMetricName("PendingTasksByTableName"));
+    }
 }
