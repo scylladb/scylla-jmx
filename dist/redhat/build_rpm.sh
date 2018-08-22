@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+PRODUCT=scylla
+
 . /etc/os-release
 print_usage() {
     echo "build_rpm.sh -target epel-7-x86_64 --configure-user"
@@ -73,15 +75,15 @@ fi
 VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
-git archive --format=tar --prefix=scylla-jmx-$SCYLLA_VERSION/ HEAD -o build/scylla-jmx-$VERSION.tar
-pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\" }" > build/scylla-jmx.spec
+git archive --format=tar --prefix=$PRODUCT-jmx-$SCYLLA_VERSION/ HEAD -o build/$PRODUCT-jmx-$VERSION.tar
+pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"product\": \"$PRODUCT\", \"$PRODUCT\": true }" > build/scylla-jmx.spec
 
 # mock generates files owned by root, fix this up
 fix_ownership() {
     sudo chown "$(id -u):$(id -g)" -R "$@"
 }
 
-sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-jmx.spec --sources=build/scylla-jmx-$VERSION.tar
+sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-jmx.spec --sources=build/$PRODUCT-jmx-$VERSION.tar
 fix_ownership build/srpms
-sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/scylla-jmx-$VERSION*.src.rpm
+sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/$PRODUCT-jmx-$VERSION*.src.rpm
 fix_ownership build/rpms
