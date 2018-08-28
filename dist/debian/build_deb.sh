@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+PRODUCT=scylla
+
 . /etc/os-release
 print_usage() {
     echo "build_deb.sh -target <codename>"
@@ -111,9 +113,14 @@ VERSION=$(./SCYLLA-VERSION-GEN)
 SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
 SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
 echo $VERSION > version
-./scripts/git-archive-all --extra version --force-submodules --prefix scylla-jmx ../scylla-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
+./scripts/git-archive-all --extra version --force-submodules --prefix $PRODUCT-jmx ../$PRODUCT-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
 
 cp -a dist/debian/debian debian
+if [ "$PRODUCT" != "scylla" ]; then
+    for i in debian/scylla-*;do
+        mv $i ${i/scylla-/$PRODUCT-}
+    done
+fi
 if is_debian $TARGET; then
     REVISION="1~$TARGET"
 elif is_ubuntu $TARGET; then
@@ -122,28 +129,28 @@ else
    echo "Unknown distribution: $TARGET"
 fi
 
-MUSTACHE_DIST="\"debian\": true, \"$TARGET\": true"
-pystache dist/debian/changelog.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"revision\": \"$REVISION\", \"codename\": \"$TARGET\" }" > debian/changelog
+MUSTACHE_DIST="\"debian\": true, \"$TARGET\": true, \"product\": \"$PRODUCT\", \"$PRODUCT\": true"
+pystache dist/debian/changelog.mustache "{ $MUSTACHE_DIST, \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"revision\": \"$REVISION\", \"codename\": \"$TARGET\" }" > debian/changelog
 pystache dist/debian/rules.mustache "{ $MUSTACHE_DIST }" > debian/rules
 chmod a+rx debian/rules
+pystache dist/debian/control.mustache "{ $MUSTACHE_DIST }" > debian/control
 
 if [ "$TARGET" != "trusty" ]; then
     pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
 fi
 
-cp ./dist/debian/pbuilderrc ~/.pbuilderrc
-sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz
-sudo -E DIST=$TARGET /usr/sbin/pbuilder clean
-sudo -E DIST=$TARGET /usr/sbin/pbuilder create
-sudo -E DIST=$TARGET /usr/sbin/pbuilder update
+sudo rm -fv /var/cache/pbuilder/$PRODUCT-jmx-$TARGET.tgz
+sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder clean --configfile ./dist/debian/pbuilderrc
+sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc
+sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder update --configfile ./dist/debian/pbuilderrc
 if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
     chmod a+rx build/jessie-pkginst.sh
-    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute build/jessie-pkginst.sh
+    sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder execute --configfile ./dist/debian/pbuilderrc build/jessie-pkginst.sh
 elif [ "$TARGET" = "bionic" ]; then
     echo "apt-get install -y ca-certificates-java openjdk-8-jdk-headless" > build/bionic-workaround.sh
     echo "update-ca-certificates -f" >> build/bionic-workaround.sh
     chmod a+rx build/bionic-workaround.sh
-    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute --save-after-exec build/bionic-workaround.sh
+    sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder execute --configfile ./dist/debian/pbuilderrc --save-after-exec build/bionic-workaround.sh
 fi
-sudo -E DIST=$TARGET pdebuild --buildresult build/debs
+sudo PRODUCT=$PRODUCT DIST=$TARGET pdebuild --configfile ./dist/debian/pbuilderrc --buildresult build/debs

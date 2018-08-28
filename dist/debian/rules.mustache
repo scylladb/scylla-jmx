@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
-DOC = $(CURDIR)/debian/scylla-jmx/usr/share/doc/scylla-jmx
-DEST = $(CURDIR)/debian/scylla-jmx/usr/lib/scylla/jmx
+DOC = $(CURDIR)/debian/{{product}}-jmx/usr/share/doc/{{product}}-jmx
+DEST = $(CURDIR)/debian/{{product}}-jmx/usr/lib/scylla/jmx
 M2_REPO= $(CURDIR)/m2
 
 override_dh_auto_build:
@@ -11,9 +11,9 @@ override_dh_auto_clean:
 	rm -rf target m2
 
 override_dh_auto_install:
-	mkdir -p $(CURDIR)/debian/scylla-jmx/etc/default/ && \
+	mkdir -p $(CURDIR)/debian/{{product}}-jmx/etc/default/ && \
 	cp $(CURDIR)/dist/common/sysconfig/scylla-jmx  \
-		$(CURDIR)/debian/scylla-jmx/etc/default/
+		$(CURDIR)/debian/{{product}}-jmx/etc/default/
 
 	mkdir -p $(DOC) && \
 	cp $(CURDIR)/*.md $(DOC)
@@ -27,10 +27,20 @@ override_dh_auto_install:
 
 override_dh_installinit:
 {{#trusty}}
+{{#scylla}}
 	dh_installinit --no-start --upstart-only
+{{/scylla}}
+{{^scylla}}
+	dh_installinit --no-start --name scylla-jmx --upstart-only
+{{/scylla}}
 {{/trusty}}
 {{^trusty}}
+{{#scylla}}
 	dh_installinit --no-start
+{{/scylla}}
+{{^scylla}}
+	dh_installinit --no-start --name scylla-jmx
+{{/scylla}}
 {{/trusty}}
 
 %:
