@@ -131,19 +131,18 @@ if [ "$TARGET" != "trusty" ]; then
     pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
 fi
 
-cp ./dist/debian/pbuilderrc ~/.pbuilderrc
 sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz
-sudo -E DIST=$TARGET /usr/sbin/pbuilder clean
-sudo -E DIST=$TARGET /usr/sbin/pbuilder create
-sudo -E DIST=$TARGET /usr/sbin/pbuilder update
+sudo -E DIST=$TARGET /usr/sbin/pbuilder clean --configfile ./dist/debian/pbuilderrc
+sudo -E DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc
+sudo -E DIST=$TARGET /usr/sbin/pbuilder update --configfile ./dist/debian/pbuilderrc
 if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
     chmod a+rx build/jessie-pkginst.sh
-    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute build/jessie-pkginst.sh
+    sudo -E DIST=$TARGET /usr/sbin/pbuilder --configfile ./dist/debian/pbuilderrc execute build/jessie-pkginst.sh
 elif [ "$TARGET" = "bionic" ]; then
     echo "apt-get install -y ca-certificates-java openjdk-8-jdk-headless" > build/bionic-workaround.sh
     echo "update-ca-certificates -f" >> build/bionic-workaround.sh
     chmod a+rx build/bionic-workaround.sh
-    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute --save-after-exec build/bionic-workaround.sh
+    sudo -E DIST=$TARGET /usr/sbin/pbuilder --configfile ./dist/debian/pbuilderrc execute --save-after-exec build/bionic-workaround.sh
 fi
-sudo -E DIST=$TARGET pdebuild --buildresult build/debs
+sudo -E DIST=$TARGET pdebuild --configfile ./dist/debian/pbuilderrc --buildresult build/debs
