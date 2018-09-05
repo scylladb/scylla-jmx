@@ -113,14 +113,13 @@ fi
 cp dist/common/systemd/scylla-jmx.service.in debian/scylla-jmx.service
 sed -i -e "s#@@SYSCONFDIR@@#/etc/default#g" debian/scylla-jmx.service
 
-cp ./dist/debian/pbuilderrc ~/.pbuilderrc
 sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz
-sudo -E DIST=$TARGET /usr/sbin/pbuilder clean
-sudo -E DIST=$TARGET /usr/sbin/pbuilder create
-sudo -E DIST=$TARGET /usr/sbin/pbuilder update
+sudo -E DIST=$TARGET /usr/sbin/pbuilder clean --configfile ./dist/debian/pbuilderrc
+sudo -E DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc
+sudo -E DIST=$TARGET /usr/sbin/pbuilder update --configfile ./dist/debian/pbuilderrc
 if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
     chmod a+rx build/jessie-pkginst.sh
-    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute build/jessie-pkginst.sh
+    sudo -E DIST=$TARGET /usr/sbin/pbuilder execute --configfile ./dist/debian/pbuilderrc  build/jessie-pkginst.sh
 fi
-sudo -E DIST=$TARGET pdebuild --buildresult build/debs
+sudo -E DIST=$TARGET pdebuild --configfile ./dist/debian/pbuilderrc --buildresult build/debs
