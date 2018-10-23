@@ -53,7 +53,16 @@ public class APIMBeanServer implements MBeanServer {
     }
 
     private static ObjectName prepareForRemote(final ObjectName n) {
-        return ObjectName.getInstance(n);
+        /*
+         * ObjectName.getInstance has changed in JDK (micro) updates so it no longer applies 
+         * overridable methods -> wrong name published. 
+         * Fix by doing explicit ObjectName instansiation. 
+         */
+        try {
+            return new ObjectName(n.getCanonicalName());
+        } catch (MalformedObjectNameException e) {
+            throw new IllegalArgumentException(n.toString());
+        }
     }
 
     @Override

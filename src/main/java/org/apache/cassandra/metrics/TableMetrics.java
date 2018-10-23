@@ -267,17 +267,16 @@ public class TableMetrics implements Metrics {
     }
 
     static class TableMetricObjectName extends javax.management.ObjectName {
-        private static final String FAKE_NAME = "a:a=a";
-
         private final TableMetricStringNameFactory factory;
         private final String metricName;
 
         public TableMetricObjectName(TableMetricStringNameFactory factory, String metricName) throws MalformedObjectNameException {
-            super(FAKE_NAME);
+            super("");
             this.factory = factory;
             this.metricName = metricName;
         }
 
+        
         @Override
         public boolean isPropertyValuePattern(String property) {
             return false;
@@ -326,8 +325,7 @@ public class TableMetrics implements Metrics {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof TableMetricObjectName)) return false;
-            return getCanonicalName().equals(((TableMetricObjectName) o).getCanonicalName());
+            return getCanonicalName().equals(((ObjectName) o).getCanonicalName());
         }
 
         @Override
@@ -341,6 +339,36 @@ public class TableMetrics implements Metrics {
                 return false;
             }
             return getCanonicalName().equals(name.getCanonicalName());
+        }
+
+
+        @Override
+        public boolean isPattern() {
+            return false;
+        }
+
+
+        @Override
+        public boolean isDomainPattern() {
+            return false;
+        }
+
+
+        @Override
+        public boolean isPropertyPattern() {
+            return false;
+        }
+
+
+        @Override
+        public boolean isPropertyListPattern() {
+            return false;
+        }
+
+
+        @Override
+        public boolean isPropertyValuePattern() {
+            return false;
         }
     }
 
