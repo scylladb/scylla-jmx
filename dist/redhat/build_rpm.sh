@@ -5,7 +5,7 @@ PRODUCT=scylla
 . /etc/os-release
 print_usage() {
     echo "build_rpm.sh --reloc-pkg build/scylla-jmx-package.tar.gz"
-    echo "  --target target distribution in mock cfg name"
+    echo "  --reloc-pkg specify relocatable package path"
     exit 1
 }
 RELOC_PKG=
@@ -47,6 +47,9 @@ if [ ! -f "$RELOC_PKG" ]; then
     exit 1
 fi
 
+if [ ! -f /usr/bin/rpmbuild ]; then
+    pkg_install rpm-build
+fi
 if [ ! -f /usr/bin/git ]; then
     pkg_install git
 fi
