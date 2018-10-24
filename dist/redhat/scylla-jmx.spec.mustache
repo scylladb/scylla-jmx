@@ -6,10 +6,10 @@ Group:          Applications/Databases
 
 License:        AGPLv3
 URL:            http://www.scylladb.com/
-Source0:        %{name}-{{version}}-{{release}}.tar
+Source0:        scylla-jmx-package.tar.gz
 
 BuildArch:      noarch
-BuildRequires:  maven systemd-units java-1.8.0-openjdk-devel
+BuildRequires:  systemd-units
 %{?fedora:BuildRequires: python2-pystache}
 %{?rhel:BuildRequires: pystache python-setuptools}
 Requires:       {{product}}-server java-1.8.0-openjdk-headless
@@ -18,14 +18,12 @@ Requires:       {{product}}-server java-1.8.0-openjdk-headless
 
 
 %prep
-%setup -q
+%setup -c
 
 
 %build
-mvn -B install
-mkdir build
 MUSTACHE_DIST="\"redhat\": true"
-pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > build/scylla-jmx.service
+pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > scylla-jmx.service
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -34,12 +32,12 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/scylla/
 
 install -m644 dist/common/sysconfig/scylla-jmx $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/
-install -m644 build/*.service $RPM_BUILD_ROOT%{_unitdir}/
+install -m644 scylla-jmx.service $RPM_BUILD_ROOT%{_unitdir}/
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
 install -d -m755 $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/symlinks
-install -m644 target/scylla-jmx-1.0.jar $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/
-install -m755 scripts/scylla-jmx $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
+install -m644 scylla-jmx-1.0.jar $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/
+install -m755 scylla-jmx $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx
 ln -sf /usr/bin/java $RPM_BUILD_ROOT%{_prefix}/lib/scylla/jmx/symlinks/scylla-jmx
 
 %pre

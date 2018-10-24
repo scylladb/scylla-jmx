@@ -4,15 +4,15 @@ PRODUCT=scylla
 
 . /etc/os-release
 print_usage() {
-    echo "build_rpm.sh -target epel-7-x86_64 --configure-user"
+    echo "build_rpm.sh --reloc-pkg build/scylla-jmx-package.tar.gz"
     echo "  --target target distribution in mock cfg name"
     exit 1
 }
-TARGET=
+RELOC_PKG=
 while [ $# -gt 0 ]; do
     case "$1" in
-        "--target")
-            TARGET=$2
+        "--reloc-pkg")
+            RELOC_PKG=$2
             shift 2
             ;;
         *)
@@ -33,34 +33,20 @@ pkg_install() {
     fi
 }
 
-
-if [ ! -e dist/redhat/build_rpm.sh ]; then
-    echo "run build_rpm.sh in top of scylla-jmx dir"
+if [ ! -e SCYLLA-RELOCATABLE-FILE ]; then
+    echo "do not directly execute build_rpm.sh, use reloc/build_rpm.sh instead."
     exit 1
 fi
 
-if [ "$(arch)" != "x86_64" ]; then
-    echo "Unsupported architecture: $(arch)"
+if [ -z "$RELOC_PKG" ]; then
+    print_usage
     exit 1
 fi
-if [ -z "$TARGET" ]; then
-    if [ "$ID" = "centos" -o "$ID" = "rhel" ] && [ "$VERSION_ID" = "7" ]; then
-        TARGET=./dist/redhat/mock/scylla-jmx-epel-7-x86_64.cfg
-    elif [ "$ID" = "fedora" ]; then
-        TARGET=$ID-$VERSION_ID-x86_64
-    else
-        echo "Please specify target"
-        exit 1
-    fi
+if [ ! -f "$RELOC_PKG" ]; then
+    echo "$RELOC_PKG is not found."
+    exit 1
 fi
 
-if [[ "$TARGET" = epel-7-x86_64 ]]; then
-    TARGET=./dist/redhat/mock/scylla-jmx-epel-7-x86_64.cfg
-fi
-
-if [ ! -f /usr/bin/mock ]; then
-    pkg_install mock
-fi
 if [ ! -f /usr/bin/git ]; then
     pkg_install git
 fi
@@ -72,18 +58,15 @@ if [ ! -f /usr/bin/pystache ]; then
     fi
 fi
 
-VERSION=$(./SCYLLA-VERSION-GEN)
-SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE)
-SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
-git archive --format=tar --prefix=$PRODUCT-jmx-$SCYLLA_VERSION/ HEAD -o build/$PRODUCT-jmx-$VERSION.tar
-pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"product\": \"$PRODUCT\", \"$PRODUCT\": true }" > build/scylla-jmx.spec
+SCYLLA_VERSION=$(cat SCYLLA-VERSION-FILE)
+SCYLLA_RELEASE=$(cat SCYLLA-RELEASE-FILE)
+VERSION=$SCYLLA_VERSION-$SCYLLA_RELEASE
 
-# mock generates files owned by root, fix this up
-fix_ownership() {
-    sudo chown "$(id -u):$(id -g)" -R "$@"
-}
+RPMBUILD=$(readlink -f ../)
+mkdir -p $RPMBUILD/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
-sudo mock --buildsrpm --root=$TARGET --resultdir=`pwd`/build/srpms --spec=build/scylla-jmx.spec --sources=build/$PRODUCT-jmx-$VERSION.tar
-fix_ownership build/srpms
-sudo mock --rebuild --root=$TARGET --resultdir=`pwd`/build/rpms build/srpms/$PRODUCT-jmx-$VERSION*.src.rpm
-fix_ownership build/rpms
+ln -fv $RELOC_PKG $RPMBUILD/SOURCES/
+pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"product\": \"$PRODUCT\", \"$PRODUCT\": true }" > $RPMBUILD/SPECS/scylla-jmx.spec
+
+# this rpm can be install on both fedora / centos7, so drop distribution name from the file name
+rpmbuild -ba --define "_topdir $RPMBUILD" --undefine "dist" $RPM_JOBS_OPTS $RPMBUILD/SPECS/scylla-jmx.spec
