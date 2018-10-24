@@ -28,20 +28,6 @@ is_redhat_variant() {
 is_debian_variant() {
     [ -f /etc/debian_version ]
 }
-is_debian() {
-    case "$1" in
-        jessie|stretch) return 0;;
-        *) return 1;;
-    esac
-}
-is_ubuntu() {
-    case "$1" in
-        trusty|xenial|bionic) return 0;;
-        *) return 1;;
-    esac
-}
-
-
 pkg_install() {
     if is_redhat_variant; then
         sudo yum install -y $1
