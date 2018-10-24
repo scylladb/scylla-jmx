@@ -4,15 +4,16 @@ PRODUCT=scylla
 
 . /etc/os-release
 print_usage() {
-    echo "build_deb.sh -target <codename>"
-    echo "  --target target distribution codename"
+    echo "build_deb.sh --reloc-pkg build/scylla-jmx-package.tar.gz"
+    echo "  --reloc-pkg specify relocatable package path"
     exit 1
 }
-TARGET=
+TARGET=stable
+RELOC_PKG=
 while [ $# -gt 0 ]; do
     case "$1" in
-        "--target")
-            TARGET=$2
+        "--reloc-pkg")
+            RELOC_PKG=$2
             shift 2
             ;;
         *)
@@ -52,12 +53,22 @@ pkg_install() {
     fi
 }
 
-if [ ! -e dist/debian/build_deb.sh ]; then
-    echo "run build_deb.sh in top of scylla dir"
+if [ ! -e SCYLLA-RELOCATABLE-FILE ]; then
+    echo "do not directly execute build_rpm.sh, use reloc/build_rpm.sh instead."
     exit 1
 fi
+
 if [ "$(arch)" != "x86_64" ]; then
     echo "Unsupported architecture: $(arch)"
+    exit 1
+fi
+
+if [ -z "$RELOC_PKG" ]; then
+    print_usage
+    exit 1
+fi
+if [ ! -f "$RELOC_PKG" ]; then
+    echo "$RELOC_PKG is not found."
     exit 1
 fi
 
@@ -79,14 +90,14 @@ fi
 if [ ! -f /usr/bin/python ]; then
     pkg_install python
 fi
-if [ ! -f /usr/sbin/pbuilder ]; then
-    pkg_install pbuilder
-fi
-if [ ! -f /usr/bin/mvn ]; then
-    pkg_install maven
+if [ ! -f /usr/sbin/debuild ]; then
+    pkg_install devscripts
 fi
 if [ ! -f /usr/bin/dh_testdir ]; then
     pkg_install debhelper
+fi
+if [ ! -f /usr/bin/fakeroot ]; then
+    pkg_install fakeroot
 fi
 if [ ! -f /usr/bin/pystache ]; then
     if is_redhat_variant; then
@@ -103,60 +114,27 @@ if [ "$ID" = "debian" ] && [ ! -f /usr/share/keyrings/ubuntu-archive-keyring.gpg
     sudo apt-get install -y ubuntu-archive-keyring
 fi
 
-if [ -z "$TARGET" ]; then
-    if is_debian_variant; then
-        if [ ! -f /usr/bin/lsb_release ]; then
-            pkg_install lsb-release
-        fi
-        TARGET=`lsb_release -c|awk '{print $2}'`
-    else
-        echo "Please specify target"
-        exit 1
-    fi
-fi
+RELOC_PKG_FULLPATH=$(readlink -f $RELOC_PKG)
+RELOC_PKG_BASENAME=$(basename $RELOC_PKG)
+SCYLLA_VERSION=$(cat SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
+SCYLLA_RELEASE=$(cat SCYLLA-RELEASE-FILE)
 
-VERSION=$(./SCYLLA-VERSION-GEN)
-SCYLLA_VERSION=$(cat build/SCYLLA-VERSION-FILE | sed 's/\.rc/~rc/')
-SCYLLA_RELEASE=$(cat build/SCYLLA-RELEASE-FILE)
-echo $VERSION > version
-./scripts/git-archive-all --extra version --force-submodules --prefix $PRODUCT-jmx ../$PRODUCT-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz 
+ln -fv $RELOC_PKG_FULLPATH ../$PRODUCT-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz
 
-cp -a dist/debian/debian debian
+cp -al dist/debian/debian debian
 if [ "$PRODUCT" != "scylla" ]; then
     for i in debian/scylla-*;do
         mv $i ${i/scylla-/$PRODUCT-}
     done
 fi
-if is_debian $TARGET; then
-    REVISION="1~$TARGET"
-elif is_ubuntu $TARGET; then
-    REVISION="0ubuntu1~$TARGET"
-else
-   echo "Unknown distribution: $TARGET"
-fi
 
+REVISION="1"
 MUSTACHE_DIST="\"debian\": true, \"$TARGET\": true, \"product\": \"$PRODUCT\", \"$PRODUCT\": true"
 pystache dist/debian/changelog.mustache "{ $MUSTACHE_DIST, \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"revision\": \"$REVISION\", \"codename\": \"$TARGET\" }" > debian/changelog
 pystache dist/debian/rules.mustache "{ $MUSTACHE_DIST }" > debian/rules
 chmod a+rx debian/rules
 pystache dist/debian/control.mustache "{ $MUSTACHE_DIST }" > debian/control
 
-if [ "$TARGET" != "trusty" ]; then
-    pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
-fi
+pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
 
-sudo rm -fv /var/cache/pbuilder/$PRODUCT-jmx-$TARGET.tgz
-sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder clean --configfile ./dist/debian/pbuilderrc
-sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc
-sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder update --configfile ./dist/debian/pbuilderrc
-if [ "$TARGET" = "jessie" ]; then
-    echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
-    chmod a+rx build/jessie-pkginst.sh
-    sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder execute --configfile ./dist/debian/pbuilderrc build/jessie-pkginst.sh
-elif [ "$TARGET" = "bionic" ]; then
-    echo "apt-get install -y ca-certificates-java openjdk-8-jdk-headless" > build/bionic-workaround.sh
-    echo "update-ca-certificates -f" >> build/bionic-workaround.sh
-    chmod a+rx build/bionic-workaround.sh
-    sudo PRODUCT=$PRODUCT DIST=$TARGET /usr/sbin/pbuilder execute --configfile ./dist/debian/pbuilderrc --save-after-exec build/bionic-workaround.sh
-fi
-sudo PRODUCT=$PRODUCT DIST=$TARGET pdebuild --configfile ./dist/debian/pbuilderrc --buildresult build/debs
+debuild -rfakeroot -us -uc

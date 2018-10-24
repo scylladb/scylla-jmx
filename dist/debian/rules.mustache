@@ -5,10 +5,8 @@ DEST = $(CURDIR)/debian/{{product}}-jmx/usr/lib/scylla/jmx
 M2_REPO= $(CURDIR)/m2
 
 override_dh_auto_build:
-	mvn -B -Dmaven.repo.local=$(M2_REPO) install
 
 override_dh_auto_clean:
-	rm -rf target m2
 
 override_dh_auto_install:
 	mkdir -p $(CURDIR)/debian/{{product}}-jmx/etc/default/ && \
@@ -20,28 +18,18 @@ override_dh_auto_install:
 	cp $(CURDIR)/NOTICE $(DOC)
 
 	mkdir -p $(DEST)
-	cp $(CURDIR)/scripts/scylla-jmx $(DEST)
-	cp $(CURDIR)/target/scylla-jmx-1.0.jar $(DEST)
+	cp $(CURDIR)/scylla-jmx $(DEST)
+	cp $(CURDIR)/scylla-jmx-1.0.jar $(DEST)
 	mkdir $(DEST)/symlinks
 	ln -sf /usr/bin/java $(DEST)/symlinks/scylla-jmx
 
 override_dh_installinit:
-{{#trusty}}
-{{#scylla}}
-	dh_installinit --no-start --upstart-only
-{{/scylla}}
-{{^scylla}}
-	dh_installinit --no-start --name scylla-jmx --upstart-only
-{{/scylla}}
-{{/trusty}}
-{{^trusty}}
 {{#scylla}}
 	dh_installinit --no-start
 {{/scylla}}
 {{^scylla}}
 	dh_installinit --no-start --name scylla-jmx
 {{/scylla}}
-{{/trusty}}
 
 %:
 	dh $@
