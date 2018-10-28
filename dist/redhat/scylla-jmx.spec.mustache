@@ -10,8 +10,8 @@ Source0:        scylla-jmx-package.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  systemd-units
-%{?fedora:BuildRequires: python2-pystache}
-%{?rhel:BuildRequires: pystache python-setuptools}
+BuildRequires: pystache
+%{?rhel:BuildRequires: python-setuptools}
 Requires:       {{product}}-server java-1.8.0-openjdk-headless
 
 %description
