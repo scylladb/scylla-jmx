@@ -4,9 +4,13 @@ package com.scylladb.jmx.utils;
  */
 
 import static com.scylladb.jmx.main.Main.client;
+import static com.sun.jmx.mbeanserver.Util.wildmatch;
 import static java.util.logging.Level.SEVERE;
+import static javax.management.MBeanServerDelegate.DELEGATE_NAME;
 
-import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -45,8 +49,14 @@ import com.sun.jmx.interceptor.DefaultMBeanServerInterceptor;
 import com.sun.jmx.mbeanserver.JmxMBeanServer;
 import com.sun.jmx.mbeanserver.NamedObject;
 import com.sun.jmx.mbeanserver.Repository;
-import com.sun.jmx.mbeanserver.Util;
 
+/**
+ * This class purposly knows way to much of the inner workings
+ * of Oracle JDK MBeanServer workings, and pervert it for 
+ * performance sakes. It is not portable to other MBean implementations. 
+ *
+ */
+@SuppressWarnings("restriction")
 public class APIBuilder extends MBeanServerBuilder {
 
     private static final Logger logger = Logger.getLogger(APIBuilder.class.getName());
@@ -269,7 +279,7 @@ public class APIBuilder extends MBeanServerBuilder {
 
                 // Pattern matching in the domain name (*, ?)
                 final String dom2Match = name.getDomain();
-                if (Util.wildmatch(TableMetricParams.TABLE_METRICS_DOMAIN, dom2Match)) {
+                if (wildmatch(TableMetricParams.TABLE_METRICS_DOMAIN, dom2Match)) {
                     if (allNames) {
                         addAll(res);
                     } else {
@@ -376,7 +386,7 @@ public class APIBuilder extends MBeanServerBuilder {
                         // wildmatch key property values
                         // values[i] is the pattern;
                         // v is the string
-                        if (Util.wildmatch(v,values[i])) {
+                        if (wildmatch(v,values[i])) {
                             continue;
                         } else {
                             return false;
@@ -451,25 +461,36 @@ public class APIBuilder extends MBeanServerBuilder {
 
     @Override
     public MBeanServer newMBeanServer(String defaultDomain, MBeanServer outer, MBeanServerDelegate delegate) {
-        // It is important to set |interceptors| to true while creating the JmxMBeanSearver.
-        // It is required for calls to JmxMBeanServer.getMBeanServerInterceptor() to be allowed.
+        // It is important to set |interceptors| to true while creating the
+        // JmxMBeanSearver. It is required for calls to
+        // JmxMBeanServer.setMBeanServerInterceptor() to be allowed.
         JmxMBeanServer nested = (JmxMBeanServer) JmxMBeanServer.newMBeanServer(defaultDomain, outer, delegate, true);
-        DefaultMBeanServerInterceptor interceptor = (DefaultMBeanServerInterceptor) nested.getMBeanServerInterceptor();
-        Field repoField;
+        // This is not very clean, we depend on knowledge of how the Sun/Oracle
+        // MBean chain looks internally. But we need haxxor support, so 
+        // lets replace the interceptor.
+        // Note: Removed reflection gunk to eliminate jdk9+ warnings on 
+        // execution. Also, if we can get by without reflection, it is 
+        // better. 
+        final DefaultMBeanServerInterceptor interceptor = new DefaultMBeanServerInterceptor(outer != null ? outer : nested,
+                delegate, nested.getMBeanInstantiator(),
+                new TableRepository(defaultDomain, new Repository(defaultDomain)));
+        nested.setMBeanServerInterceptor(interceptor);
+        final MBeanServerDelegate d = nested.getMBeanServerDelegate();
+
         try {
-            repoField = DefaultMBeanServerInterceptor.class.getDeclaredField("repository");
-        } catch (NoSuchFieldException | SecurityException e) {
+            // Interceptor needs the delegate present. Normally done
+            // by inaccessible method in JmxMBeanServer
+            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                public Object run() throws Exception {
+                    interceptor.registerMBean(d, DELEGATE_NAME);
+                    return null;
+                }
+            });
+        } catch (PrivilegedActionException e) {
             logger.log(SEVERE, "Unexpected error.", e);
             throw new RuntimeException(e);
         }
-        repoField.setAccessible(true);
-        try {
-            final Repository repository = (Repository)repoField.get(interceptor);
-            repoField.set(interceptor, new TableRepository(defaultDomain, repository));
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            logger.log(SEVERE, "Unexpected error.", e);
-            new RuntimeException(e);
-        }
+
         return new APIMBeanServer(client, nested);
     }
 }
