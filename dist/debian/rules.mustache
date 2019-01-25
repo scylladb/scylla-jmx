@@ -31,5 +31,7 @@ override_dh_installinit:
 	dh_installinit --no-start --name scylla-jmx
 {{/scylla}}
 
+override_dh_strip_nondeterminism:
+
 %:
 	dh $@
