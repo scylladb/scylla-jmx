@@ -657,7 +657,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "exclude_current_version", excludeCurrentVersion);
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
-        return client.getIntValue("/storage_service/keyspace_upgrade_sstables/" + keyspaceName);
+        return client.getIntValue("/storage_service/keyspace_upgrade_sstables/" + keyspaceName, queryParams);
     }
 
     /**
