@@ -136,7 +136,7 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
             }
         } catch (InterruptedException | ExecutionException e) {
             futureTableSamperResult = null;
-            throw new RuntimeException("Failed getting table statistics");
+            throw new RuntimeException("Failed getting table statistics", e);
         }
     }
 
