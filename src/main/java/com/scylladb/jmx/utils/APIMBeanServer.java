@@ -36,6 +36,7 @@ import org.apache.cassandra.metrics.StreamingMetrics;
 import com.scylladb.jmx.api.APIClient;
 import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
+@SuppressWarnings("restriction")
 public class APIMBeanServer implements MBeanServer {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(APIMBeanServer.class.getName());
@@ -284,7 +285,7 @@ public class APIMBeanServer implements MBeanServer {
         return server.getClassLoaderRepository();
     }
 
-    static final Pattern tables = Pattern.compile("^(ColumnFamil(ies|y)|(Index)?Tables?)$");
+    static final Pattern tables = Pattern.compile("^\\*?((Index)?ColumnFamil(ies|y)|(Index)?(Tables)?)$");
 
     private boolean checkRegistrations(ObjectName name) {
         if (name != null && server.isRegistered(name)) {
