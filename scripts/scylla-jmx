@@ -133,6 +133,7 @@ fi
 
 exec "$LOCATION_SCRIPTS"/symlinks/scylla-jmx $DEBUG \
     $API_PORT $API_ADDR $CONF_FILE -Xmx256m -XX:+UseSerialGC \
+    -XX:+HeapDumpOnOutOfMemoryError \
     $JMX_AUTH $JMX_SSL $JMX_ADDR $JMX_LOCAL \
     -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT \
     -Djava.rmi.server.hostname=$HOSTNAME -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT \
