@@ -133,7 +133,7 @@ fi
 
 sudo rm -fv /var/cache/pbuilder/scylla-jmx-$TARGET.tgz
 sudo -E DIST=$TARGET /usr/sbin/pbuilder clean --configfile ./dist/debian/pbuilderrc
-sudo -E DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc
+sudo -E DIST=$TARGET /usr/sbin/pbuilder create --configfile ./dist/debian/pbuilderrc --aptconfdir dist/debian/apt
 sudo -E DIST=$TARGET /usr/sbin/pbuilder update --configfile ./dist/debian/pbuilderrc
 if [ "$TARGET" = "jessie" ]; then
     echo "apt-get install -y -t jessie-backports ca-certificates-java" > build/jessie-pkginst.sh
