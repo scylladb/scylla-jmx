@@ -59,7 +59,8 @@ public class StorageProxy extends MetricsMBean implements StorageProxyMBean {
                 new ClientRequestMetrics("RangeSlice", "/storage_proxy/metrics/range"),
                 new ClientRequestMetrics("Write", "storage_proxy/metrics/write"),
                 new CASClientRequestMetrics("CASWrite", "storage_proxy/metrics/cas_write"),
-                new CASClientRequestMetrics("CASRead", "storage_proxy/metrics/cas_read"));
+                new CASClientRequestMetrics("CASRead", "storage_proxy/metrics/cas_read"),
+                new ClientRequestMetrics("ViewWrite", "storage_proxy/metrics/view_write"));
     }
 
     @Override
