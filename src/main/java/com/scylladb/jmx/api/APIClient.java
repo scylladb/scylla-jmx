@@ -152,7 +152,11 @@ public class APIClient {
             get(path, queryParams).delete();
             return;
         }
-        get(path).delete();
+        Response response = get(path).delete();
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            throw getException("Scylla API server HTTP delete to URL '" + path + "' failed",
+                    response.readEntity(String.class));
+        }
     }
 
     public void delete(String path) {
