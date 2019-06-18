@@ -20,7 +20,7 @@ SCYLLA_CONF=/etc/scylla
 #SCYLLA_JMX_FILE="-cf /etc/scylla.d/scylla-user.cfg"
 
 # The location of the jmx proxy jar file
-SCYLLA_JMX_LOCAL="-l /usr/lib/scylla/jmx"
+SCYLLA_JMX_LOCAL="-l /opt/scylladb/jmx"
 
 # allow to run remotely
 #SCYLLA_JMX_REMOTE="-r"

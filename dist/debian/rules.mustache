@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
-DOC = $(CURDIR)/debian/{{product}}-jmx/usr/share/doc/{{product}}-jmx
-DEST = $(CURDIR)/debian/{{product}}-jmx/usr/lib/scylla/jmx
+DOC = $(CURDIR)/debian/{{product}}-jmx/opt/scylladb/share/doc/{{product}}-jmx
+DEST = $(CURDIR)/debian/{{product}}-jmx/opt/scylladb/jmx
 M2_REPO= $(CURDIR)/m2
 
 override_dh_auto_build:
@@ -22,6 +22,10 @@ override_dh_auto_install:
 	cp $(CURDIR)/scylla-jmx-1.0.jar $(DEST)
 	mkdir $(DEST)/symlinks
 	ln -sf /usr/bin/java $(DEST)/symlinks/scylla-jmx
+
+	mkdir -p $(CURDIR)/debian/{{product}}-jmx/opt/scylladb/scripts
+	# Create symlink for /usr/lib/scylla/jmx
+	ln -sf /opt/scylladb/jmx $(CURDIR)/debian/{{product}}-jmx/opt/scylladb/scripts/
 
 override_dh_installinit:
 {{#scylla}}
