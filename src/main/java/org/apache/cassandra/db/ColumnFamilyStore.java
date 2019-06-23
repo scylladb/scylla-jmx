@@ -519,8 +519,8 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
         JsonArray counters = tableSamplerResult.getJsonArray((samplerType.equalsIgnoreCase("reads")) ? "read" : "write");
         long size = 0;
         if (counters != null) {
-            size = counters.size();
-            for (int i = 0; i < counters.size(); i++) {
+            size = (count > counters.size()) ? counters.size() : count;
+            for (int i = 0; i < size; i++) {
                 JsonObject counter = counters.getJsonObject(i);
                 result.put(new CompositeDataSupport(COUNTER_COMPOSITE_TYPE, COUNTER_NAMES,
                         new Object[] { counter.getString("partition"), // raw
