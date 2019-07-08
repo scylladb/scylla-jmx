@@ -52,6 +52,6 @@ if [ -z "$NODEPS" ]; then
     sudo ./install-dependencies.sh
 fi
 
-mvn -B install
+mvn -B --file scylla-jmx-parent/pom.xml install
 ./SCYLLA-VERSION-GEN
 scripts/create-relocatable-package.py build/scylla-jmx-package.tar.gz
