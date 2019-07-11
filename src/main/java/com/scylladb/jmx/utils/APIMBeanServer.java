@@ -285,7 +285,7 @@ public class APIMBeanServer implements MBeanServer {
         return server.getClassLoaderRepository();
     }
 
-    static final Pattern tables = Pattern.compile("^\\*?((Index)?ColumnFamil(ies|y)|(Index)?(Tables)?)$");
+    static final Pattern tables = Pattern.compile("^\\*?((Index)?ColumnFamil(ies|y)|(Index)?(Table(s)?)?)$");
 
     private boolean checkRegistrations(ObjectName name) {
         if (name != null && server.isRegistered(name)) {
