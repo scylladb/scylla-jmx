@@ -369,6 +369,23 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
     }
 
     /**
+     * Returns a list of filenames that contain the given key on this node
+     * @param key
+     * @param hexFormat if key is in hex string format
+     * @return list of filenames containing the key
+     */
+    @Override
+    public List<String> getSSTablesForKey(String key, boolean hexFormat)
+    {
+        log(" getSSTablesForKey(String key)");
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        queryParams.add("key", key);
+        if (hexFormat) {
+            queryParams.add("format", "hex");
+        }
+        return client.getListStrValue("column_family/sstables/by_key/" + getCFName(), queryParams);
+    }
+    /**
      * Scan through Keyspace/ColumnFamily's data directory determine which
      * SSTables should be loaded and load them
      */
