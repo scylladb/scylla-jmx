@@ -55,7 +55,7 @@ public class CompactionMetrics implements Metrics {
 
         registry.register(() -> registry.gauge((client) -> {
             Map<String, Map<String, Integer>> result = new HashMap<>();
-            JsonArray compactions = client.getJsonArray("compaction_manager/compactions");
+            JsonArray compactions = client.getJsonArray("compaction_manager/metrics/pending_tasks_by_table");
 
             for (int i = 0; i < compactions.size(); i++) {
                 JsonObject c = compactions.getJsonObject(i);
@@ -68,7 +68,7 @@ public class CompactionMetrics implements Metrics {
                 }
 
                 Map<String, Integer> map = result.get(ks);
-                map.put(cf, (int)(c.getJsonNumber("total").longValue() - c.getJsonNumber("completed").longValue()));
+                map.put(cf, (int)(c.getJsonNumber("task").longValue()));
             }
             return result;
         }), factory.createMetricName("PendingTasksByTableName"));
