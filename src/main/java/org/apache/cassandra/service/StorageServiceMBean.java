@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import javax.management.NotificationEmitter;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 
 public interface StorageServiceMBean extends NotificationEmitter {
@@ -872,4 +873,8 @@ public interface StorageServiceMBean extends NotificationEmitter {
      * Sets the hinted handoff throttle in kb per second, per delivery thread.
      */
     public boolean resumeBootstrap();
+    
+    public List<CompositeData> getSSTableInfo(String keyspace, String table);
+
+    public List<CompositeData> getSSTableInfo();
 }

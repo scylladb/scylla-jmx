@@ -38,6 +38,7 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.ClientConfig;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.scylladb.jmx.utils.SnapshotDetailsTabularData;
 
 public class APIClient {
@@ -78,9 +79,12 @@ public class APIClient {
     private static final Logger logger = Logger.getLogger(APIClient.class.getName());
 
     private final APIConfig config;
+    private final ClientConfig clientConfig;
 
     public APIClient(APIConfig config) {
         this.config = config;
+        this.clientConfig = new ClientConfig();
+        clientConfig.register(new JacksonJaxbJsonProvider());
     }
 
     private String getBaseUrl() {
@@ -88,7 +92,7 @@ public class APIClient {
     }
 
     public Invocation.Builder get(String path, MultivaluedMap<String, String> queryParams) {
-        Client client = ClientBuilder.newClient(new ClientConfig());
+        Client client = ClientBuilder.newClient(clientConfig);
         WebTarget webTarget = client.target(getBaseUrl()).path(path);
         if (queryParams != null) {
             for (Entry<String, List<String>> qp : queryParams.entrySet()) {

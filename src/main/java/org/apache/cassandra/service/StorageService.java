@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -52,14 +53,14 @@ import javax.management.NotificationBroadcaster;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.cassandra.metrics.StorageMetrics;
 import org.apache.cassandra.repair.RepairParallelism;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
 
 import com.google.common.base.Joiner;
 import com.scylladb.jmx.api.APIClient;
@@ -492,12 +493,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public void takeSnapshot(String tag, Map<String, String> options, String... keyspaceNames) throws IOException {
         log(" takeSnapshot(String tag, String... keyspaceNames) throws IOException");
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();        
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "tag", tag);
-        
+
         if (keyspaceNames.length == 1 && keyspaceNames[0].indexOf('.') != -1) {
             String[] parts = keyspaceNames[0].split("\\.");
-            keyspaceNames = new String[] { parts[0] };            
+            keyspaceNames = new String[] { parts[0] };
             APIClient.set_query_param(queryParams, "cf", parts[1]);
         }
         APIClient.set_query_param(queryParams, "kn", APIClient.join(keyspaceNames));
@@ -603,8 +604,9 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         client.post("/storage_service/keyspace_compaction/" + keyspaceName, queryParams);
     }
 
-    @Override 
-    public void forceKeyspaceCompactionForTokenRange(String keyspaceName, String startToken, String endToken, String... tableNames) throws IOException, ExecutionException, InterruptedException {
+    @Override
+    public void forceKeyspaceCompactionForTokenRange(String keyspaceName, String startToken, String endToken,
+            String... tableNames) throws IOException, ExecutionException, InterruptedException {
         // TODO: actually handle token ranges.
         forceKeyspaceCompaction(keyspaceName, tableNames);
     }
@@ -869,7 +871,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Deprecated
     public int forceRepairAsync(String keyspace, boolean isSequential, Collection<String> dataCenters,
             Collection<String> hosts, boolean primaryRange, boolean repairedAt, String... columnFamilies)
-                    throws IOException {
+            throws IOException {
         log(" forceRepairAsync(String keyspace, boolean isSequential, Collection<String> dataCenters, Collection<String> hosts,  boolean primaryRange, boolean repairedAt, String... columnFamilies) throws IOException");
         return repairRangeAsync(null, null, keyspace, isSequential, dataCenters, hosts, primaryRange, repairedAt,
                 columnFamilies);
@@ -1298,12 +1300,19 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     }
 
     /**
-     * Same as {@link #rebuild(String)}, but only for specified keyspace and ranges.
+     * Same as {@link #rebuild(String)}, but only for specified keyspace and
+     * ranges.
      *
-     * @param sourceDc Name of DC from which to select sources for streaming or null to pick any node
-     * @param keyspace Name of the keyspace which to rebuild or null to rebuild all keyspaces.
-     * @param tokens Range of tokens to rebuild or null to rebuild all token ranges. In the format of:
-     *               "(start_token_1,end_token_1],(start_token_2,end_token_2],...(start_token_n,end_token_n]"
+     * @param sourceDc
+     *            Name of DC from which to select sources for streaming or null
+     *            to pick any node
+     * @param keyspace
+     *            Name of the keyspace which to rebuild or null to rebuild all
+     *            keyspaces.
+     * @param tokens
+     *            Range of tokens to rebuild or null to rebuild all token
+     *            ranges. In the format of:
+     *            "(start_token_1,end_token_1],(start_token_2,end_token_2],...(start_token_n,end_token_n]"
      */
     @Override
     public void rebuild(String sourceDc, String keyspace, String tokens, String specificSources) {
@@ -1703,5 +1712,30 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     public boolean resumeBootstrap() {
         log(" resumeBootstrap");
         return false;
+    }
+
+    @Override
+    public List<CompositeData> getSSTableInfo(String keyspace, String table) {
+        if (keyspace == null && table != null) {
+            throw new IllegalArgumentException("Missing keyspace name");
+        }
+        MultivaluedMap<String, String> queryParams = null;
+
+        if (keyspace != null) {
+            queryParams = new MultivaluedHashMap<String, String>();
+            queryParams.add("keyspace", keyspace);
+        }
+        if (table != null) {
+            queryParams.add("cf", table);
+        }
+
+        return client.get("/storage_service/sstable_info", queryParams)
+                .get(new GenericType<List<PerTableSSTableInfo>>() {
+                }).stream().map((i) -> i.toCompositeData()).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<CompositeData> getSSTableInfo() {
+        return getSSTableInfo(null, null);
     }
 }
