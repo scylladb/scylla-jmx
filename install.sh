@@ -29,7 +29,7 @@ Usage: install.sh [options]
 Options:
   --root /path/to/root     alternative install root (default /)
   --prefix /prefix         directory prefix (default /usr)
-  --disttype [redhat|debian] specify type of distribution (redhat/debian)
+  --sysconfdir /etc/sysconfig   specify sysconfig directory name
   --help                   this helpful message
 EOF
     exit 1
@@ -37,6 +37,7 @@ EOF
 
 root=/
 prefix=/opt/scylladb
+sysconfdir=/etc/sysconfig
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -48,8 +49,8 @@ while [ $# -gt 0 ]; do
             prefix="$2"
             shift 2
             ;;
-        "--disttype")
-            disttype="$2"
+        "--sysconfdir")
+            sysconfdir="$2"
             shift 2
             ;;
         "--help")
@@ -65,27 +66,22 @@ done
 rprefix="$root/$prefix"
 retc="$root/etc"
 rusr="$root/usr"
+rsysconfdir="$root/$sysconfdir"
 
-if [ "$disttype" = "redhat" ]; then
-    MUSTACHE_DIST="\"redhat\": true"
-    sysconfdir=sysconfig
-elif [ "$disttype" = "debian" ]; then
-    MUSTACHE_DIST="\"debian\": true"
-    sysconfdir=default
-else
-    print_usage
-    exit 1
-fi
-
-mkdir -p build
-pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > build/scylla-jmx.service
-
-install -d -m755 "$retc"/"$sysconfdir"
+install -d -m755 "$rsysconfdir"
 install -d -m755 "$rusr"/lib/systemd/system
 install -d -m755 "$rprefix/scripts" "$rprefix/jmx" "$rprefix/jmx/symlinks"
 
-install -m644 dist/common/sysconfig/scylla-jmx -Dt "$retc"/"$sysconfdir"
-install -m644 build/scylla-jmx.service  -Dt "$rusr"/lib/systemd/system
+install -m644 dist/common/sysconfig/scylla-jmx -Dt "$rsysconfdir"
+install -m644 dist/common/systemd/scylla-jmx.service  -Dt "$rusr"/lib/systemd/system
+if [ "$sysconfdir" != "/etc/sysconfig" ]; then
+    install -d -m755 "$retc"/systemd/system/scylla-jmx.service.d
+    cat << EOS > "$retc"/systemd/system/scylla-jmx.service.d/sysconfdir.conf
+[Service]
+EnvironmentFile=
+EnvironmentFile=$sysconfdir/scylla-jmx
+EOS
+fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
 install -m755 scylla-jmx "$rprefix/jmx"

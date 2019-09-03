@@ -6,7 +6,7 @@ override_dh_auto_clean:
 
 override_dh_auto_install:
 	dh_auto_install
-	./install.sh --root "$(CURDIR)/debian/{{product}}-jmx" --disttype debian
+	./install.sh --root "$(CURDIR)/debian/{{product}}-jmx" --sysconfdir /etc/default
 
 override_dh_installinit:
 {{#scylla}}
