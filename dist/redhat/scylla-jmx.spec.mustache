@@ -22,26 +22,9 @@ Requires:       {{product}}-server java-1.8.0-openjdk-headless
 
 
 %build
-MUSTACHE_DIST="\"redhat\": true"
-pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > scylla-jmx.service
 
 %install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/
-mkdir -p $RPM_BUILD_ROOT%{_unitdir}
-mkdir -p $RPM_BUILD_ROOT/opt/scylladb/
-
-install -m644 dist/common/sysconfig/scylla-jmx $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/
-install -m644 scylla-jmx.service $RPM_BUILD_ROOT%{_unitdir}/
-install -d -m755 $RPM_BUILD_ROOT/opt/scylladb/
-install -d -m755 $RPM_BUILD_ROOT/opt/scylladb/jmx
-install -d -m755 $RPM_BUILD_ROOT/opt/scylladb/jmx/symlinks
-install -m644 scylla-jmx-1.0.jar $RPM_BUILD_ROOT/opt/scylladb/jmx/
-install -m755 scylla-jmx $RPM_BUILD_ROOT/opt/scylladb/jmx
-ln -sf /usr/bin/java $RPM_BUILD_ROOT/opt/scylladb/jmx/symlinks/scylla-jmx
-install -d -m755 $RPM_BUILD_ROOT/opt/scylladb/scripts
-# create symlink for /usr/lib/scylla/jmx
-ln -sf /opt/scylladb/jmx $RPM_BUILD_ROOT/opt/scylladb/scripts/
+./install.sh --root "$RPM_BUILD_ROOT"
 
 %pre
 /usr/sbin/groupadd scylla 2> /dev/null || :
