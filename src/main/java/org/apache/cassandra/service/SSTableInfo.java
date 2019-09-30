@@ -118,6 +118,17 @@ public class SSTableInfo {
         this.extendedProperties = extendedProperties;
     }
 
+    @JsonProperty("properties")
+    private void unpackProperties(List<Map<String, String>> maps) {
+        Map<String, String> result = new HashMap<>();
+        for (Map<String, String> map : maps) {
+            String key = map.get("key");
+            String value = map.get("value");
+            result.put(key, value);
+        }
+        properties = result;
+    }
+
     @JsonProperty("extended_properties")
     private void unpackNested(List<Map<String, Object>> properties) {
         Map<String, Map<String, String>> result = new HashMap<String, Map<String, String>>();
