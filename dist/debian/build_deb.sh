@@ -121,6 +121,6 @@ pystache dist/debian/rules.mustache "{ $MUSTACHE_DIST }" > debian/rules
 chmod a+rx debian/rules
 pystache dist/debian/control.mustache "{ $MUSTACHE_DIST }" > debian/control
 
-pystache dist/common/systemd/scylla-jmx.service.mustache "{ $MUSTACHE_DIST }" > debian/scylla-jmx.service
+cp dist/common/systemd/scylla-jmx.service debian/scylla-jmx.service
 
 debuild -rfakeroot -us -uc
