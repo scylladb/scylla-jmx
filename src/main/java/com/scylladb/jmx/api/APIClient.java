@@ -41,7 +41,19 @@ import org.glassfish.jersey.client.ClientConfig;
 import com.scylladb.jmx.utils.SnapshotDetailsTabularData;
 
 public class APIClient {
-    private Map<String, CacheEntry> cache = new HashMap<String, CacheEntry>();
+    private final Map<String, CacheEntry> cache;
+    private final APIConfig config;
+    private final Client client;
+    private final JsonReaderFactory factory;
+
+    private static final Logger logger = Logger.getLogger(APIClient.class.getName());
+
+    public APIClient(APIConfig config) {
+        this.factory = Json.createReaderFactory(null);
+        this.cache = new HashMap<String, CacheEntry>();
+        this.config = config;
+        this.client = ClientBuilder.newClient(new ClientConfig());
+    }
 
     private String getCacheKey(String key, MultivaluedMap<String, String> param, long duration) {
         if (duration <= 0) {
@@ -74,21 +86,12 @@ public class APIClient {
         return (value != null && value.valid(duration)) ? value.jsonObject() : null;
     }
 
-    private JsonReaderFactory factory = Json.createReaderFactory(null);
-    private static final Logger logger = Logger.getLogger(APIClient.class.getName());
-
-    private final APIConfig config;
-
-    public APIClient(APIConfig config) {
-        this.config = config;
-    }
 
     private String getBaseUrl() {
         return config.getBaseUrl();
     }
 
     public Invocation.Builder get(String path, MultivaluedMap<String, String> queryParams) {
-        Client client = ClientBuilder.newClient(new ClientConfig());
         WebTarget webTarget = client.target(getBaseUrl()).path(path);
         if (queryParams != null) {
             for (Entry<String, List<String>> qp : queryParams.entrySet()) {
