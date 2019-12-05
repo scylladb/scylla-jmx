@@ -46,7 +46,7 @@ fi
 %systemd_preun scylla-jmx.service
 
 %postun
-%systemd_postun
+%systemd_postun scylla-jmx.service
 
 %clean
 rm -rf $RPM_BUILD_ROOT
