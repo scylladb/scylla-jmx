@@ -124,8 +124,6 @@ fi
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
 install -m755 scylla-jmx "$rprefix/jmx"
 ln -sf /usr/bin/java "$rprefix/jmx/symlinks/scylla-jmx"
-# create symlink for /usr/lib/scylla/jmx
-ln -srf $rprefix/jmx "$rprefix/scripts/"
 
 if $nonroot; then
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
