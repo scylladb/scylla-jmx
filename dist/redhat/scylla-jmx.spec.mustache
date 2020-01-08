@@ -41,6 +41,7 @@ fi
 
 %post
 %systemd_post scylla-jmx.service
+/usr/bin/systemctl daemon-reload ||:
 
 %preun
 %systemd_preun scylla-jmx.service
