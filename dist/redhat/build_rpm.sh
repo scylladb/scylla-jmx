@@ -69,6 +69,7 @@ RPMBUILD=$(readlink -f ../)
 mkdir -p $RPMBUILD/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 ln -fv $RELOC_PKG $RPMBUILD/SOURCES/
+ln -fv dist/redhat/systemd.inc $RPMBUILD/SOURCES/
 pystache dist/redhat/scylla-jmx.spec.mustache "{ \"version\": \"$SCYLLA_VERSION\", \"release\": \"$SCYLLA_RELEASE\", \"product\": \"$PRODUCT\", \"$PRODUCT\": true }" > $RPMBUILD/SPECS/scylla-jmx.spec
 
 # this rpm can be install on both fedora / centos7, so drop distribution name from the file name

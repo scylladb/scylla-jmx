@@ -7,12 +7,15 @@ Group:          Applications/Databases
 License:        AGPLv3
 URL:            http://www.scylladb.com/
 Source0:        scylla-jmx-package.tar.gz
+Source1:        systemd.inc
 
 BuildArch:      noarch
 BuildRequires:  systemd-units
 BuildRequires: pystache
 %{?rhel:BuildRequires: python-setuptools}
 Requires:       {{product}}-server java-1.8.0-openjdk-headless
+
+%include %{SOURCE1}
 
 %description
 
@@ -41,7 +44,6 @@ fi
 
 %post
 %systemd_post scylla-jmx.service
-/usr/bin/systemctl daemon-reload ||:
 
 %preun
 %systemd_preun scylla-jmx.service
