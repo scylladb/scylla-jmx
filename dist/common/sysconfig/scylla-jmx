@@ -27,3 +27,6 @@ SCYLLA_JMX_LOCAL="-l /opt/scylladb/jmx"
 
 # allow debug
 #SCYLLA_JMX_DEBUG="-d"
+
+# specify JVM options
+JAVA_TOOL_OPTIONS=""
