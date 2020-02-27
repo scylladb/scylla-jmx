@@ -31,6 +31,7 @@ Options:
   --prefix /prefix         directory prefix (default /usr)
   --nonroot                shortcut of '--disttype nonroot'
   --sysconfdir /etc/sysconfig   specify sysconfig directory name
+  --packaging               use install.sh for packaging
   --help                   this helpful message
 EOF
     exit 1
@@ -39,6 +40,7 @@ EOF
 root=/
 sysconfdir=/etc/sysconfig
 nonroot=false
+packaging=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -58,6 +60,10 @@ while [ $# -gt 0 ]; do
             sysconfdir="$2"
             shift 2
             ;;
+        "--packaging")
+            packaging=true
+            shift 1
+            ;;
         "--help")
             shift 1
 	    print_usage
@@ -67,6 +73,20 @@ while [ $# -gt 0 ]; do
             ;;
     esac
 done
+
+if ! $packaging; then
+    has_java=false
+    if [ -x /usr/bin/java ]; then
+        javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
+        if [[ "$javaver" =~ ^\"1.8.0 ]]; then
+            has_java=true
+        fi
+    fi
+    if ! $has_java; then
+        echo "Please install openjdk-8 before running install.sh."
+        exit 1
+    fi
+fi
 
 if [ -z "$prefix" ]; then
     if $nonroot; then
@@ -137,4 +157,6 @@ if $nonroot; then
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
     systemctl --user daemon-reload
     echo "Scylla-JMX non-root install completed."
+elif ! $packaging; then
+    systemctl --system daemon-reload
 fi
