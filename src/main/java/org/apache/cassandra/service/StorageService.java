@@ -645,7 +645,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         APIClient.set_bool_query_param(queryParams, "disable_snapshot", disableSnapshot);
         APIClient.set_bool_query_param(queryParams, "skip_corrupted", skipCorrupted);
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
-        return client.getIntValue("/storage_service/keyspace_scrub/" + keyspaceName);
+        return client.getIntValue("/storage_service/keyspace_scrub/" + keyspaceName, queryParams);
     }
 
     /**
@@ -1669,7 +1669,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     public int scrub(boolean disableSnapshot, boolean skipCorrupted, boolean checkData, int jobs, String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException, InterruptedException {
         // "jobs" not (yet) relevant for scylla. (though possibly useful...)
-        return scrub(disableSnapshot, skipCorrupted, checkData, 0, keyspaceName, columnFamilies);
+        return scrub(disableSnapshot, skipCorrupted, checkData, keyspaceName, columnFamilies);
     }
 
     @Override
@@ -1737,5 +1737,16 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<CompositeData> getSSTableInfo() {
         return getSSTableInfo(null, null);
+    }
+
+    @Override
+    public int scrub(boolean disableSnapshot, boolean skipCorrupted, boolean checkData, boolean reinsertOverflowedTTL,
+            int jobs, String keyspaceName, String... columnFamilies)
+            throws IOException, ExecutionException, InterruptedException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        APIClient.set_bool_query_param(queryParams, "disable_snapshot", disableSnapshot);
+        APIClient.set_bool_query_param(queryParams, "skip_corrupted", skipCorrupted);
+        APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
+        return client.getIntValue("/storage_service/keyspace_scrub/" + keyspaceName, queryParams);
     }
 }
