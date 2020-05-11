@@ -1,13 +1,13 @@
-Source: {{product}}-jmx
+Source: %{product}-jmx
 Maintainer: Takuya ASADA <syuu@scylladb.com>
 Homepage: http://scylladb.com
 Section: database
 Priority: optional
 Standards-Version: 3.9.5
 
-Package: {{product}}-jmx
+Package: %{product}-jmx
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, openjdk-8-jre-headless | openjdk-8-jre | oracle-java8-set-default | adoptopenjdk-8-hotspot-jre, {{product}}-server
+Depends: ${shlibs:Depends}, ${misc:Depends}, openjdk-8-jre-headless | openjdk-8-jre | oracle-java8-set-default | adoptopenjdk-8-hotspot-jre, %{product}-server
 Conflicts: openjdk-11-jre-headless, openjdk-11-jre, oracle-java11-set-default
 Description: Scylla JMX server binaries 
  Scylla is a highly scalable, eventually consistent, distributed,
