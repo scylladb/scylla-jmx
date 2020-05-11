@@ -1,6 +1,6 @@
-Name:           {{product}}-jmx
-Version:        {{version}}
-Release:        {{release}}%{?dist}
+Name:           %{product}-jmx
+Version:        %{version}
+Release:        %{release}%{?dist}
 Summary:        Scylla JMX
 Group:          Applications/Databases
 
@@ -10,9 +10,7 @@ Source0:        scylla-jmx-package.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  systemd-units
-BuildRequires: pystache
-%{?rhel:BuildRequires: python-setuptools}
-Requires:       {{product}}-server java-1.8.0-openjdk-headless
+Requires:       %{product}-server java-1.8.0-openjdk-headless
 
 %description
 
