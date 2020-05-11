@@ -1,20 +1,21 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/pkg-info.mk
+
 override_dh_auto_build:
 
 override_dh_auto_clean:
 
 override_dh_auto_install:
 	dh_auto_install
-	./install.sh --root "$(CURDIR)/debian/{{product}}-jmx" --sysconfdir /etc/default
+	./install.sh --root "$(CURDIR)/debian/$(DEB_SOURCE)" --sysconfdir /etc/default
 
 override_dh_installinit:
-{{#scylla}}
+ifeq ($(DEB_SOURCE),scylla-jmx)
 	dh_installinit --no-start
-{{/scylla}}
-{{^scylla}}
+else
 	dh_installinit --no-start --name scylla-jmx
-{{/scylla}}
+endif
 
 override_dh_strip_nondeterminism:
 

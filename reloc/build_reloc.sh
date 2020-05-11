@@ -54,4 +54,5 @@ fi
 
 mvn -B --file scylla-jmx-parent/pom.xml install
 ./SCYLLA-VERSION-GEN
+./dist/debian/debian_files_gen.py
 scripts/create-relocatable-package.py build/scylla-jmx-package.tar.gz
