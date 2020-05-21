@@ -213,6 +213,7 @@ public interface StorageServiceMBean extends NotificationEmitter {
 
     public List<InetAddress> getNaturalEndpoints(String keyspaceName, ByteBuffer key);
 
+    public void checkAndRepairCdcStreams() throws IOException;
     /**
      * Takes the snapshot for the given keyspaces. A snapshot name must be
      * specified.

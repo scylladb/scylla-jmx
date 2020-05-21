@@ -476,6 +476,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         return client.getListInetAddressValue("");
     }
 
+    @Override
+    public void checkAndRepairCdcStreams() throws IOException {
+        log(" checkAndRepairCdcStreams() throws IOException");
+        client.post("/storage_service/cdc_streams_check_and_repair");
+    }
+
     /**
      * Takes the snapshot for the given keyspaces. A snapshot name must be
      * specified.
