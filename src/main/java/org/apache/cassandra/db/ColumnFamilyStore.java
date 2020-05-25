@@ -320,7 +320,7 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
     @Override
     public boolean isAutoCompactionDisabled() {
         log(" isAutoCompactionDisabled()");
-        return client.getBooleanValue("column_family/autocompaction/" + getCFName());
+        return !client.getBooleanValue("column_family/autocompaction/" + getCFName());
     }
 
     /** Number of tombstoned cells retreived during the last slicequery */
