@@ -1,0 +1,4 @@
+etc/default/scylla-jmx
+etc/systemd/system/scylla-jmx.service.d/sysconfdir.conf
+opt/scylladb/jmx/*
+usr/lib/scylla/jmx/*
