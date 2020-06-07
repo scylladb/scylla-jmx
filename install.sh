@@ -31,6 +31,7 @@ Options:
   --prefix /prefix         directory prefix (default /usr)
   --nonroot                shortcut of '--disttype nonroot'
   --sysconfdir /etc/sysconfig   specify sysconfig directory name
+  --skip-service           skip installing systemd .service files
   --help                   this helpful message
 EOF
     exit 1
@@ -39,6 +40,7 @@ EOF
 root=/
 sysconfdir=/etc/sysconfig
 nonroot=false
+skip_service=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -57,6 +59,10 @@ while [ $# -gt 0 ]; do
         "--sysconfdir")
             sysconfdir="$2"
             shift 2
+            ;;
+        "--skip-service")
+            skip_service=true
+            shift 1
             ;;
         "--help")
             shift 1
@@ -93,7 +99,9 @@ install -d -m755 "$rsystemd"
 install -d -m755 "$rprefix/scripts" "$rprefix/jmx" "$rprefix/jmx/symlinks"
 
 install -m644 dist/common/sysconfig/scylla-jmx -Dt "$rsysconfdir"
-install -m644 dist/common/systemd/scylla-jmx.service  -Dt "$rsystemd"
+if ! $skip_service; then
+    install -m644 dist/common/systemd/scylla-jmx.service  -Dt "$rsystemd"
+fi
 if ! $nonroot; then
     if [ "$sysconfdir" != "/etc/sysconfig" ]; then
         install -d -m755 "$retc"/systemd/system/scylla-jmx.service.d
