@@ -22,7 +22,7 @@ Requires:       %{product}-server java-1.8.0-openjdk-headless
 %build
 
 %install
-./install.sh --root "$RPM_BUILD_ROOT"
+./install.sh --packaging --root "$RPM_BUILD_ROOT"
 
 %pre
 /usr/sbin/groupadd scylla 2> /dev/null || :
