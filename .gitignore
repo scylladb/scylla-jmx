@@ -1,6 +1,7 @@
 /target/
 /bin/
 dependency-reduced-pom.xml
+scylla-apiclient/target/
 .classpath
 .project
 .settings
