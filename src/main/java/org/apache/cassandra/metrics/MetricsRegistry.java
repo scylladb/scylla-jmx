@@ -654,7 +654,11 @@ public class MetricsRegistry {
         public void update(JsonObject obj) {
             // TODO: this is not atomic.
             super.update(obj.getJsonObject("meter"));
-            histogram = new Histogram(obj.getJsonObject("hist"));
+            if (obj.containsKey("hist")) {
+                histogram = new Histogram(obj.getJsonObject("hist"));
+            } else if (obj.containsKey("buckets")) {
+                histogram = new Histogram(new EstimatedHistogram(obj));
+            }
         }
 
         @Override
