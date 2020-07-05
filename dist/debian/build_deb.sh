@@ -89,12 +89,12 @@ if [ "$ID" = "debian" ] && [ ! -f /usr/share/keyrings/ubuntu-archive-keyring.gpg
     sudo apt-get install -y ubuntu-archive-keyring
 fi
 
-RELOC_PKG_FULLPATH=$(readlink -f $RELOC_PKG)
-RELOC_PKG_BASENAME=$(basename $RELOC_PKG)
-SCYLLA_VERSION=$(cat scylla-jmx/SCYLLA-VERSION-FILE)
-SCYLLA_RELEASE=$(cat scylla-jmx/SCYLLA-RELEASE-FILE)
+RELOC_PKG=$(readlink -f $RELOC_PKG)
 
-ln -fv $RELOC_PKG_FULLPATH ../$PRODUCT-jmx_$SCYLLA_VERSION-$SCYLLA_RELEASE.orig.tar.gz
-
-cp -al scylla-jmx/debian debian
+mv scylla-jmx/debian debian
+PKG_NAME=$(dpkg-parsechangelog --show-field Source)
+# XXX: Drop revision number from version string.
+#      Since it always '1', this should be okay for now.
+PKG_VERSION=$(dpkg-parsechangelog --show-field Version |sed -e 's/-1$//')
+ln -fv $RELOC_PKG ../"$PKG_NAME"_"$PKG_VERSION".orig.tar.gz
 debuild -rfakeroot -us -uc
