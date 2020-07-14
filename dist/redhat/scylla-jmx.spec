@@ -16,7 +16,7 @@ Requires:       %{product}-server java-1.8.0-openjdk-headless
 
 
 %prep
-%setup -n scylla-jmx
+%setup -q -n scylla-jmx
 
 
 %build
