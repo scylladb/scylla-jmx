@@ -5,3 +5,4 @@ scylla-apiclient/target/
 .classpath
 .project
 .settings
+build/
