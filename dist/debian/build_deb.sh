@@ -44,11 +44,6 @@ if [ ! -e scylla-jmx/SCYLLA-RELOCATABLE-FILE ]; then
     exit 1
 fi
 
-if [ "$(arch)" != "x86_64" ]; then
-    echo "Unsupported architecture: $(arch)"
-    exit 1
-fi
-
 if [ -z "$RELOC_PKG" ]; then
     print_usage
     exit 1
