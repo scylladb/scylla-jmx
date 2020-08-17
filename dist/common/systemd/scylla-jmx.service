@@ -12,6 +12,7 @@ ExecStart=/opt/scylladb/jmx/scylla-jmx $SCYLLA_JMX_PORT $SCYLLA_API_PORT $SCYLLA
 KillMode=process
 Restart=on-abnormal
 Slice=scylla-helper.slice
+WorkingDirectory=/var/lib/scylla
 
 [Install]
 WantedBy=multi-user.target
