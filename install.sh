@@ -133,6 +133,7 @@ ExecStart=
 ExecStart=$rprefix/jmx/scylla-jmx \$SCYLLA_JMX_PORT \$SCYLLA_API_PORT \$SCYLLA_API_ADDR \$SCYLLA_JMX_ADDR \$SCYLLA_JMX_FILE \$SCYLLA_JMX_LOCAL \$SCYLLA_JMX_REMOTE \$SCYLLA_JMX_DEBUG
 User=
 Group=
+WorkingDirectory=
 EOS
     if [ ! -d ~/.config/systemd/user/scylla-jmx.service.d ]; then
         mkdir -p ~/.config/systemd/user/scylla-jmx.service.d
