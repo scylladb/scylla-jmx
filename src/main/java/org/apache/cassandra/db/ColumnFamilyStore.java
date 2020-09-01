@@ -30,6 +30,7 @@ import static javax.json.Json.createObjectBuilder;
 
 import java.io.StringReader;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +51,7 @@ import javax.json.JsonReader;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.OperationsException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
@@ -65,6 +67,8 @@ import org.apache.cassandra.metrics.TableMetrics;
 
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.metrics.MetricsMBean;
+import com.scylladb.jmx.metrics.RegistrationChecker;
+import com.scylladb.jmx.metrics.RegistrationMode;
 import com.sun.jmx.mbeanserver.JmxMBeanServer;
 import com.google.common.base.Throwables;
 
@@ -182,15 +186,22 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
                 "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + name);
     }
 
-    public static boolean checkRegistration(APIClient client, JmxMBeanServer server) throws MalformedObjectNameException {
-        JsonArray mbeans = client.getJsonArray("/column_family/");
-        Set<ObjectName> all = new HashSet<ObjectName>();
-        for (int i = 0; i < mbeans.size(); i++) {
-            JsonObject mbean = mbeans.getJsonObject(i);
-            all.add(getName(mbean.getString("type"), mbean.getString("ks"), mbean.getString("cf")));
-        }
-        return checkRegistration(server, all, n -> TYPE_NAMES.contains(n.getKeyProperty("type")), n -> new ColumnFamilyStore(client, n));
-    }
+	public static RegistrationChecker createRegistrationChecker() {
+		return new RegistrationChecker() {
+			@Override
+			protected void doCheck(APIClient client, JmxMBeanServer server, EnumSet<RegistrationMode> mode)
+					throws OperationsException {
+				JsonArray mbeans = client.getJsonArray("/column_family/");
+				Set<ObjectName> all = new HashSet<ObjectName>();
+				for (int i = 0; i < mbeans.size(); i++) {
+					JsonObject mbean = mbeans.getJsonObject(i);
+					all.add(getName(mbean.getString("type"), mbean.getString("ks"), mbean.getString("cf")));
+				}
+				checkRegistration(server, all, mode,
+						n -> TYPE_NAMES.contains(n.getKeyProperty("type")), n -> new ColumnFamilyStore(client, n));
+			}
+		};
+	}
 
     /**
      * @return the name of the column family

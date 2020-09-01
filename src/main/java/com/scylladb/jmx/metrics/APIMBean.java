@@ -1,6 +1,7 @@
 package com.scylladb.jmx.metrics;
 
 import java.lang.reflect.Field;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -55,35 +56,39 @@ public class APIMBean implements MBeanRegistration {
      * @param generator
      *            {@link Function} to create a new MBean instance for a given
      *            {@link ObjectName}
-     * 
      * @return
      * @throws MalformedObjectNameException
      */
-    public static boolean checkRegistration(JmxMBeanServer server, Set<ObjectName> all,
-            final Predicate<ObjectName> predicate, Function<ObjectName, Object> generator)
-            throws MalformedObjectNameException {
-        Set<ObjectName> registered = queryNames(server, predicate);
-        for (ObjectName name : registered) {
-            if (!all.contains(name)) {
-                try {
-                    server.getMBeanServerInterceptor().unregisterMBean(name);
-                } catch (MBeanRegistrationException | InstanceNotFoundException e) {
-                }
-            }
-        }
+	public static boolean checkRegistration(JmxMBeanServer server, Set<ObjectName> all,
+			EnumSet<RegistrationMode> mode, final Predicate<ObjectName> predicate,
+			Function<ObjectName, Object> generator) throws MalformedObjectNameException {
+		Set<ObjectName> registered = queryNames(server, predicate);
+		if (mode.contains(RegistrationMode.Remove)) {
+			for (ObjectName name : registered) {
+				if (!all.contains(name)) {
+					try {
+						server.getMBeanServerInterceptor().unregisterMBean(name);
+					} catch (MBeanRegistrationException | InstanceNotFoundException e) {
+					}
+				}
+			}
+		}
 
-        int added = 0;
-        for (ObjectName name : all) {
-            if (!registered.contains(name)) {
-                try {
-                    server.getMBeanServerInterceptor().registerMBean(generator.apply(name), name);
-                    added++;
-                } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
-                }
-            }
-        }
-        return added > 0;
-    }
+		int added = 0;
+		if (mode.contains(RegistrationMode.Add)) {
+			for (ObjectName name : all) {
+				if (!registered.contains(name)) {
+					try {
+						server.getMBeanServerInterceptor().registerMBean(generator.apply(name), name);
+						added++;
+					} catch (InstanceAlreadyExistsException | MBeanRegistrationException
+							| NotCompliantMBeanException e) {
+					}
+				}
+			}
+		}
+		return added > 0;
+	}
 
     /**
      * Helper method to query {@link ObjectName}s from an {@link MBeanServer}

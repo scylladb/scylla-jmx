@@ -24,20 +24,23 @@
 package org.apache.cassandra.metrics;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptySet;
 import static org.apache.cassandra.metrics.DefaultNameFactory.createMetricName;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.json.JsonArray;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.OperationsException;
 
 import com.scylladb.jmx.api.APIClient;
 import com.scylladb.jmx.metrics.APIMBean;
+import com.scylladb.jmx.metrics.RegistrationChecker;
+import com.scylladb.jmx.metrics.RegistrationMode;
 import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 /**
@@ -64,46 +67,45 @@ public class StreamingMetrics {
     private static boolean isStreamingName(ObjectName n) {
         return TYPE_NAME.equals(n.getKeyProperty("type"));
     }
+    
+	public static RegistrationChecker createRegistrationChecker() {
+		return new RegistrationChecker() {			
+			@Override
+			protected void doCheck(APIClient client, JmxMBeanServer server, EnumSet<RegistrationMode> mode) throws OperationsException, UnknownHostException {
+				Set<ObjectName> all = new HashSet<ObjectName>(globalNames);
+				JsonArray streams = client.getJsonArray("/stream_manager/");
+				for (int i = 0; i < streams.size(); i++) {
+					JsonArray sessions = streams.getJsonObject(i).getJsonArray("sessions");
+					for (int j = 0; j < sessions.size(); j++) {
+						String peer = sessions.getJsonObject(j).getString("peer");
+						String scope = InetAddress.getByName(peer).getHostAddress().replaceAll(":", ".");
+						all.add(createMetricName(TYPE_NAME, "IncomingBytes", scope));
+						all.add(createMetricName(TYPE_NAME, "OutgoingBytes", scope));
+					}
+				}
 
-    public static void unregister(APIClient client, JmxMBeanServer server) throws MalformedObjectNameException {
-        APIMBean.checkRegistration(server, emptySet(), StreamingMetrics::isStreamingName, (n) -> null);
-    }
+				MetricsRegistry registry = new MetricsRegistry(client, server);
+				APIMBean.checkRegistration(server, all, mode, StreamingMetrics::isStreamingName, n -> {
+					String scope = n.getKeyProperty("scope");
+					String name = n.getKeyProperty("name");
 
-    public static boolean checkRegistration(APIClient client, JmxMBeanServer server)
-            throws MalformedObjectNameException, UnknownHostException {
-
-        Set<ObjectName> all = new HashSet<ObjectName>(globalNames);
-        JsonArray streams = client.getJsonArray("/stream_manager/");
-        for (int i = 0; i < streams.size(); i++) {
-            JsonArray sessions = streams.getJsonObject(i).getJsonArray("sessions");
-            for (int j = 0; j < sessions.size(); j++) {
-                String peer = sessions.getJsonObject(j).getString("peer");
-                String scope = InetAddress.getByName(peer).getHostAddress().replaceAll(":", ".");
-                all.add(createMetricName(TYPE_NAME, "IncomingBytes", scope));
-                all.add(createMetricName(TYPE_NAME, "OutgoingBytes", scope));
-            }
-        }
-
-        MetricsRegistry registry = new MetricsRegistry(client, server);
-        return APIMBean.checkRegistration(server, all, StreamingMetrics::isStreamingName, n -> {
-            String scope = n.getKeyProperty("scope");
-            String name = n.getKeyProperty("name");
-
-            String url = null;
-            if ("ActiveOutboundStreams".equals(name)) {
-                url = "/stream_manager/metrics/outbound";
-            } else if ("IncomingBytes".equals(name) || "TotalIncomingBytes".equals(name)) {
-                url = "/stream_manager/metrics/incoming";
-            } else if ("OutgoingBytes".equals(name) || "TotalOutgoingBytes".equals(name)) {
-                url = "/stream_manager/metrics/outgoing";
-            }
-            if (url == null) {
-                throw new IllegalArgumentException();
-            }
-            if (scope != null) {
-                url = url + "/" + scope;
-            }
-            return registry.counter(url);
-        });
-    }
+					String url = null;
+					if ("ActiveOutboundStreams".equals(name)) {
+						url = "/stream_manager/metrics/outbound";
+					} else if ("IncomingBytes".equals(name) || "TotalIncomingBytes".equals(name)) {
+						url = "/stream_manager/metrics/incoming";
+					} else if ("OutgoingBytes".equals(name) || "TotalOutgoingBytes".equals(name)) {
+						url = "/stream_manager/metrics/outgoing";
+					}
+					if (url == null) {
+						throw new IllegalArgumentException();
+					}
+					if (scope != null) {
+						url = url + "/" + scope;
+					}
+					return registry.counter(url);
+				});
+			}
+		};
+	}
 }

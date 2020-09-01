@@ -1,8 +1,13 @@
 package com.scylladb.jmx.utils;
 
+import static java.util.Arrays.asList;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static java.util.concurrent.TimeUnit.MINUTES;
+
 import java.io.ObjectInputStream;
 import java.net.UnknownHostException;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,12 +39,17 @@ import org.apache.cassandra.db.ColumnFamilyStore;
 import org.apache.cassandra.metrics.StreamingMetrics;
 
 import com.scylladb.jmx.api.APIClient;
+import com.scylladb.jmx.metrics.RegistrationChecker;
 import com.sun.jmx.mbeanserver.JmxMBeanServer;
 
 @SuppressWarnings("restriction")
 public class APIMBeanServer implements MBeanServer {
     @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(APIMBeanServer.class.getName());
+    private static final ScheduledExecutorService executor = newScheduledThreadPool(1);
+
+    private final RegistrationChecker columnFamilyStoreChecker = ColumnFamilyStore.createRegistrationChecker();
+    private final RegistrationChecker streamingMetricsChecker = StreamingMetrics.createRegistrationChecker();
 
     private final APIClient client;
     private final JmxMBeanServer server;
@@ -47,6 +57,16 @@ public class APIMBeanServer implements MBeanServer {
     public APIMBeanServer(APIClient client, JmxMBeanServer server) {
         this.client = client;
         this.server = server;
+        
+    	executor.scheduleWithFixedDelay(() -> {
+    		for (RegistrationChecker c : asList(columnFamilyStoreChecker, streamingMetricsChecker)) {
+    			try {
+    				c.reap(client, server);
+    	        } catch (OperationsException | UnknownHostException e) {
+    	            // TODO: log?
+    	        }
+    		}
+        }, 1, 5, MINUTES);
     }
 
     private static ObjectInstance prepareForRemote(final ObjectInstance i) {
@@ -65,7 +85,7 @@ public class APIMBeanServer implements MBeanServer {
             throw new IllegalArgumentException(n.toString());
         }
     }
-
+    
     @Override
     public ObjectInstance createMBean(String className, ObjectName name) throws ReflectionException,
             InstanceAlreadyExistsException, MBeanRegistrationException, MBeanException, NotCompliantMBeanException {
@@ -286,25 +306,22 @@ public class APIMBeanServer implements MBeanServer {
     }
 
     static final Pattern tables = Pattern.compile("^\\*?((Index)?ColumnFamil(ies|y)|(Index)?(Table(s)?)?)$");
-
-    private boolean checkRegistrations(ObjectName name) {
+    
+    private void checkRegistrations(ObjectName name) {
         if (name != null && server.isRegistered(name)) {
-            return false;
+            return;
         }
-        
-        boolean result = false;
-        
+                
         try {
             String type = name != null ? name.getKeyProperty("type") : null;            
             if (type == null || tables.matcher(type).matches()) {
-                result |= ColumnFamilyStore.checkRegistration(client, server);
+            	columnFamilyStoreChecker.check(client, server);
             }
             if (type == null || StreamingMetrics.TYPE_NAME.equals(type)) {
-                result |= StreamingMetrics.checkRegistration(client, server);
+            	streamingMetricsChecker.check(client, server);
             }
-        } catch (MalformedObjectNameException | UnknownHostException e) {
+        } catch (OperationsException | UnknownHostException e) {
             // TODO: log
         }
-        return result;
     }
 }
