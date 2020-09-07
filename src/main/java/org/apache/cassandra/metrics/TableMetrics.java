@@ -19,6 +19,8 @@ package org.apache.cassandra.metrics;
 
 import static com.scylladb.jmx.api.APIClient.getReader;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.Hashtable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -295,7 +297,6 @@ public class TableMetrics implements Metrics {
         registry.createDummyTableGauge(Double.class, "PercentRepaired");
     }
 
-    @SuppressWarnings("serial")
     static class TableMetricObjectName extends javax.management.ObjectName {
         private final TableMetricStringNameFactory factory;
         private final String metricName;
@@ -400,6 +401,18 @@ public class TableMetrics implements Metrics {
         public boolean isPropertyValuePattern() {
             return false;
         }
+        
+        /**
+         * This type is not really serializable. 
+         * Replace it with vanilla objectname.
+         */
+		private Object writeReplace() throws ObjectStreamException {
+			try {
+				return new ObjectName(getDomain(), getKeyPropertyList());
+			} catch (MalformedObjectNameException e) {
+				throw new InvalidObjectException(toString());
+			}
+		}
     }
 
     static interface TableMetricStringNameFactory {
