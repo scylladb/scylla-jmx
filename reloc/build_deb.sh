@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-. /etc/os-release
 print_usage() {
     echo "build_deb.sh --reloc-pkg build/scylla-jmx-package.tar.gz"
     echo "  --reloc-pkg specify relocatable package path"
@@ -35,4 +34,13 @@ rm -rf "$BUILDDIR"
 mkdir -p "$BUILDDIR"/scylla-package
 tar -C "$BUILDDIR"/scylla-package -xpf $RELOC_PKG
 cd "$BUILDDIR"/scylla-package
-exec ./scylla-jmx/dist/debian/build_deb.sh $OPTS
+
+RELOC_PKG=$(readlink -f $RELOC_PKG)
+
+mv scylla-jmx/debian debian
+PKG_NAME=$(dpkg-parsechangelog --show-field Source)
+# XXX: Drop revision number from version string.
+#      Since it always '1', this should be okay for now.
+PKG_VERSION=$(dpkg-parsechangelog --show-field Version |sed -e 's/-1$//')
+ln -fv $RELOC_PKG ../"$PKG_NAME"_"$PKG_VERSION".orig.tar.gz
+debuild -rfakeroot -us -uc
