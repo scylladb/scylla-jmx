@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-. /etc/os-release
 print_usage() {
     echo "build_rpm.sh --reloc-pkg build/scylla-jmx-package.tar.gz"
     echo "  --reloc-pkg specify relocatable package path"
@@ -33,4 +32,23 @@ fi
 mkdir -p "$BUILDDIR"
 tar -C "$BUILDDIR" -xpf $RELOC_PKG scylla-jmx/SCYLLA-RELEASE-FILE scylla-jmx/SCYLLA-RELOCATABLE-FILE scylla-jmx/SCYLLA-VERSION-FILE scylla-jmx/SCYLLA-PRODUCT-FILE scylla-jmx/dist/redhat
 cd "$BUILDDIR"/scylla-jmx
-exec ./dist/redhat/build_rpm.sh $OPTS
+
+SCYLLA_VERSION=$(cat SCYLLA-VERSION-FILE)
+SCYLLA_RELEASE=$(cat SCYLLA-RELEASE-FILE)
+VERSION=$SCYLLA_VERSION-$SCYLLA_RELEASE
+PRODUCT=$(cat SCYLLA-PRODUCT-FILE)
+
+RPMBUILD=$(readlink -f ../)
+mkdir -p $RPMBUILD/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+ln -fv $RELOC_PKG $RPMBUILD/SOURCES/
+
+parameters=(
+    -D"version $SCYLLA_VERSION"
+    -D"release $SCYLLA_RELEASE"
+    -D"product $PRODUCT"
+)
+
+cp dist/redhat/scylla-jmx.spec $RPMBUILD/SPECS
+# this rpm can be install on both fedora / centos7, so drop distribution name from the file name
+rpmbuild -ba "${parameters[@]}" --define '_binary_payload w2.xzdio' --define "_topdir $RPMBUILD" --undefine "dist" $RPM_JOBS_OPTS $RPMBUILD/SPECS/scylla-jmx.spec
