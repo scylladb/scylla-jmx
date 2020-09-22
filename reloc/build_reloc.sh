@@ -6,11 +6,13 @@ print_usage() {
     echo "build_reloc.sh --clean --nodeps"
     echo "  --clean clean build directory"
     echo "  --nodeps    skip installing dependencies"
+    echo "  --version V  product-version-release string (overriding SCYLLA-VERSION-GEN)"
     exit 1
 }
 
 CLEAN=
 NODEPS=
+VERSION_OVERRIDE=
 while [ $# -gt 0 ]; do
     case "$1" in
         "--clean")
@@ -20,6 +22,10 @@ while [ $# -gt 0 ]; do
         "--nodeps")
             NODEPS=yes
             shift 1
+            ;;
+        "--version")
+            VERSION_OVERRIDE="$2"
+            shift 2
             ;;
         *)
             print_usage
@@ -53,6 +59,6 @@ if [ -z "$NODEPS" ]; then
 fi
 
 mvn -B --file scylla-jmx-parent/pom.xml install
-./SCYLLA-VERSION-GEN
+./SCYLLA-VERSION-GEN ${VERSION_OVERRIDE:+ --version "$VERSION_OVERRIDE"}
 ./dist/debian/debian_files_gen.py
 scripts/create-relocatable-package.py build/scylla-jmx-package.tar.gz
