@@ -105,7 +105,7 @@ if ! $nonroot; then
 else
     retc="$rprefix/etc"
     rsysconfdir="$rprefix/$sysconfdir"
-    rsystemd="$retc/systemd"
+    rsystemd="$HOME/.config/systemd/user"
 fi
 
 install -d -m755 "$rsysconfdir"
@@ -124,8 +124,8 @@ EnvironmentFile=$sysconfdir/scylla-jmx
 EOS
     fi
 else
-    install -d -m755 "$retc"/systemd/system/scylla-jmx.service.d
-    cat << EOS > "$retc"/systemd/system/scylla-jmx.service.d/nonroot.conf
+    install -d -m755 "$rsystemd"/scylla-jmx.service.d
+    cat << EOS > "$rsystemd"/scylla-jmx.service.d/nonroot.conf
 [Service]
 EnvironmentFile=
 EnvironmentFile=$retc/sysconfig/scylla-jmx
@@ -135,11 +135,6 @@ User=
 Group=
 WorkingDirectory=
 EOS
-    if [ ! -d ~/.config/systemd/user/scylla-jmx.service.d ]; then
-        mkdir -p ~/.config/systemd/user/scylla-jmx.service.d
-    fi
-    ln -srf $rsystemd/scylla-jmx.service ~/.config/systemd/user/
-    ln -srf "$retc"/systemd/system/scylla-jmx.service.d/nonroot.conf ~/.config/systemd/user/scylla-jmx.service.d
 fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
