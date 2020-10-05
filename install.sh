@@ -74,6 +74,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+check_usermode_support() {
+    user=$(systemctl --help|grep -e '--user')
+    [ -n "$user" ]
+}
+
 if ! $packaging; then
     has_java=false
     if [ -x /usr/bin/java ]; then
@@ -151,7 +156,9 @@ if $nonroot; then
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/etc/scylla#$rprefix/etc/scylla#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
-    systemctl --user daemon-reload
+    if check_usermode_support; then
+        systemctl --user daemon-reload
+    fi
     echo "Scylla-JMX non-root install completed."
 elif ! $packaging; then
     systemctl --system daemon-reload
