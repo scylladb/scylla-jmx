@@ -270,7 +270,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<List<String>, List<String>> getRangeToEndpointMap(String keyspace) {
         log(" getRangeToEndpointMap(String keyspace)");
-        return client.getMapListStrValue("/storage_service/range/" + keyspace);
+        return client.getMapListStrValue("/storage_service/range_to_endpoint_map/" + keyspace);
     }
 
     /**
