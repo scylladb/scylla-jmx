@@ -30,6 +30,7 @@ mkdir -p "$BUILDDIR"
 tar -C "$BUILDDIR" -xpf $RELOC_PKG scylla-jmx/SCYLLA-RELEASE-FILE scylla-jmx/SCYLLA-RELOCATABLE-FILE scylla-jmx/SCYLLA-VERSION-FILE scylla-jmx/SCYLLA-PRODUCT-FILE scylla-jmx/dist/redhat
 cd "$BUILDDIR"/scylla-jmx
 
+RELOC_PKG_BASENAME=$(basename "$RELOC_PKG")
 SCYLLA_VERSION=$(cat SCYLLA-VERSION-FILE)
 SCYLLA_RELEASE=$(cat SCYLLA-RELEASE-FILE)
 VERSION=$SCYLLA_VERSION-$SCYLLA_RELEASE
@@ -43,6 +44,7 @@ parameters=(
     -D"version $SCYLLA_VERSION"
     -D"release $SCYLLA_RELEASE"
     -D"product $PRODUCT"
+    -D"reloc_pkg $RELOC_PKG_BASENAME"
 )
 
 cp dist/redhat/scylla-jmx.spec $RPMBUILD/SPECS

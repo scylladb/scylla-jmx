@@ -6,7 +6,7 @@ Group:          Applications/Databases
 
 License:        AGPLv3
 URL:            http://www.scylladb.com/
-Source0:        scylla-jmx-package.tar.gz
+Source0:        %{reloc_pkg}
 
 BuildArch:      noarch
 BuildRequires:  systemd-units
