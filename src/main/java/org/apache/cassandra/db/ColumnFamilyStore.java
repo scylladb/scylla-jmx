@@ -29,6 +29,7 @@ import static java.util.stream.Collectors.toMap;
 import static javax.json.Json.createObjectBuilder;
 
 import java.io.StringReader;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -545,6 +546,7 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
         TabularDataSupport result = new TabularDataSupport(COUNTER_TYPE);
 
         JsonArray counters = tableSamplerResult.getJsonArray((samplerType.equalsIgnoreCase("reads")) ? "read" : "write");
+        long cardinality = tableSamplerResult.getJsonNumber((samplerType.equalsIgnoreCase("reads")) ? "read_cardinality" : "write_cardinality").longValue();
         long size = 0;
         if (counters != null) {
             size = (count > counters.size()) ? counters.size() : count;
@@ -558,6 +560,6 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
             }
         }
         //FIXME: size is not the cardinality, a true value needs to be propogated
-        return new CompositeDataSupport(SAMPLING_RESULT, SAMPLER_NAMES, new Object[] { size, result });
+        return new CompositeDataSupport(SAMPLING_RESULT, SAMPLER_NAMES, new Object[] { cardinality, result });
     }
 }
