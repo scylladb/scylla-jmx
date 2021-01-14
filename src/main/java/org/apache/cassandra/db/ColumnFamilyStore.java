@@ -559,7 +559,6 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
                                 counter.getString("partition") })); // string
             }
         }
-        //FIXME: size is not the cardinality, a true value needs to be propogated
         return new CompositeDataSupport(SAMPLING_RESULT, SAMPLER_NAMES, new Object[] { cardinality, result });
     }
 }
