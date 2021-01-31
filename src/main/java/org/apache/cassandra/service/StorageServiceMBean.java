@@ -883,4 +883,6 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public List<CompositeData> getSSTableInfo(String keyspace, String table);
 
     public List<CompositeData> getSSTableInfo();
+    /** retun the system uptime */
+    public long getUptime();
 }
