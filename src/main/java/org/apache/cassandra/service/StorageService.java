@@ -1749,4 +1749,9 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
         return client.getIntValue("/storage_service/keyspace_scrub/" + keyspaceName, queryParams);
     }
+    @Override
+    public long getUptime() {
+        log("getUptime()");
+        return client.getLongValue("/system/uptime_ms");
+    }
 }
