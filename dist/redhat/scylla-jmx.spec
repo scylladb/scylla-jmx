@@ -38,14 +38,20 @@ echo
 fi
 
 %post
-%systemd_post scylla-jmx.service
+if [ $1 -eq 1 ] ; then
+    /usr/bin/systemctl preset scylla-jmx.service ||:
+fi
+
 /usr/bin/systemctl daemon-reload ||:
 
 %preun
-%systemd_preun scylla-jmx.service
+if [ $1 -eq 0 ] ; then
+    /usr/bin/systemctl --no-reload disable scylla-jmx.service ||:
+    /usr/bin/systemctl stop scylla-jmx.service ||:
+fi
 
 %postun
-%systemd_postun scylla-jmx.service
+/usr/bin/systemctl daemon-reload ||:
 
 %clean
 rm -rf $RPM_BUILD_ROOT
