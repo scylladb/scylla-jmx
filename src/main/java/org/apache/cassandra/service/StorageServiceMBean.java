@@ -34,9 +34,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import javax.json.JsonObject;
 import javax.management.NotificationEmitter;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
+import javax.management.openmbean.OpenDataException;
 
 public interface StorageServiceMBean extends NotificationEmitter {
     /**
@@ -883,6 +885,9 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public List<CompositeData> getSSTableInfo(String keyspace, String table);
 
     public List<CompositeData> getSSTableInfo();
+    
     /** retun the system uptime */
     public long getUptime();
+
+    public CompositeData getToppartitions(String sampler, List<String> keyspaceFilters, List<String> tableFilters, int duration, int capacity, int count) throws OpenDataException;
 }
