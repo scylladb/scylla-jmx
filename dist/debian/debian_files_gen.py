@@ -50,10 +50,11 @@ shutil.rmtree('build/debian/debian', ignore_errors=True)
 shutil.copytree('dist/debian/debian', 'build/debian/debian')
 
 if product != 'scylla':
-    for p in glob.glob('build/debian/debian/scylla-*'):
-        shutil.move(p, p.replace('scylla-', '{}-'.format(product)))
-
-shutil.copy('dist/common/systemd/scylla-jmx.service', 'build/debian/debian/scylla-jmx.service')
+    for p in Path('build/debian/debian').glob('scylla-*'):
+        if str(p).endswith('scylla-jmx.service'):
+            p.rename(p.parent / '{}-jmx.{}'.format(product, p.name))
+        else:
+            p.rename(p.parent / p.name.replace('scylla-', f'{product}-'))
 
 s = DebianFilesTemplate(changelog_template)
 changelog_applied = s.substitute(product=product, version=version, release=release, revision='1', codename='stable')
