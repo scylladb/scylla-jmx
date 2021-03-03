@@ -172,7 +172,7 @@ public class APIBuilder extends MBeanServerBuilder {
                         logger.log(SEVERE, "Unexpected error.", x);
                     }
                 } finally {
-                    lock.writeLock().lock();
+                    lock.writeLock().unlock();
                 }
             }
         }
