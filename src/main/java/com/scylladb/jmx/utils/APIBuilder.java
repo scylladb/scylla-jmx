@@ -66,7 +66,7 @@ public class APIBuilder extends MBeanServerBuilder {
 
         private final Repository wrapped;
 
-        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        private final Object lock = new Object();
 
         private final Map<TableMetricParams, DynamicMBean> tableMBeans = new HashMap<>();
 
@@ -93,11 +93,8 @@ public class APIBuilder extends MBeanServerBuilder {
             if (!isTableMetricName(name)) {
                 return wrapped.contains(name);
             } else {
-                lock.readLock().lock();
-                try {
+                synchronized(lock) {
                     return tableMBeans.containsKey(new TableMetricParams(name));
-                } finally {
-                    lock.readLock().unlock();
                 }
             }
         }
@@ -116,23 +113,20 @@ public class APIBuilder extends MBeanServerBuilder {
 
         @Override
         public Integer getCount() {
-            lock.readLock().lock();
-            try {
+            synchronized(lock) {
                 return wrapped.getCount() + tableMBeans.size();
-            } finally {
-                lock.readLock().unlock();
             }
         }
 
         @Override
         public void addMBean(final DynamicMBean bean, final ObjectName name, final RegistrationContext ctx)
                 throws InstanceAlreadyExistsException {
+            System.out.println(name);
             if (!isTableMetricName(name)) {
                 wrapped.addMBean(bean, name, ctx);
             } else {
                 final TableMetricParams key = new TableMetricParams(name);
-                lock.writeLock().lock();
-                try {
+                synchronized(lock) {
                     if (tableMBeans.containsKey(key)) {
                         throw new InstanceAlreadyExistsException(name.toString());
                     }
@@ -145,8 +139,6 @@ public class APIBuilder extends MBeanServerBuilder {
                     } catch (RuntimeException x) {
                         throw new RuntimeOperationsException(x);
                     }
-                } finally {
-                    lock.writeLock().unlock();
                 }
             }
         }
@@ -157,8 +149,7 @@ public class APIBuilder extends MBeanServerBuilder {
                 wrapped.remove(name, ctx);
             } else {
                 final TableMetricParams key = new TableMetricParams(name);
-                lock.writeLock().lock();
-                try {
+                synchronized(lock) {
                     if (tableMBeans.remove(key) == null) {
                         throw new InstanceNotFoundException(name.toString());
                     }
@@ -171,8 +162,6 @@ public class APIBuilder extends MBeanServerBuilder {
                     } catch (Exception x) {
                         logger.log(SEVERE, "Unexpected error.", x);
                     }
-                } finally {
-                    lock.writeLock().lock();
                 }
             }
         }
@@ -182,11 +171,8 @@ public class APIBuilder extends MBeanServerBuilder {
             if (!isTableMetricName(name)) {
                 return wrapped.retrieve(name);
             } else {
-                lock.readLock().lock();
-                try {
+                synchronized(lock) {
                     return tableMBeans.get(new TableMetricParams(name));
-                } finally {
-                    lock.readLock().unlock();
                 }
             }
         }
@@ -229,8 +215,7 @@ public class APIBuilder extends MBeanServerBuilder {
                 name = pattern;
             }
 
-            lock.readLock().lock();
-            try {
+            synchronized(lock) {
                 // If pattern is not a pattern, retrieve this mbean !
                 if (!name.isPattern() && isTableMetricName(name)) {
                     final DynamicMBean bean = tableMBeans.get(new TableMetricParams(name));
@@ -286,8 +271,6 @@ public class APIBuilder extends MBeanServerBuilder {
                         addAllMatching(res, namePattern);
                     }
                 }
-            } finally {
-                lock.readLock().unlock();
             }
             return res;
         }
