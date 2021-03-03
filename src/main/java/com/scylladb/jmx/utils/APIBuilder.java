@@ -121,7 +121,6 @@ public class APIBuilder extends MBeanServerBuilder {
         @Override
         public void addMBean(final DynamicMBean bean, final ObjectName name, final RegistrationContext ctx)
                 throws InstanceAlreadyExistsException {
-            System.out.println(name);
             if (!isTableMetricName(name)) {
                 wrapped.addMBean(bean, name, ctx);
             } else {
