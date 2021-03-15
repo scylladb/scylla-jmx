@@ -10,7 +10,8 @@ Source0:        %{reloc_pkg}
 
 BuildArch:      noarch
 BuildRequires:  systemd-units
-Requires:       %{product}-server java-1.8.0-openjdk-headless
+Requires:       %{product}-server jre-1.8.0-headless
+AutoReqProv:    no
 
 %description
 
