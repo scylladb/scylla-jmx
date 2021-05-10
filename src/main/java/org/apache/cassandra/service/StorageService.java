@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -92,6 +93,8 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
       "the partition key turned into a human readable format" };
     private static final CompositeType COUNTER_COMPOSITE_TYPE;
     private static final TabularType COUNTER_TYPE;
+
+    private static final String[] OPERATION_NAMES = new String[]{"read", "write"};
 
     private static final String[] SAMPLER_NAMES = new String[]{"cardinality", "partitions"};
     private static final String[] SAMPLER_DESCS = new String[]
@@ -1799,6 +1802,11 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
 
     @Override
     public CompositeData getToppartitions(String sampler, List<String> keyspaceFilters, List<String> tableFilters, int duration, int capacity, int count) throws OpenDataException {
+        return getToppartitions(Arrays.asList(sampler), keyspaceFilters, tableFilters, duration, capacity, count).get(sampler.toLowerCase());
+    }
+
+    @Override
+    public Map<String, CompositeData> getToppartitions(List<String> samplers, List<String> keyspaceFilters, List<String> tableFilters, int duration, int capacity, int count) throws OpenDataException {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "duration", Integer.toString(duration));
         APIClient.set_query_param(queryParams, "capacity", Integer.toString(capacity));
@@ -1806,23 +1814,29 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         APIClient.set_query_param(queryParams, "table_filters", tableFilters != null ? APIClient.join(tableFilters.toArray(new String[0])) : null);
         JsonObject result = client.getJsonObj("/storage_service/toppartitions", queryParams);
 
-        JsonArray counters = result.getJsonArray((sampler.equalsIgnoreCase("reads")) ? "read" : "write");
-        long cardinality = result.getJsonNumber((sampler.equalsIgnoreCase("reads")) ? "read_cardinality" : "write_cardinality").longValue();
-        long size = 0;
-        TabularDataSupport tabularResult = new TabularDataSupport(COUNTER_TYPE);
+        Map<String, CompositeData> resultsMap = new HashMap<>();
 
-        if (counters != null) {
-            size = (count > counters.size()) ? counters.size() : count;
-            for (int i = 0; i < size; i++) {
-                JsonObject counter = counters.getJsonObject(i);
-                tabularResult.put(new CompositeDataSupport(COUNTER_COMPOSITE_TYPE, COUNTER_NAMES,
-                        new Object[] { counter.getString("partition"), // raw
-                                counter.getJsonNumber("count").longValue(), // count
-                                counter.getJsonNumber("error").longValue(), // error
-                                counter.getString("partition") })); // string
+        for (String operation : OPERATION_NAMES) {
+            JsonArray counters = result.getJsonArray(operation);
+            long cardinality = result.getJsonNumber(operation + "_cardinality").longValue();
+            long size = 0;
+            TabularDataSupport tabularResult = new TabularDataSupport(COUNTER_TYPE);
+
+            if (counters != null) {
+                size = (count > counters.size()) ? counters.size() : count;
+                for (int i = 0; i < size; i++) {
+                    JsonObject counter = counters.getJsonObject(i);
+                    tabularResult.put(new CompositeDataSupport(COUNTER_COMPOSITE_TYPE, COUNTER_NAMES,
+                            new Object[] { counter.getString("partition"), // raw
+                                    counter.getJsonNumber("count").longValue(), // count
+                                    counter.getJsonNumber("error").longValue(), // error
+                                    counter.getString("partition") })); // string
+                }
             }
+
+            resultsMap.put(operation + "s", new CompositeDataSupport(SAMPLING_RESULT, SAMPLER_NAMES, new Object[] { cardinality, tabularResult }));
         }
 
-        return new CompositeDataSupport(SAMPLING_RESULT, SAMPLER_NAMES, new Object[] { cardinality, tabularResult });
+        return resultsMap;
     }
 }
