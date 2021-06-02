@@ -552,7 +552,9 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
             APIClient.set_query_param(queryParams, "cf", parts[1]);
         }
         APIClient.set_query_param(queryParams, "kn", APIClient.join(keyspaceNames));
-        // TODO: origin has one recognized option: skip flush. We don't.
+        if (options.containsKey("skipFlush")) {
+            APIClient.set_query_param(queryParams, "sf", options.get("skipFlush"));
+        }
         client.post("/storage_service/snapshots", queryParams);
     }
 
