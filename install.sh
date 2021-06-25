@@ -32,6 +32,7 @@ Options:
   --nonroot                shortcut of '--disttype nonroot'
   --sysconfdir /etc/sysconfig   specify sysconfig directory name
   --packaging               use install.sh for packaging
+  --supervisor             enable supervisor to manage scylla processes
   --help                   this helpful message
 EOF
     exit 1
@@ -41,6 +42,7 @@ root=/
 sysconfdir=/etc/sysconfig
 nonroot=false
 packaging=false
+supervisor=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -62,6 +64,10 @@ while [ $# -gt 0 ]; do
             ;;
         "--packaging")
             packaging=true
+            shift 1
+            ;;
+        "--supervisor")
+            supervisor=true
             shift 1
             ;;
         "--help")
@@ -156,10 +162,10 @@ if $nonroot; then
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/etc/scylla#$rprefix/etc/scylla#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
-    if check_usermode_support; then
+    if ! $supervisor && check_usermode_support; then
         systemctl --user daemon-reload
     fi
     echo "Scylla-JMX non-root install completed."
-elif ! $packaging; then
+elif ! $supervisor && ! $packaging; then
     systemctl --system daemon-reload
 fi
