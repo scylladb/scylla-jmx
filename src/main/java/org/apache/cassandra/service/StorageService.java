@@ -676,6 +676,18 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     }
 
     /**
+     * Run validation compaction of tables in a single keyspace.
+     */
+    @Override
+    public int validate(String keyspaceName, String... tables)
+            throws IOException, ExecutionException, InterruptedException {
+        log(" validate(String keyspaceName, String... tables) throws IOException, ExecutionException, InterruptedException");
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        APIClient.set_query_param(queryParams, "cf", APIClient.join(tables));
+        return client.postInt("/storage_service/keyspace_validate/" + keyspaceName, queryParams);
+    }
+
+    /**
      * Scrub (deserialize + reserialize at the latest version, skipping bad rows
      * if any) the given keyspace. If columnFamilies array is empty, all CFs are
      * scrubbed.
@@ -1709,6 +1721,13 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
             throws IOException, ExecutionException, InterruptedException {
         // "jobs" not (yet) relevant for scylla. (though possibly useful...)
         return forceKeyspaceCleanup(keyspaceName, tables);
+    }
+
+    @Override
+    public int validate(int jobs, String keyspaceName, String... tables)
+            throws IOException, ExecutionException, InterruptedException {
+        // "jobs" not (yet) relevant for scylla. (though possibly useful...)
+        return validate(keyspaceName, tables);
     }
 
     @Override
