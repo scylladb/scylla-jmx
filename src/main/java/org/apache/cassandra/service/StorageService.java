@@ -1797,6 +1797,19 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     }
 
     @Override
+    public int scrub(boolean disableSnapshot, String scrubMode, boolean checkData, boolean reinsertOverflowedTTL,
+            int jobs, String keyspaceName, String... columnFamilies)
+            throws IOException, ExecutionException, InterruptedException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
+        APIClient.set_bool_query_param(queryParams, "disable_snapshot", disableSnapshot);
+        if (scrubMode != "") {
+            APIClient.set_query_param(queryParams, "scrub_mode", scrubMode);
+        }
+        APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
+        return client.getIntValue("/storage_service/keyspace_scrub/" + keyspaceName, queryParams);
+    }
+
+    @Override
     public long getUptime() {
         log("getUptime()");
         return client.getLongValue("/system/uptime_ms");

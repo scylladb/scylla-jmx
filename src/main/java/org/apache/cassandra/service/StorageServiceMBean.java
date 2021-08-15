@@ -351,6 +351,10 @@ public interface StorageServiceMBean extends NotificationEmitter {
      * scrubbed.
      *
      * Scrubbed CFs will be snapshotted first, if disableSnapshot is false
+     *
+     * scrubMode controls what scrub does when encountering corruption.
+     * It replaces skipCorrupted where skipCorrupted is equivalent to scrubMode="SKIP".
+     * Can be one of: "ABORT", "SKIP", "SEGREGATE", or "VALIDATE".
      */
     @Deprecated
     public int scrub(boolean disableSnapshot, boolean skipCorrupted, String keyspaceName, String... tableNames)
@@ -364,7 +368,12 @@ public interface StorageServiceMBean extends NotificationEmitter {
     public int scrub(boolean disableSnapshot, boolean skipCorrupted, boolean checkData, int jobs, String keyspaceName,
             String... columnFamilies) throws IOException, ExecutionException, InterruptedException;
 
+    @Deprecated
     public int scrub(boolean disableSnapshot, boolean skipCorrupted, boolean checkData, boolean reinsertOverflowedTTL,
+            int jobs, String keyspaceName, String... columnFamilies)
+            throws IOException, ExecutionException, InterruptedException;
+
+    public int scrub(boolean disableSnapshot, String scrubMode, boolean checkData, boolean reinsertOverflowedTTL,
             int jobs, String keyspaceName, String... columnFamilies)
             throws IOException, ExecutionException, InterruptedException;
 
