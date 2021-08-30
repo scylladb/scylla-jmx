@@ -1417,13 +1417,23 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      *            The parent keyspace name
      * @param cfName
      *            The ColumnFamily name where SSTables belong
+     * @param isLoadAndStream
+     *            Whether or not arbitrary SSTables should be loaded (and streamed to the owning nodes)
      */
     @Override
-    public void loadNewSSTables(String ksName, String cfName) {
-        log(" loadNewSSTables(String ksName, String cfName)");
+    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream) {
+        log(" loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cf", cfName);
+        if (isLoadAndStream) {
+            queryParams.add("load_and_stream", "true");
+        }
         client.post("/storage_service/sstables/" + ksName, queryParams);
+    }
+
+    @Override
+    public void loadNewSSTables(String ksName, String cfName) {
+        loadNewSSTables(ksName, cfName, false);
     }
 
     /**

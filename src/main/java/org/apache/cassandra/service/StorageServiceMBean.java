@@ -808,7 +808,16 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *            The parent keyspace name
      * @param cfName
      *            The ColumnFamily name where SSTables belong
+     * @param isLoadAndStream
+     *            Whether or not arbitrary SSTables should be loaded (and streamed to the owning nodes)
      */
+    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream);
+
+    /**
+     * @deprecated use {@link #loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream)} instead.
+     * This is kept for backward compatibility.
+     */
+    @Deprecated
     public void loadNewSSTables(String ksName, String cfName);
 
     /**
