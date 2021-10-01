@@ -514,7 +514,10 @@ public interface StorageServiceMBean extends NotificationEmitter {
      * removeToken removes token (and all data associated with enpoint that had
      * it) from the ring
      */
+    @Deprecated
     public void removeNode(String token);
+
+    public void removeNode(String token, String ignoreNodes);
 
     /**
      * Get the status of a token removal.

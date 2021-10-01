@@ -991,11 +991,19 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      *            the host id to remove
      */
     @Override
-    public void removeNode(String hostIdString) {
-        log(" removeNode(String token)");
+    public void removeNode(String hostIdString, String ignoreNodes) {
+        log(" removeNode(String token, String ignoreNodes)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "host_id", hostIdString);
+        if (ignoreNodes != null) {
+            APIClient.set_query_param(queryParams, "ignore_nodes", ignoreNodes);
+        }
         client.post("/storage_service/remove_node", queryParams);
+    }
+
+    public void removeNode(String hostIdString) {
+        String ignoreNodes = null;
+        removeNode(hostIdString, ignoreNodes);
     }
 
     /**
