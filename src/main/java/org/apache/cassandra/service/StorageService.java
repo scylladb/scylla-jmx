@@ -1812,7 +1812,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
             throws IOException, ExecutionException, InterruptedException {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_bool_query_param(queryParams, "disable_snapshot", disableSnapshot);
-        if (scrubMode != "") {
+        if (!"".equals(scrubMode)) {
             APIClient.set_query_param(queryParams, "scrub_mode", scrubMode);
         }
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
