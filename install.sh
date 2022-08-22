@@ -32,6 +32,7 @@ Options:
   --nonroot                shortcut of '--disttype nonroot'
   --sysconfdir /etc/sysconfig   specify sysconfig directory name
   --packaging               use install.sh for packaging
+  --without-systemd         skip installing systemd units
   --help                   this helpful message
 EOF
     exit 1
@@ -41,6 +42,7 @@ root=/
 sysconfdir=/etc/sysconfig
 nonroot=false
 packaging=false
+without_systemd=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -62,6 +64,10 @@ while [ $# -gt 0 ]; do
             ;;
         "--packaging")
             packaging=true
+            shift 1
+            ;;
+        "--without-systemd")
+            without_systemd=true
             shift 1
             ;;
         "--help")
@@ -114,12 +120,16 @@ else
 fi
 
 install -d -m755 "$rsysconfdir"
-install -d -m755 "$rsystemd"
+if ! $without_systemd; then
+    install -d -m755 "$rsystemd"
+fi
 install -d -m755 "$rprefix/scripts" "$rprefix/jmx" "$rprefix/jmx/symlinks"
 
 install -m644 dist/common/sysconfig/scylla-jmx -Dt "$rsysconfdir"
-install -m644 dist/common/systemd/scylla-jmx.service  -Dt "$rsystemd"
-if ! $nonroot; then
+if ! $without_systemd; then
+    install -m644 dist/common/systemd/scylla-jmx.service  -Dt "$rsystemd"
+fi
+if ! $nonroot && ! $without_systemd; then
     if [ "$sysconfdir" != "/etc/sysconfig" ]; then
         install -d -m755 "$retc"/systemd/system/scylla-jmx.service.d
         cat << EOS > "$retc"/systemd/system/scylla-jmx.service.d/sysconfdir.conf
@@ -128,7 +138,7 @@ EnvironmentFile=
 EnvironmentFile=$sysconfdir/scylla-jmx
 EOS
     fi
-else
+elif ! $without_systemd; then
     install -d -m755 "$rsystemd"/scylla-jmx.service.d
     cat << EOS > "$rsystemd"/scylla-jmx.service.d/nonroot.conf
 [Service]
@@ -156,10 +166,10 @@ if $nonroot; then
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/etc/scylla#$rprefix/etc/scylla#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
-    if check_usermode_support; then
+    if ! $without_systemd && check_usermode_support; then
         systemctl --user daemon-reload
     fi
     echo "Scylla-JMX non-root install completed."
-elif ! $packaging; then
+elif ! $without_systemd && ! $packaging; then
     systemctl --system daemon-reload
 fi
