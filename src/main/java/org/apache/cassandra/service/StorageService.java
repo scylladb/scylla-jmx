@@ -1427,21 +1427,26 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      *            The ColumnFamily name where SSTables belong
      * @param isLoadAndStream
      *            Whether or not arbitrary SSTables should be loaded (and streamed to the owning nodes)
+     * @param isPrimaryReplicaOnly
+     *            Load the sstables and stream to primary replica node that owns the data
      */
     @Override
-    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream) {
-        log(" loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream)");
+    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream, boolean isPrimaryReplicaOnly) {
+        log(" loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream, boolean isPrimaryReplicaOnly)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("cf", cfName);
         if (isLoadAndStream) {
             queryParams.add("load_and_stream", "true");
+        }
+        if (isPrimaryReplicaOnly) {
+            queryParams.add("primary_replica_only", "true");
         }
         client.post("/storage_service/sstables/" + ksName, queryParams);
     }
 
     @Override
     public void loadNewSSTables(String ksName, String cfName) {
-        loadNewSSTables(ksName, cfName, false);
+        loadNewSSTables(ksName, cfName, false, false);
     }
 
     /**

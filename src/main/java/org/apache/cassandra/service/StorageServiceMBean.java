@@ -813,11 +813,13 @@ public interface StorageServiceMBean extends NotificationEmitter {
      *            The ColumnFamily name where SSTables belong
      * @param isLoadAndStream
      *            Whether or not arbitrary SSTables should be loaded (and streamed to the owning nodes)
+     * @param isPrimaryReplicaOnly
+     *            Load the sstables and stream to primary replica node that owns the data
      */
-    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream);
+    public void loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream, boolean isPrimaryReplicaOnly);
 
     /**
-     * @deprecated use {@link #loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream)} instead.
+     * @deprecated use {@link #loadNewSSTables(String ksName, String cfName, boolean isLoadAndStream, boolean isPrimaryReplicaOnly)} instead.
      * This is kept for backward compatibility.
      */
     @Deprecated
