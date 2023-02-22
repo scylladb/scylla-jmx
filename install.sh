@@ -87,7 +87,28 @@ check_usermode_support() {
 
 if ! $packaging; then
     has_java=false
-    if [ -x /usr/bin/java ]; then
+    . /etc/os-release
+    case "$ID" in
+        ubuntu|debian)
+            for version in "8" "11"; do
+                java=$(dpkg -L openjdk-${version}-jre-headless | grep '/java$')
+                if [ -n "$java" ]; then
+                    break
+                fi
+            done
+            ;;
+        fedora|centos)
+            for version in "1.8.0" "11"; do
+                java=$(rpm -ql java-${version}-openjdk-headless | grep '/java$')
+                if [ -n "$java" ]; then
+                    break
+                fi
+            done
+            ;;
+    esac
+    if [ -n "$java" ]; then
+        has_java=true
+    elif [ -x /usr/bin/java ]; then
         javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
         if [[ "$javaver" =~ ^\"1.8.0 || "$javaver" =~ ^\"11.0. ]]; then
             has_java=true
@@ -154,12 +175,12 @@ fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
 install -m755 scylla-jmx "$rprefix/jmx"
-ln -sf /usr/bin/java "$rprefix/jmx/symlinks/scylla-jmx"
+ln -sf "$java" "$rprefix/jmx/symlinks/scylla-jmx"
 if ! $nonroot; then
     install -m755 -d "$rusr"/lib/scylla/jmx/symlinks
     ln -srf "$rprefix"/jmx/scylla-jmx-1.0.jar "$rusr"/lib/scylla/jmx/
     ln -srf "$rprefix"/jmx/scylla-jmx "$rusr"/lib/scylla/jmx/
-    ln -sf /usr/bin/java "$rusr"/lib/scylla/jmx/symlinks/scylla-jmx
+    ln -sf "$java" "$rusr"/lib/scylla/jmx/symlinks/scylla-jmx
 fi
 
 if $nonroot; then
