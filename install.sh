@@ -90,7 +90,7 @@ if ! $packaging; then
     . /etc/os-release
     case "$ID" in
         ubuntu|debian)
-            for version in "8" "11"; do
+            for version in "11" "8"; do
                 java=$(dpkg -L openjdk-${version}-jre-headless | grep '/java$')
                 if [ -n "$java" ]; then
                     break
@@ -98,7 +98,7 @@ if ! $packaging; then
             done
             ;;
         fedora|centos)
-            for version in "1.8.0" "11"; do
+            for version in "11" "1.8.0"; do
                 java=$(rpm -ql java-${version}-openjdk-headless | grep '/java$')
                 if [ -n "$java" ]; then
                     break
