@@ -85,6 +85,7 @@ check_usermode_support() {
     [ -n "$user" ]
 }
 
+java=/usr/bin/java
 if ! $packaging; then
     has_java=false
     . /etc/os-release
