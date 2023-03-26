@@ -20,7 +20,7 @@
 . /etc/os-release
 
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
-    apt -y install maven openjdk-8-jdk-headless
+    apt -y install maven openjdk-11-jdk-headless
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ]; then
-    dnf install -y maven java-1.8.0-openjdk-headless
+    dnf install -y maven java-11-openjdk-headless
 fi
