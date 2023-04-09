@@ -92,7 +92,11 @@ if ! $packaging; then
     case "$ID" in
         ubuntu|debian)
             for version in "11" "8"; do
-                java=$(dpkg -L openjdk-${version}-jre-headless | grep '/java$')
+                pkg_name=openjdk-${version}-jre-headless
+                if ! dpkg-query --status ${pkg_name}; then
+                    continue
+                fi
+                java=$(dpkg -L ${pkg_name} | grep '/java$')
                 if [ -n "$java" ]; then
                     break
                 fi
@@ -100,7 +104,11 @@ if ! $packaging; then
             ;;
         fedora|centos)
             for version in "11" "1.8.0"; do
-                java=$(rpm -ql java-${version}-openjdk-headless | grep '/java$')
+                pkg_name=java-${version}-openjdk-headless
+                if ! rpm --quiet -q ${pkg_name}; then
+                    continue
+                fi
+                java=$(rpm -ql ${pkg_name} | grep '/java$')
                 if [ -n "$java" ]; then
                     break
                 fi
