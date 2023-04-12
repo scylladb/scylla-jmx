@@ -85,47 +85,9 @@ check_usermode_support() {
     [ -n "$user" ]
 }
 
-java=/usr/bin/java
 if ! $packaging; then
-    has_java=false
-    . /etc/os-release
-    case "$ID" in
-        ubuntu|debian)
-            for version in "11" "8"; do
-                pkg_name=openjdk-${version}-jre-headless
-                if ! dpkg-query --status ${pkg_name}; then
-                    continue
-                fi
-                java=$(dpkg -L ${pkg_name} | grep '/java$')
-                if [ -n "$java" ]; then
-                    break
-                fi
-            done
-            ;;
-        fedora|centos)
-            for version in "11" "1.8.0"; do
-                pkg_name=java-${version}-openjdk-headless
-                if ! rpm --quiet -q ${pkg_name}; then
-                    continue
-                fi
-                java=$(rpm -ql ${pkg_name} | grep '/java$')
-                if [ -n "$java" ]; then
-                    break
-                fi
-            done
-            ;;
-    esac
-    if [ -n "$java" ]; then
-        has_java=true
-    elif [ -x /usr/bin/java ]; then
-        javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
-        if [[ "$javaver" =~ ^\"1.8.0 || "$javaver" =~ ^\"11.0. ]]; then
-            has_java=true
-        fi
-    fi
-    if ! $has_java; then
-        echo "Please install openjdk-8 or openjdk-11 before running install.sh."
-        exit 1
+    if ! script/select-java --version > /dev/null; then
+        echo "Please install openjdk-11 or openjdk-8 before running install.sh."
     fi
 fi
 
@@ -184,12 +146,12 @@ fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
 install -m755 scylla-jmx "$rprefix/jmx"
-ln -sf "$java" "$rprefix/jmx/symlinks/scylla-jmx"
+install -m755 -T select-java "$rprefix/jmx/symlinks/scylla-jmx"
 if ! $nonroot; then
     install -m755 -d "$rusr"/lib/scylla/jmx/symlinks
     ln -srf "$rprefix"/jmx/scylla-jmx-1.0.jar "$rusr"/lib/scylla/jmx/
     ln -srf "$rprefix"/jmx/scylla-jmx "$rusr"/lib/scylla/jmx/
-    ln -sf "$java" "$rusr"/lib/scylla/jmx/symlinks/scylla-jmx
+    ln -srf "$rprefix"/jmx/symlinks/scylla-jmx "$rusr"/lib/scylla/jmx/symlinks/scylla-jmx
 fi
 
 if $nonroot; then
