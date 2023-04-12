@@ -72,7 +72,7 @@ while [ $# -gt 0 ]; do
             ;;
         "--help")
             shift 1
-	    print_usage
+            print_usage
             ;;
         *)
             print_usage
