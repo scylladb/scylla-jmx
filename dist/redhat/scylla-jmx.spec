@@ -66,10 +66,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_unitdir}/scylla-jmx.service
 /opt/scylladb/jmx/scylla-jmx
 /opt/scylladb/jmx/scylla-jmx-1.0.jar
-/opt/scylladb/jmx/symlinks/scylla-jmx
+/opt/scylladb/jmx/select-java
 %{_prefix}/lib/scylla/jmx/scylla-jmx
 %{_prefix}/lib/scylla/jmx/scylla-jmx-1.0.jar
-%{_prefix}/lib/scylla/jmx/symlinks/scylla-jmx
+%{_prefix}/lib/scylla/jmx/select-java
 
 %changelog
 * Fri Aug  7 2015 Takuya ASADA Takuya ASADA <syuu@cloudius-systems.com>
