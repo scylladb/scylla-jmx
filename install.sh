@@ -115,7 +115,7 @@ install -d -m755 "$rsysconfdir"
 if ! $without_systemd; then
     install -d -m755 "$rsystemd"
 fi
-install -d -m755 "$rprefix/scripts" "$rprefix/jmx" "$rprefix/jmx/symlinks"
+install -d -m755 "$rprefix/scripts" "$rprefix/jmx"
 
 install -m644 dist/common/sysconfig/scylla-jmx -Dt "$rsysconfdir"
 if ! $without_systemd; then
@@ -146,15 +146,16 @@ fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
 install -m755 scylla-jmx "$rprefix/jmx"
-install -m755 -T select-java "$rprefix/jmx/symlinks/scylla-jmx"
+install -m755 select-java "$rprefix/jmx"
 if ! $nonroot; then
-    install -m755 -d "$rusr"/lib/scylla/jmx/symlinks
+    install -m755 -d "$rusr"/lib/scylla/jmx
     ln -srf "$rprefix"/jmx/scylla-jmx-1.0.jar "$rusr"/lib/scylla/jmx/
     ln -srf "$rprefix"/jmx/scylla-jmx "$rusr"/lib/scylla/jmx/
-    ln -srf "$rprefix"/jmx/symlinks/scylla-jmx "$rusr"/lib/scylla/jmx/symlinks/scylla-jmx
+    ln -srf "$rprefix"/jmx/select-java "$rusr"/lib/scylla/jmx/
 fi
 
 if $nonroot; then
+    install -m755 -d "$rusr"/lib/scylla/jmx
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/etc/scylla#$rprefix/etc/scylla#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
@@ -165,3 +166,5 @@ if $nonroot; then
 elif ! $without_systemd && ! $packaging; then
     systemctl --system daemon-reload
 fi
+
+echo done
