@@ -166,5 +166,3 @@ if $nonroot; then
 elif ! $without_systemd && ! $packaging; then
     systemctl --system daemon-reload
 fi
-
-echo done
