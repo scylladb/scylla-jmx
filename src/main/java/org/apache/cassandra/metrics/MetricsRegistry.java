@@ -475,7 +475,7 @@ public class MetricsRegistry {
 
         @Override
         public long[] getValues() {
-            return bucketOffsets;
+            return buckets;
         }
 
         /**
