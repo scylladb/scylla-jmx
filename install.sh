@@ -155,7 +155,6 @@ if ! $nonroot; then
 fi
 
 if $nonroot; then
-    install -m755 -d "$rusr"/lib/scylla/jmx
     sed -i -e "s#/var/lib/scylla#$rprefix#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/etc/scylla#$rprefix/etc/scylla#g" "$rsysconfdir"/scylla-jmx
     sed -i -e "s#/opt/scylladb/jmx#$rprefix/jmx#g" "$rsysconfdir"/scylla-jmx
