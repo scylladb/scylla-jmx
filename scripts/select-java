@@ -1,13 +1,13 @@
 #!/bin/bash
 
 function select_java_debian() {
+    local java
+    local arch
+    arch=$(dpkg --print-architecture)
+
     for version in "11" "8"; do
-        pkg_name=openjdk-${version}-jre-headless
-        if ! dpkg-query --status ${pkg_name}; then
-            continue
-        fi
-        java=$(dpkg -L ${pkg_name} | grep '/java$')
-        if [ -n "$java" ]; then
+        java=/usr/lib/jvm/java-${version}-openjdk-${arch}/bin/java
+        if [ -e $java ]; then
             echo $java
             return
         fi
@@ -15,13 +15,10 @@ function select_java_debian() {
 }
 
 function select_java_fedora() {
+    local java
     for version in "11" "1.8.0"; do
-        pkg_name=java-${version}-openjdk-headless
-        if ! rpm --quiet -q ${pkg_name}; then
-            continue
-        fi
-        java=$(rpm -ql ${pkg_name} | grep '/java$')
-        if [ -n "$java" ]; then
+        java=/usr/lib/jvm/jre-${version}-openjdk/bin/java
+        if [ -e $java ]; then
             echo $java
             return
         fi
