@@ -1,43 +1,52 @@
 #!/bin/bash
 
-has_java=false
+function select_java_debian() {
+    local java
+    local arch
+    arch=$(dpkg --print-architecture)
+
+    for version in "11" "8"; do
+        java=/usr/lib/jvm/java-${version}-openjdk-${arch}/bin/java
+        if [ -e $java ]; then
+            echo $java
+            return
+        fi
+    done
+}
+
+function select_java_fedora() {
+    local java
+    for version in "11" "1.8.0"; do
+        java=/usr/lib/jvm/jre-${version}-openjdk/bin/java
+        if [ -e $java ]; then
+            echo $java
+            return
+        fi
+    done
+}
+
+function select_java_others() {
+    javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
+    if [[ "$javaver" =~ ^\"1.8.0 || "$javaver" =~ ^\"11.0. ]]; then
+        echo /usr/bin/java
+    fi
+}
+
 . /etc/os-release
 case "$ID" in
     ubuntu|debian)
-        for version in "11" "8"; do
-            pkg_name=openjdk-${version}-jre-headless
-            if ! dpkg-query --status ${pkg_name}; then
-                continue
-            fi
-            java=$(dpkg -L ${pkg_name} | grep '/java$')
-            if [ -n "$java" ]; then
-                break
-            fi
-        done
+        java=$(select_java_debian)
         ;;
     fedora|centos)
-        for version in "11" "1.8.0"; do
-            pkg_name=java-${version}-openjdk-headless
-            if ! rpm --quiet -q ${pkg_name}; then
-                continue
-            fi
-            java=$(rpm -ql ${pkg_name} | grep '/java$')
-            if [ -n "$java" ]; then
-                break
-            fi
-        done
+        java=$(select_java_fedora)
         ;;
 esac
 if [ -n "$java" ]; then
-    has_java=true
+    : # good
 elif [ -x /usr/bin/java ]; then
-    javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
-    if [[ "$javaver" =~ ^\"1.8.0 || "$javaver" =~ ^\"11.0. ]]; then
-        java=/usr/bin/java
-        has_java=true
-    fi
+    java=$(select_java_others)
 fi
-if ! $has_java; then
+if [ -z "$java" ]; then
     exit 1
 fi
 
