@@ -8,7 +8,9 @@ Rules-Requires-Root: no
 
 Package: %{product}-jmx
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, openjdk-11-jre-headless | openjdk-11-jre |oracle-java11-set-default , %{product}-server
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         openjdk-11-jre-headless | openjdk-11-jre | oracle-java11-set-default,
+         %{product}-server
 Description: Scylla JMX server binaries 
  Scylla is a highly scalable, eventually consistent, distributed,
  partitioned row DB.
