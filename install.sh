@@ -86,8 +86,9 @@ check_usermode_support() {
 }
 
 if ! $packaging; then
-    if ! script/select-java --version > /dev/null; then
+    if ! ./select-java --version > /dev/null; then
         echo "Please install openjdk-11 or openjdk-8 before running install.sh."
+        exit 1
     fi
 fi
 
