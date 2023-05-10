@@ -27,7 +27,7 @@ public class SSTableInfo {
     @XmlJavaTypeAdapter(type = Date.class, value = DateXmlAdapter.class)
     private Date timestamp;
 
-    private long generation;
+    private String generation;
 
     private long level;
 
@@ -90,11 +90,11 @@ public class SSTableInfo {
         this.timestamp = timestamp;
     }
 
-    public long getGeneration() {
+    public String getGeneration() {
         return generation;
     }
 
-    public void setGeneration(long generation) {
+    public void setGeneration(String generation) {
         this.generation = generation;
     }
 
