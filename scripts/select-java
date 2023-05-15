@@ -1,52 +1,29 @@
 #!/bin/bash
 
-function select_java_debian() {
-    local java
-    local arch
-    arch=$(dpkg --print-architecture)
+function select_java() {
+    local expected_java_versions
+    expected_java_versions=$@
 
-    for version in "11" "8"; do
-        java=/usr/lib/jvm/java-${version}-openjdk-${arch}/bin/java
-        if [ -e $java ]; then
-            echo $java
-            return
-        fi
+    for expected_java_version in $expected_java_versions; do
+        for java_home in /usr/lib/jvm/*; do
+            java=$java_home/bin/java
+            javaver=$($java -XshowSettings:properties -version 2>&1 | awk -F' = ' '/java.specification.version/ {print $NF}')
+            if [ "$javaver" = $expected_java_version ]; then
+                echo $java
+                return
+            fi
+        done
     done
 }
 
-function select_java_fedora() {
-    local java
-    for version in "11" "1.8.0"; do
-        java=/usr/lib/jvm/jre-${version}-openjdk/bin/java
-        if [ -e $java ]; then
-            echo $java
-            return
-        fi
-    done
-}
+# So far, scylla-jmx only works with Java 11 and Java 8, we prefer the newer
+# one for better upstream support.
+expected_java_versions="11 1.8"
 
-function select_java_others() {
-    javaver=$(/usr/bin/java -version 2>&1|head -n1|cut -f 3 -d " ")
-    if [[ "$javaver" =~ ^\"1.8.0 || "$javaver" =~ ^\"11.0. ]]; then
-        echo /usr/bin/java
-    fi
-}
-
-. /etc/os-release
-case "$ID" in
-    ubuntu|debian)
-        java=$(select_java_debian)
-        ;;
-    fedora|centos)
-        java=$(select_java_fedora)
-        ;;
-esac
-if [ -n "$java" ]; then
-    : # good
-elif [ -x /usr/bin/java ]; then
-    java=$(select_java_others)
-fi
+java=$(select_java $expected_java_versions)
 if [ -z "$java" ]; then
+    versions=$(echo $expected_java_versions | sed 's/ / and /')
+    echo "Unable to find java executable of versions: $versions" >& 2
     exit 1
 fi
 
