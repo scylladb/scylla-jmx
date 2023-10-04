@@ -22,5 +22,5 @@
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
     apt -y install maven openjdk-11-jdk-headless
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ]; then
-    dnf install -y --setopt=install_weak_deps=False maven java-11-openjdk-headless
+    dnf install -y maven java-11-openjdk-headless
 fi
