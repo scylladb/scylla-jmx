@@ -7,7 +7,7 @@ Scylla JMX server implements the Apache Cassandra JMX interface for compatibilit
 To compile JMX server, run:
 
 ```console
-$ mvn --file scylla-jmx-parent/pom.xml package
+$ mvn --file scylla-jmx-parent/pom.xml package
 ```
 
 ## Running
