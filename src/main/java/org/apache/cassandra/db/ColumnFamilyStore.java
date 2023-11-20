@@ -162,7 +162,10 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
     }
 
     public ColumnFamilyStore(APIClient client, ObjectName name) {
-        this(client, name.getKeyProperty("type"), name.getKeyProperty("keyspace"), name.getKeyProperty("columnfamily"));
+        // The columnfamily values was quote()ed when creating the Objectname
+        // (see getName()), and name.getKeyProperty() returns it still quoted,
+        // so we need to unquote it back here.
+        this(client, name.getKeyProperty("type"), name.getKeyProperty("keyspace"), ObjectName.unquote(name.getKeyProperty("columnfamily")));
     }
 
     /** true if this CFS contains secondary index data */
@@ -183,8 +186,10 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
     }
 
     private static ObjectName getName(String type, String keyspace, String name) throws MalformedObjectNameException {
+        // The quote() call below is necessary for the table name because it might contain
+        // a colon (see https://github.com/scylladb/scylla-jmx/issues/226).
         return new ObjectName(
-                "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + name);
+                "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + ObjectName.quote(name));
     }
 
 	public static RegistrationChecker createRegistrationChecker() {
