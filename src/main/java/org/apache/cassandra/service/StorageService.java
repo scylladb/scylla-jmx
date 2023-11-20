@@ -163,6 +163,40 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         logger.finest(str);
     }
 
+    private static String normalizeInetAddressString(String s) {
+        try {
+            return InetAddress.getByName(s).getHostAddress();
+        } catch (UnknownHostException e) {
+            return s;
+        }
+    }
+
+    private List<String> normalizeInetAddressStringList(List<String> list) {
+        return list.stream().map(StorageService::normalizeInetAddressString).collect(Collectors.toList());
+    }
+
+    private Map<List<String>, List<String>> normalizeListToInetAddressStringList(
+            Map<List<String>, List<String>> map) {
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> normalizeInetAddressStringList(e.getValue())));
+    }
+
+    private Map<String, String> normalizeStringToInetAddressStringMap(
+            Map<String, String> map) {
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> normalizeInetAddressString(e.getValue())));
+    }
+
+    private <V> Map<String, V> normalizeInetAddressStringMap(
+            Map<String, V> map) {
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> normalizeInetAddressString(e.getKey()),
+                        Map.Entry::getValue));
+    }
+
     /**
      * Retrieve the list of live nodes in the cluster, where "liveness" is
      * determined by the failure detector of the node being queried.
@@ -172,7 +206,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<String> getLiveNodes() {
         log(" getLiveNodes()");
-        return client.getListStrValue("/gossiper/endpoint/live");
+        return normalizeInetAddressStringList(client.getListStrValue("/gossiper/endpoint/live"));
     }
 
     /**
@@ -184,7 +218,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<String> getUnreachableNodes() {
         log(" getUnreachableNodes()");
-        return client.getListStrValue("/gossiper/endpoint/down");
+        return normalizeInetAddressStringList(client.getListStrValue("/gossiper/endpoint/down"));
     }
 
     /**
@@ -195,7 +229,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<String> getJoiningNodes() {
         log(" getJoiningNodes()");
-        return client.getListStrValue("/storage_service/nodes/joining");
+        return normalizeInetAddressStringList(client.getListStrValue("/storage_service/nodes/joining"));
     }
 
     /**
@@ -206,7 +240,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<String> getLeavingNodes() {
         log(" getLeavingNodes()");
-        return client.getListStrValue("/storage_service/nodes/leaving");
+        return normalizeInetAddressStringList(client.getListStrValue("/storage_service/nodes/leaving"));
     }
 
     /**
@@ -217,7 +251,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public List<String> getMovingNodes() {
         log(" getMovingNodes()");
-        return client.getListStrValue("/storage_service/nodes/moving");
+        return normalizeInetAddressStringList(client.getListStrValue("/storage_service/nodes/moving"));
     }
 
     /**
@@ -314,7 +348,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<List<String>, List<String>> getRangeToEndpointMap(String keyspace) {
         log(" getRangeToEndpointMap(String keyspace)");
-        return client.getMapListStrValue("/storage_service/range_to_endpoint_map/" + keyspace);
+        return normalizeListToInetAddressStringList(client.getMapListStrValue("/storage_service/range_to_endpoint_map/" + keyspace));
     }
 
     /**
@@ -328,7 +362,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         log(" getRangeToRpcaddressMap(String keyspace)");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         queryParams.add("rpc", "true");
-        return client.getMapListStrValue("/storage_service/range/" + keyspace, queryParams);
+        return normalizeListToInetAddressStringList(client.getMapListStrValue("/storage_service/range/" + keyspace, queryParams));
     }
 
     /**
@@ -361,7 +395,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
                 if (j > 0) {
                     sb.append(", ");
                 }
-                sb.append(endpoints.getString(j));
+                sb.append(normalizeInetAddressString(endpoints.getString(j)));
             }
             sb.append("], rpc_endpoints:[");
             JsonArray rpc_endpoints = obj.getJsonArray("rpc_endpoints");
@@ -369,7 +403,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
                 if (j > 0) {
                     sb.append(", ");
                 }
-                sb.append(rpc_endpoints.getString(j));
+                sb.append(normalizeInetAddressString(rpc_endpoints.getString(j)));
             }
 
             sb.append("], endpoint_details:[");
@@ -405,7 +439,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<List<String>, List<String>> getPendingRangeToEndpointMap(String keyspace) {
         log(" getPendingRangeToEndpointMap(String keyspace)");
-        return client.getMapListStrValue("/storage_service/pending_range/" + keyspace);
+        return normalizeListToInetAddressStringList(client.getMapListStrValue("/storage_service/pending_range/" + keyspace));
     }
 
     /**
@@ -416,7 +450,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<String, String> getTokenToEndpointMap() {
         log(" getTokenToEndpointMap()");
-        return client.getMapStrValue("/storage_service/tokens_endpoint");
+        return normalizeStringToInetAddressStringMap(client.getMapStrValue("/storage_service/tokens_endpoint"));
     }
 
     /** Retrieve this hosts unique ID */
@@ -438,13 +472,13 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     @Override
     public Map<String, String> getHostIdMap() {
         log(" getHostIdMap()");
-        return client.getMapStrValue("/storage_service/host_id");
+        return normalizeInetAddressStringMap(client.getMapStrValue("/storage_service/host_id"));
     }
 
     /** Retrieve the mapping of endpoint to host ID */
     public Map<String, String> getHostIdToAddressMap() {
         log(" getHostIdToAddressMap()");
-        return client.getReverseMapStrValue("/storage_service/host_id");
+        return normalizeStringToInetAddressStringMap(client.getReverseMapStrValue("/storage_service/host_id"));
     }
 
     /**
@@ -474,12 +508,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
         for (Map.Entry<String, Double> entry : load.entrySet()) {
             map.put(entry.getKey(), FileUtils.stringifyFileSize(entry.getValue()));
         }
-        return map;
+        return normalizeInetAddressStringMap(map);
     }
 
     public Map<String, Double> getLoadMapAsDouble() {
         log(" getLoadMapAsDouble()");
-        return client.getMapStringDouble("/storage_service/load_map");
+        return normalizeInetAddressStringMap(client.getMapStringDouble("/storage_service/load_map"));
     }
 
     /**
@@ -1706,12 +1740,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
 
     @Override
     public Map<String, String> getEndpointToHostId() {
-        return getHostIdMap();
+        return normalizeInetAddressStringMap(getHostIdMap());
     }
 
     @Override
     public Map<String, String> getHostIdToEndpoint() {
-        return getHostIdToAddressMap();
+        return normalizeStringToInetAddressStringMap(getHostIdToAddressMap());
     }
 
     @Override
