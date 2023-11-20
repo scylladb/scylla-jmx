@@ -425,6 +425,16 @@ public class APIBuilder extends MBeanServerBuilder {
             return (a == null) ? b == null : a.equals(b);
         }
 
+        // Unquote result of ObjectName.getKeyProperty(), if it was quoted
+        // by ObjectName.quote().
+        private static String maybe_unquote(String s) {
+            if (s == null || s.charAt(0) != '"') {
+                return s;
+            } else {
+                return ObjectName.unquote(s);
+            }
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -433,7 +443,7 @@ public class APIBuilder extends MBeanServerBuilder {
             }
             TableMetricParams oo = (TableMetricParams) o;
             return equal(name.getKeyProperty("keyspace"), oo.name.getKeyProperty("keyspace"))
-                    && equal(name.getKeyProperty("scope"), oo.name.getKeyProperty("scope"))
+                    && equal(maybe_unquote(name.getKeyProperty("scope")), maybe_unquote(oo.name.getKeyProperty("scope")))
                     && equal(name.getKeyProperty("name"), oo.name.getKeyProperty("name"))
                     && equal(name.getKeyProperty("type"), oo.name.getKeyProperty("type"));
         }
@@ -453,7 +463,7 @@ public class APIBuilder extends MBeanServerBuilder {
         @Override
         public int hashCode() {
             return safeAdd(hash(name.getKeyProperty("keyspace")),
-                    hash(name.getKeyProperty("scope")),
+                    hash(maybe_unquote(name.getKeyProperty("scope"))),
                     hash(name.getKeyProperty("name")),
                     hash(name.getKeyProperty("type")));
         }
