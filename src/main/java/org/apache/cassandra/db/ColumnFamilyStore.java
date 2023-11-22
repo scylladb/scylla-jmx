@@ -161,11 +161,34 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
         service =  Executors.newSingleThreadExecutor();
     }
 
+    // Unquote result of ObjectName.getKeyProperty(), if it was quoted
+    // by ObjectName.quote().
+    private static String maybe_unquote(String s) {
+        if (s == null || s.charAt(0) != '"') {
+            return s;
+        } else {
+            return ObjectName.unquote(s);
+        }
+    }
+
+    // Quote a string to be used as a value for ObjectName's constructor.
+    // The ObjectName documentation specifies that the value must be quoted
+    // if it contains a comma, equals, colon, or quote, but of these only
+    // the colon is of interest to use because it is used in Alternator GSI
+    // tables.
+    private static String maybe_quote(String s) {
+        if (s == null || !s.contains(":")) {
+            return s;
+        } else {
+            return ObjectName.quote(s);
+        }
+    }
+
     public ColumnFamilyStore(APIClient client, ObjectName name) {
         // The columnfamily values was quote()ed when creating the Objectname
         // (see getName()), and name.getKeyProperty() returns it still quoted,
         // so we need to unquote it back here.
-        this(client, name.getKeyProperty("type"), name.getKeyProperty("keyspace"), ObjectName.unquote(name.getKeyProperty("columnfamily")));
+        this(client, name.getKeyProperty("type"), name.getKeyProperty("keyspace"), maybe_unquote(name.getKeyProperty("columnfamily")));
     }
 
     /** true if this CFS contains secondary index data */
@@ -189,7 +212,7 @@ public class ColumnFamilyStore extends MetricsMBean implements ColumnFamilyStore
         // The quote() call below is necessary for the table name because it might contain
         // a colon (see https://github.com/scylladb/scylla-jmx/issues/226).
         return new ObjectName(
-                "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + ObjectName.quote(name));
+                "org.apache.cassandra.db:type=" + type + ",keyspace=" + keyspace + ",columnfamily=" + maybe_quote(name));
     }
 
 	public static RegistrationChecker createRegistrationChecker() {
