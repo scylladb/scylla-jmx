@@ -45,6 +45,7 @@ parameters=(
     -D"release $SCYLLA_RELEASE"
     -D"product $PRODUCT"
     -D"reloc_pkg $RELOC_PKG_BASENAME"
+    -D"_unitdir /usr/lib/systemd/system"
 )
 
 cp dist/redhat/scylla-jmx.spec $RPMBUILD/SPECS

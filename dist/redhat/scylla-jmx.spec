@@ -9,7 +9,6 @@ URL:            http://www.scylladb.com/
 Source0:        %{reloc_pkg}
 
 BuildArch:      noarch
-BuildRequires:  systemd-units
 Requires:       %{product}-server
 Requires:       jre-11-headless
 AutoReqProv:    no
