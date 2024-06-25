@@ -1168,14 +1168,9 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      * else a empty Map is returned.
      */
     @Override
-    public Map<InetAddress, Float> effectiveOwnership(String keyspace) throws IllegalStateException {
+    public Map<InetAddress, Float> effectiveOwnership(String keyspace) {
         log(" effectiveOwnership(String keyspace) throws IllegalStateException");
-        try {
-            return client.getMapInetAddressFloatValue("/storage_service/ownership/" + keyspace);
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Non-system keyspaces don't have the same replication settings, effective ownership information is meaningless");
-        }
+        return client.getMapInetAddressFloatValue("/storage_service/ownership/" + keyspace);
     }
 
     @Override
