@@ -80,6 +80,10 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+install() {
+    command install -Z "$@"
+}
+
 check_usermode_support() {
     user=$(systemctl --help|grep -e '--user')
     [ -n "$user" ]
@@ -130,6 +134,7 @@ if ! $nonroot && ! $without_systemd; then
 EnvironmentFile=
 EnvironmentFile=$sysconfdir/scylla-jmx
 EOS
+        chmod 644 "$retc"/systemd/system/scylla-jmx.service.d/sysconfdir.conf
     fi
 elif ! $without_systemd; then
     install -d -m755 "$rsystemd"/scylla-jmx.service.d
@@ -143,6 +148,7 @@ User=
 Group=
 WorkingDirectory=$rprefix
 EOS
+    chmod 644 "$rsystemd"/scylla-jmx.service.d/nonroot.conf
 fi
 
 install -m644 scylla-jmx-1.0.jar "$rprefix/jmx"
