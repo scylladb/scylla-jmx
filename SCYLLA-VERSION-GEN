@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PRODUCT=scylla
 VERSION=666.development

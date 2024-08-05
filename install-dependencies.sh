@@ -20,7 +20,8 @@
 . /etc/os-release
 
 if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
-    apt -y install maven openjdk-11-jdk-headless
+    apt-get update
+    apt-get install -y maven openjdk-11-jdk-headless git rpm devscripts debhelper fakeroot dpkg-dev
 elif [ "$ID" = "fedora" ] || [ "$ID" = "centos" ]; then
-    dnf install -y maven java-11-openjdk-headless
+    dnf install -y maven java-11-openjdk-headless git rpm-build devscripts debhelper fakeroot dpkg-dev
 fi

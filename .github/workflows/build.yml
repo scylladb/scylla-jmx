@@ -1,0 +1,59 @@
+on:
+  push:
+    branches:
+      - master
+      - branch-*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build packages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: 'maven'
+          cache-dependency-path: 'scylla-jmx-parent/pom.xml'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y devscripts debhelper
+      - name: Build relocatable package
+        run: |
+          ./reloc/build_reloc.sh --nodeps
+          echo "VERSION=$(./SCYLLA-VERSION-GEN)" >> "$GITHUB_ENV"
+      - name: Build RPM
+        run: |
+          ./reloc/build_rpm.sh --reloc-pkg build/scylla-jmx-${VERSION}.noarch.tar.gz
+      - name: Build DEB
+        run: |
+          ./reloc/build_deb.sh --reloc-pkg build/scylla-jmx-${VERSION}.noarch.tar.gz
+      - name: Upload relocatable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: scylla-jmx-relocatable-${{env.VERSION}}
+          path: build/scylla-jmx-*.noarch.tar.gz
+          if-no-files-found: error
+      - name: Upload RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: scylla-jmx-rpm-${{env.VERSION}}
+          path: build/redhat/RPMS/noarch/scylla-jmx-*.noarch.rpm
+          if-no-files-found: error
+      - name: Upload DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: scylla-jmx-deb-${{env.VERSION}}
+          path: build/debian/scylla-jmx_*_all.deb
+          if-no-files-found: error
+      - name: Publish packages to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: |
+            build/scylla-jmx-*.noarch.tar.gz
+            build/redhat/RPMS/noarch/scylla-jmx-*.noarch.rpm
+            build/debian/scylla-jmx_*_all.deb
