@@ -23,3 +23,9 @@ To get help on supported options:
 ```console
 $ ./scripts/scylla-jmx --help
 ```
+
+## Documentation
+
+- [Install Scylla JMX Package](docs/install.md)
+
+
