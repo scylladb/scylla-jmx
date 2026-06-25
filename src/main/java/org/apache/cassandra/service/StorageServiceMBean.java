@@ -312,13 +312,13 @@ public interface StorageServiceMBean extends NotificationEmitter {
     /**
      * Forces major compaction of a single keyspace
      */
-    public void forceKeyspaceCompaction(boolean splitOutput, String keyspaceName, String... tableNames)
+    public void forceKeyspaceCompaction(boolean splitOutput, boolean offStrategy, String keyspaceName, String... tableNames)
             throws IOException, ExecutionException, InterruptedException;
 
     /**
      * Forces major compaction of a single keyspace.
      */
-    public void forceKeyspaceCompaction(String keyspaceName, String... tableNames)
+    public void forceKeyspaceCompaction(boolean offStrategy, String keyspaceName, String... tableNames)
             throws IOException, ExecutionException, InterruptedException;
 
     @Deprecated

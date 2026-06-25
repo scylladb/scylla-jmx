@@ -682,11 +682,12 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
      * Forces major compaction of a single keyspace
      */
     @Override
-    public void forceKeyspaceCompaction(String keyspaceName, String... columnFamilies)
+    public void forceKeyspaceCompaction(boolean offStrategy, String keyspaceName, String... columnFamilies)
             throws IOException, ExecutionException, InterruptedException {
-        log(" forceKeyspaceCompaction(String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
+        log(" forceKeyspaceCompaction(boolean offStrategy, String keyspaceName, String... columnFamilies) throws IOException, ExecutionException, InterruptedException");
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<String, String>();
         APIClient.set_query_param(queryParams, "cf", APIClient.join(columnFamilies));
+        APIClient.set_bool_query_param(queryParams, "offstrategy", offStrategy);
         client.post("/storage_service/keyspace_compaction/" + keyspaceName, queryParams);
     }
 
@@ -694,7 +695,7 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     public void forceKeyspaceCompactionForTokenRange(String keyspaceName, String startToken, String endToken,
             String... tableNames) throws IOException, ExecutionException, InterruptedException {
         // TODO: actually handle token ranges.
-        forceKeyspaceCompaction(keyspaceName, tableNames);
+        forceKeyspaceCompaction(false, keyspaceName, tableNames);
     }
 
     /**
@@ -1755,10 +1756,10 @@ public class StorageService extends MetricsMBean implements StorageServiceMBean,
     }
 
     @Override
-    public void forceKeyspaceCompaction(boolean splitOutput, String keyspaceName, String... tableNames)
+    public void forceKeyspaceCompaction(boolean splitOutput, boolean offStrategy, String keyspaceName, String... tableNames)
             throws IOException, ExecutionException, InterruptedException {
         // "splitOutput" afaik not relevant for scylla (yet?...)
-        forceKeyspaceCompaction(keyspaceName, tableNames);
+        forceKeyspaceCompaction(offStrategy, keyspaceName, tableNames);
     }
 
     @Override
